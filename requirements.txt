@@ -1,18 +1,52 @@
-# Dépendances principales (REQUISES)
+# ============================================================================
+# DÉPENDANCES PRINCIPALES (REQUISES pour backtesting)
+# ============================================================================
 pandas>=2.0.0
 numpy>=1.24.0
 matplotlib>=3.7.0
 
-# Dépendances optionnelles (pour données réelles)
-# Décommentez selon vos besoins:
+# ============================================================================
+# DÉPENDANCES POUR DONNÉES EN TEMPS RÉEL (REQUISES pour live trading)
+# ============================================================================
 
-# Pour récupérer des données d'actions et forex
-# yfinance>=0.2.28
+# Récupération de données
+yfinance>=0.2.28          # Yahoo Finance (données historiques)
+ccxt>=4.0.0               # Binance et autres exchanges crypto
+requests>=2.31.0          # API calls (Alpha Vantage, FRED, NewsAPI)
+pytz>=2023.3              # Gestion des fuseaux horaires
 
-# Pour récupérer des données de crypto
-# ccxt>=4.0.0
+# ============================================================================
+# DÉPENDANCES POUR MONITORING ET DASHBOARD (NOUVELLES FONCTIONNALITÉS)
+# ============================================================================
 
-# Pour des fonctionnalités avancées (optionnel)
-# scipy>=1.10.0
-# scikit-learn>=1.3.0
-# seaborn>=0.12.0
+# Dashboard Web Interactif
+streamlit>=1.31.0         # Framework web pour dashboard
+plotly>=5.18.0            # Graphiques interactifs
+
+# Alertes Discord
+# (requests déjà inclus ci-dessus)
+
+# ============================================================================
+# DÉPENDANCES OPTIONNELLES (pour fonctionnalités avancées)
+# ============================================================================
+
+# Machine Learning et optimisation
+scipy>=1.10.0             # Optimisation mathématique
+scikit-learn>=1.3.0       # ML pour prédictions
+
+# Visualisation avancée
+seaborn>=0.12.0           # Graphiques statistiques
+kaleido>=0.2.1            # Export Plotly en images
+
+# ============================================================================
+# INSTALLATION RAPIDE
+# ============================================================================
+# Installation minimale (backtesting seul):
+#   pip install pandas numpy matplotlib
+#
+# Installation complète (backtesting + live + monitoring):
+#   pip install -r requirements.txt
+#
+# Installation dashboard uniquement:
+#   pip install streamlit plotly requests ccxt pandas numpy
+# ============================================================================
