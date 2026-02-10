@@ -3,7 +3,7 @@ Multi Paper Trading - 10 portefeuilles en parallele
 Compare differentes configurations d'allocation pour trouver la meilleure approche.
 
 Usage:
-    python multi_paper_trading.py --capital 100000 --interval 15
+    python multi_paper_trading.py --capital 100000 --signal-hour 22 --sltp-interval 2
     python multi_paper_trading.py --single
     python multi_paper_trading.py --reset --single
 """
@@ -154,13 +154,15 @@ class MultiPaperTrader:
         self,
         total_capital: float = 100000,
         configs: Optional[List[Dict]] = None,
-        check_interval_minutes: int = 15,
+        signal_hour_utc: int = 22,
+        sltp_interval_minutes: int = 2,
         timeframe: str = '1d',
         base_state_dir: str = DEFAULT_STATE_DIR,
     ):
         self.total_capital = total_capital
         self.configs = configs or PORTFOLIO_CONFIGS
-        self.check_interval = check_interval_minutes
+        self.signal_hour_utc = signal_hour_utc
+        self.sltp_interval = sltp_interval_minutes
         self.timeframe = timeframe
         self.base_state_dir = base_state_dir
 
@@ -211,7 +213,6 @@ class MultiPaperTrader:
             trader = AutoPaperTrader(
                 total_capital=self.capital_per_portfolio,
                 max_positions=cfg['max_positions'],
-                check_interval_minutes=self.check_interval,
                 min_trades=cfg['min_trades'],
                 min_sharpe=cfg['min_sharpe'],
                 max_drawdown=cfg['max_drawdown'],
@@ -239,20 +240,42 @@ class MultiPaperTrader:
         return len(self.traders) > 0
 
     def run(self):
-        """Boucle infinie: run_cycle puis attente."""
-        self.log.info(f"\nDemarrage boucle (intervalle: {self.check_interval} min)")
+        """Boucle infinie avec deux frequences:
+        - Signaux (run_cycle): 1x par jour a signal_hour_utc (defaut: 22h UTC)
+          + 1 cycle immediat au demarrage
+        - SL/TP (run_sltp_cycle): toutes les sltp_interval minutes (defaut: 2 min)
+        """
+        self.log.info(f"\nDemarrage boucle:")
+        self.log.info(f"  Signaux: 1x/jour a {self.signal_hour_utc}:00 UTC + au demarrage")
+        self.log.info(f"  SL/TP:   toutes les {self.sltp_interval} min")
         self.log.info("Ctrl+C pour arreter proprement.\n")
+
+        # Premier cycle complet immediat
+        self.run_cycle()
+        last_signal_date = datetime.utcnow().strftime('%Y-%m-%d')
 
         while self._running:
             try:
-                self.run_cycle()
+                now_utc = datetime.utcnow()
+
+                # Cycle signaux: 1x/jour quand on atteint signal_hour_utc
+                today_str = now_utc.strftime('%Y-%m-%d')
+                if now_utc.hour >= self.signal_hour_utc and today_str != last_signal_date:
+                    self.run_cycle()
+                    last_signal_date = today_str
+                else:
+                    # Sinon, uniquement check SL/TP
+                    self.run_sltp_cycle()
+
                 if not self._running:
                     break
-                self.log.info(f"\nProchain cycle dans {self.check_interval} min...")
-                for _ in range(self.check_interval * 6):
+
+                # Attente jusqu'au prochain check SL/TP
+                for _ in range(self.sltp_interval * 6):
                     if not self._running:
                         break
                     time.sleep(10)
+
             except Exception as e:
                 self.log.error(f"Erreur dans le cycle: {e}", exc_info=True)
                 time.sleep(60)
@@ -262,9 +285,9 @@ class MultiPaperTrader:
         self.log.info("Bye.")
 
     def run_cycle(self):
-        """Execute un cycle pour chacun des 10 traders."""
+        """Execute un cycle complet (signaux + SL/TP) pour chacun des 10 traders."""
         self.log.info(f"\n{'='*70}")
-        self.log.info(f"MULTI CYCLE - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        self.log.info(f"CYCLE COMPLET (signaux + SL/TP) - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         self.log.info(f"{'='*70}")
 
         for trader in self.traders:
@@ -275,6 +298,31 @@ class MultiPaperTrader:
 
         self._print_comparison()
         self._save_consolidated()
+
+    def run_sltp_cycle(self):
+        """Check SL/TP uniquement (rapide, pas de generation de signaux)."""
+        total_positions = sum(len(t.positions) for t in self.traders)
+        if total_positions == 0:
+            return
+
+        self.log.info(f"\n--- SL/TP CHECK - {datetime.now().strftime('%H:%M:%S')} "
+                      f"({total_positions} positions ouvertes) ---")
+
+        closed_count = 0
+        for trader in self.traders:
+            if not trader.positions:
+                continue
+            try:
+                before = len(trader.positions)
+                trader.check_sl_tp()
+                after = len(trader.positions)
+                closed_count += (before - after)
+            except Exception as e:
+                self.log.warning(f"  Erreur SL/TP {trader.portfolio_name}: {e}")
+
+        if closed_count > 0:
+            self.log.info(f"  >> {closed_count} position(s) fermee(s) par SL/TP")
+            self._save_consolidated()
 
     def _print_comparison(self):
         """Affiche un tableau comparatif des 10 portefeuilles."""
@@ -383,8 +431,10 @@ def main():
     )
     parser.add_argument('--capital', type=float, default=100000,
                         help='Capital total reparti sur les 10 portefeuilles (defaut: 100000 = 10k/portfolio)')
-    parser.add_argument('--interval', type=int, default=15,
-                        help='Intervalle entre cycles en minutes (defaut: 15)')
+    parser.add_argument('--signal-hour', type=int, default=22,
+                        help='Heure UTC du cycle quotidien de signaux (defaut: 22 = 22h UTC, apres cloture US)')
+    parser.add_argument('--sltp-interval', type=int, default=2,
+                        help='Intervalle entre checks SL/TP en minutes (defaut: 2)')
     parser.add_argument('--single', action='store_true',
                         help='Executer un seul cycle puis quitter')
     parser.add_argument('--timeframe', default='1d',
@@ -412,7 +462,8 @@ def main():
 
     multi = MultiPaperTrader(
         total_capital=args.capital,
-        check_interval_minutes=args.interval,
+        signal_hour_utc=args.signal_hour,
+        sltp_interval_minutes=args.sltp_interval,
         timeframe=args.timeframe,
         base_state_dir=base_dir,
     )

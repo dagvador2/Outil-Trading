@@ -522,6 +522,15 @@ class AutoPaperTrader:
             f"P&L: {icon}{pnl:,.2f} EUR ({icon}{pnl_pct:.2f}%) | {reason}"
         )
 
+    def check_sl_tp(self):
+        """Verifie uniquement les SL/TP des positions ouvertes et sauvegarde.
+        Methode publique pour les checks rapides entre les cycles de signaux."""
+        if not self.positions:
+            return
+        self.log.info(f"  [{self.portfolio_name}] Check SL/TP ({len(self.positions)} positions)")
+        self._check_positions()
+        self._save_state()
+
     def _check_positions(self):
         symbols_to_close = []
         for symbol, pos in self.positions.items():
