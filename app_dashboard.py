@@ -5,17 +5,25 @@ Interface de monitoring en temps réel pour 50 actifs
 
 import streamlit as st
 import pandas as pd
+import numpy as np
 import plotly.graph_objects as go
 import plotly.express as px
 from datetime import datetime, timedelta
 import time
 import os
+import json
 from typing import Dict, List
 
 from live_data_feed import LiveDataFeed
 from signal_generator import LiveSignalGenerator
 from assets_config import MONITORED_ASSETS, get_all_symbols, get_asset_type, get_asset_info
 from macro_data_fetcher import MacroDataFetcher
+from backtesting_engine import BacktestEngine
+from strategies import *
+from yahoo_data_feed import convert_to_yahoo_symbol
+from backtest_library import instantiate_strategy, BacktestLibrary
+from strategy_allocator import StrategyAllocator, TradingPlan
+import yfinance as yf
 import pytz
 
 
@@ -97,13 +105,15 @@ def init_generator(_feed):
 # ============================================================================
 
 def get_all_current_signals(generator: LiveSignalGenerator,
-                             asset_filter: str = "Tous") -> List[Dict]:
+                             asset_filter: str = "Tous",
+                             timeframe: str = "1h") -> List[Dict]:
     """
     Récupère tous les signaux actuels
 
     Args:
         generator: Instance LiveSignalGenerator
         asset_filter: Filtre par catégorie ('Tous', 'Crypto', 'Stocks', etc.)
+        timeframe: Intervalle de temps (5min, 15min, 1h, 4h, 1d)
 
     Returns:
         Liste de signaux
@@ -137,7 +147,7 @@ def get_all_current_signals(generator: LiveSignalGenerator,
             status_text.text(f"Chargement {symbol}... ({i+1}/{len(symbols)})")
 
             asset_type = get_asset_type(symbol)
-            signal = generator.get_current_signal(symbol, asset_type)
+            signal = generator.get_current_signal(symbol, asset_type, timeframe=timeframe)
 
             if signal:
                 signals.append(signal)
@@ -461,6 +471,282 @@ def create_indicators_gauge(indicators: Dict) -> go.Figure:
 
 
 # ============================================================================
+# Fonctions pour l'explorateur de backtests
+# ============================================================================
+
+def get_strategy_description(strategy_name: str) -> Dict:
+    """
+    Retourne la description détaillée d'une stratégie
+
+    Args:
+        strategy_name: Nom de la stratégie
+
+    Returns:
+        Dict avec description, paramètres, indicateurs
+    """
+    descriptions = {
+        'MA_Crossover_20_50': {
+            'name': 'Moving Average Crossover 20/50',
+            'description': 'Croisement de moyennes mobiles. Achat quand la MA rapide (20) croise au-dessus de la MA lente (50), vente quand elle croise en-dessous.',
+            'parameters': {'MA Rapide': 20, 'MA Lente': 50},
+            'indicators': ['SMA 20', 'SMA 50'],
+            'best_for': 'Tendances claires',
+            'risk': 'Moyen'
+        },
+        'MA_Crossover_10_30': {
+            'name': 'Moving Average Crossover 10/30',
+            'description': 'Croisement de moyennes mobiles rapides. Plus reactif que 20/50 mais plus de faux signaux.',
+            'parameters': {'MA Rapide': 10, 'MA Lente': 30},
+            'indicators': ['SMA 10', 'SMA 30'],
+            'best_for': 'Marches volatils',
+            'risk': 'Moyen-Eleve'
+        },
+        'RSI_14_30_70': {
+            'name': 'RSI (14, 30/70)',
+            'description': 'Achat quand RSI < 30 (survente), vente quand RSI > 70 (surachat).',
+            'parameters': {'Periode RSI': 14, 'Survente': 30, 'Surachat': 70},
+            'indicators': ['RSI 14'],
+            'best_for': 'Marches oscillants',
+            'risk': 'Moyen-Eleve'
+        },
+        'RSI_14_35_80': {
+            'name': 'RSI (14, 35/80)',
+            'description': 'RSI avec seuils asymetriques. Achat RSI < 35, vente RSI > 80. Plus selectif en surachat.',
+            'parameters': {'Periode RSI': 14, 'Survente': 35, 'Surachat': 80},
+            'indicators': ['RSI 14'],
+            'best_for': 'Marches haussiers',
+            'risk': 'Moyen'
+        },
+        'MACD_Standard': {
+            'name': 'MACD (12/26/9)',
+            'description': 'Achat quand MACD croise au-dessus de sa ligne de signal, vente quand il croise en-dessous.',
+            'parameters': {'Fast': 12, 'Slow': 26, 'Signal': 9},
+            'indicators': ['MACD', 'Signal', 'Histogram'],
+            'best_for': 'Changements de tendance',
+            'risk': 'Moyen'
+        },
+        'Bollinger_20_2': {
+            'name': 'Bollinger Bands (20, 2)',
+            'description': 'Achat quand le prix touche la bande inferieure, vente quand il touche la bande superieure.',
+            'parameters': {'Periode': 20, 'Ecart-type': 2},
+            'indicators': ['BB Upper', 'BB Middle', 'BB Lower'],
+            'best_for': 'Marches en range',
+            'risk': 'Moyen'
+        },
+        'Combined': {
+            'name': 'Strategie Combinee',
+            'description': 'Combine MA + RSI + MACD. Necessite au moins 2 indicateurs sur 3 alignes pour un signal.',
+            'parameters': {'MA': '20/50', 'RSI': '14/30/70', 'MACD': '12/26/9'},
+            'indicators': ['SMA 20', 'SMA 50', 'RSI 14', 'MACD'],
+            'best_for': 'Tous types de marches',
+            'risk': 'Faible-Moyen'
+        },
+        'ADX_Trend_14_25': {
+            'name': 'ADX Trend (14, 25)',
+            'description': 'Entre en position uniquement sur tendances fortes (ADX > 25). Direction determinee par +DI/-DI.',
+            'parameters': {'Periode ADX': 14, 'Seuil': 25},
+            'indicators': ['ADX', '+DI', '-DI'],
+            'best_for': 'Tendances fortes',
+            'risk': 'Moyen'
+        },
+        'VWAP_20': {
+            'name': 'VWAP (20)',
+            'description': 'Achat quand prix sous la bande basse VWAP (sous-evalue), vente quand au-dessus de la bande haute.',
+            'parameters': {'Periode': 20},
+            'indicators': ['VWAP', 'Bandes VWAP'],
+            'best_for': 'Retour a la moyenne',
+            'risk': 'Moyen'
+        },
+        'Ichimoku_9_26_52': {
+            'name': 'Ichimoku Cloud (9/26/52)',
+            'description': 'Systeme complet japonais. Achat quand prix au-dessus du nuage avec Tenkan > Kijun.',
+            'parameters': {'Tenkan': 9, 'Kijun': 26, 'Senkou B': 52},
+            'indicators': ['Tenkan', 'Kijun', 'Senkou A/B', 'Chikou'],
+            'best_for': 'Analyse complete',
+            'risk': 'Moyen'
+        }
+    }
+
+    # Normaliser le nom de la stratégie pour la recherche
+    normalized_name = strategy_name.replace('_', ' ').replace('  ', ' ').lower()
+
+    # Recherche partielle si nom exact pas trouvé
+    for key, value in descriptions.items():
+        normalized_key = key.replace('_', ' ').lower()
+        if normalized_name in normalized_key or normalized_key in normalized_name:
+            return value
+
+    # Description par défaut avec le nom original
+    return {
+        'name': strategy_name.replace('_', ' '),
+        'description': 'Stratégie de trading technique',
+        'parameters': {},
+        'indicators': ['Inconnu'],
+        'best_for': 'À déterminer',
+        'risk': 'Non évalué'
+    }
+
+
+def run_detailed_backtest(symbol: str, strategy_name: str,
+                          start_date: str = '2024-01-01',
+                          end_date: str = '2025-12-31') -> Dict:
+    """
+    Exécute un backtest détaillé et retourne tous les détails
+
+    Args:
+        symbol: Symbole de l'actif
+        strategy_name: Nom de la stratégie
+        start_date: Date de début
+        end_date: Date de fin
+
+    Returns:
+        Dict avec data, trades, metrics, strategy
+    """
+    try:
+        # 1. Convertir le symbole pour Yahoo Finance
+        yahoo_symbol = convert_to_yahoo_symbol(symbol)
+
+        # 2. Charger données historiques
+        ticker = yf.Ticker(yahoo_symbol)
+        data = ticker.history(start=start_date, end=end_date)
+
+        if len(data) == 0:
+            st.error(f"Aucune donnée historique trouvée pour {symbol} (Yahoo: {yahoo_symbol})")
+            return None
+
+        # Renommer colonnes en minuscules
+        data.columns = [col.lower() for col in data.columns]
+
+        # 3. Instancier la stratégie (même fonction que la bibliothèque)
+        strategy = instantiate_strategy(strategy_name)
+        if strategy is None:
+            st.error(f"Stratégie inconnue: {strategy_name}")
+            return None
+
+        # 4. Exécuter backtest
+        engine = BacktestEngine(
+            initial_capital=10000,
+            commission=0.001,
+            slippage=0.0005
+        )
+
+        metrics = engine.run_backtest(data, strategy)
+
+        # 5. Récupérer trades
+        trades_list = []
+        for trade in engine.trades:
+            trades_list.append({
+                'entry_date': trade.entry_date,
+                'exit_date': trade.exit_date,
+                'type': trade.position_type,
+                'entry_price': trade.entry_price,
+                'exit_price': trade.exit_price,
+                'size': trade.size,
+                'profit': trade.pnl,  # Utiliser pnl au lieu de profit
+                'profit_pct': trade.pnl_pct,  # Utiliser pnl_pct au lieu de profit_pct
+                'duration_days': (trade.exit_date - trade.entry_date).days
+            })
+
+        return {
+            'data': data,
+            'trades': trades_list,
+            'metrics': metrics,
+            'strategy': strategy,
+            'equity_curve': engine.equity_curve
+        }
+
+    except Exception as e:
+        st.error(f"❌ Erreur lors du backtest de {symbol} (Yahoo: {yahoo_symbol if 'yahoo_symbol' in locals() else 'N/A'})")
+        st.error(f"Détails: {str(e)}")
+        st.info(f"💡 Astuce: Vérifiez que le symbole est correct. Les cryptos doivent utiliser le format Yahoo (ex: BTC-USD au lieu de BTC/USDT)")
+        return None
+
+
+def create_backtest_chart(data: pd.DataFrame, trades: List[Dict],
+                          symbol: str) -> go.Figure:
+    """
+    Crée un graphique avec prix et trades marqués
+
+    Args:
+        data: DataFrame OHLCV
+        trades: Liste des trades
+        symbol: Symbole de l'actif
+
+    Returns:
+        Figure Plotly
+    """
+    fig = go.Figure()
+
+    # Prix (chandelier)
+    fig.add_trace(go.Candlestick(
+        x=data.index,
+        open=data['open'],
+        high=data['high'],
+        low=data['low'],
+        close=data['close'],
+        name='Prix',
+        increasing_line_color='green',
+        decreasing_line_color='red'
+    ))
+
+    # Marquer les trades
+    for trade in trades:
+        # Point d'entrée
+        color = 'green' if trade['type'] == 'LONG' else 'red'
+        symbol_marker = 'triangle-up' if trade['type'] == 'LONG' else 'triangle-down'
+
+        fig.add_trace(go.Scatter(
+            x=[trade['entry_date']],
+            y=[trade['entry_price']],
+            mode='markers',
+            marker=dict(size=12, color=color, symbol=symbol_marker),
+            name=f"Entrée {trade['type']}",
+            showlegend=False,
+            hovertemplate=f"<b>Entrée {trade['type']}</b><br>" +
+                         f"Prix: ${trade['entry_price']:.2f}<br>" +
+                         f"Date: {trade['entry_date']}<extra></extra>"
+        ))
+
+        # Point de sortie
+        exit_color = 'lightgreen' if trade['profit'] > 0 else 'lightcoral'
+
+        fig.add_trace(go.Scatter(
+            x=[trade['exit_date']],
+            y=[trade['exit_price']],
+            mode='markers',
+            marker=dict(size=10, color=exit_color, symbol='x'),
+            name='Sortie',
+            showlegend=False,
+            hovertemplate=f"<b>Sortie</b><br>" +
+                         f"Prix: ${trade['exit_price']:.2f}<br>" +
+                         f"Profit: ${trade['profit']:.2f} ({trade['profit_pct']:.2f}%)<br>" +
+                         f"Durée: {trade['duration_days']} jours<extra></extra>"
+        ))
+
+        # Ligne reliant entrée et sortie
+        fig.add_trace(go.Scatter(
+            x=[trade['entry_date'], trade['exit_date']],
+            y=[trade['entry_price'], trade['exit_price']],
+            mode='lines',
+            line=dict(color=exit_color, width=1, dash='dot'),
+            showlegend=False,
+            hoverinfo='skip'
+        ))
+
+    fig.update_layout(
+        title=f"{symbol} - Backtest avec Trades",
+        xaxis_title="Date",
+        yaxis_title="Prix ($)",
+        height=600,
+        template="plotly_white",
+        xaxis_rangeslider_visible=False,
+        hovermode='x unified'
+    )
+
+    return fig
+
+
+# ============================================================================
 # Interface principale
 # ============================================================================
 
@@ -479,13 +765,53 @@ def main():
         st.session_state.all_signals = []
         st.session_state.signals_loaded = False
         st.session_state.last_category = None
+        st.session_state.previous_signals = {}  # Track previous signals for change detection
+        st.session_state.last_timeframe = None
 
     # Initialiser session state pour la bibliothèque backtests (évite rechargement)
     if 'backtest_library' not in st.session_state:
         st.session_state.backtest_library = None
 
+    # Initialiser session state pour le backtest détaillé
+    if 'detailed_backtest_results' not in st.session_state:
+        st.session_state.detailed_backtest_results = None
+    if 'detailed_backtest_asset' not in st.session_state:
+        st.session_state.detailed_backtest_asset = None
+    if 'detailed_backtest_strategy' not in st.session_state:
+        st.session_state.detailed_backtest_strategy = None
+
     # Sidebar
     st.sidebar.title("⚙️ Paramètres")
+
+    # Sélecteur de timeframe
+    st.sidebar.markdown("---")
+    st.sidebar.subheader("📊 Timeframe des Signaux")
+
+    timeframe_options = {
+        "5min": "5 minutes (Scalping - Très volatil)",
+        "15min": "15 minutes (Day trading)",
+        "1h": "1 heure (Swing - Recommandé)",
+        "4h": "4 heures (Position - Très stable)",
+        "1d": "1 jour (Long terme)"
+    }
+
+    selected_timeframe = st.sidebar.selectbox(
+        "Intervalle de temps",
+        options=list(timeframe_options.keys()),
+        index=2,  # Default: 1h
+        format_func=lambda x: timeframe_options[x],
+        help="Plus le timeframe est long, moins les signaux changent fréquemment"
+    )
+
+    # Info sur le timeframe
+    if selected_timeframe == "5min":
+        st.sidebar.warning("⚠️ Timeframe très court - Signaux volatils")
+    elif selected_timeframe in ["1h", "4h"]:
+        st.sidebar.success("✅ Timeframe recommandé pour trading manuel")
+    else:
+        st.sidebar.info("ℹ️ Timeframe adapté à votre style de trading")
+
+    st.sidebar.markdown("---")
 
     # Filtre de catégorie
     asset_categories = ["Tous", "Crypto", "Tech Stocks", "Commodities",
@@ -519,17 +845,29 @@ def main():
     # Bouton refresh manuel
     refresh_signals = st.sidebar.button("🔄 Rafraîchir Signaux", type="primary")
 
-    # Détecter si la catégorie a changé (invalider le cache si oui)
-    if st.session_state.last_category != selected_category:
+    # Détecter si la catégorie ou le timeframe a changé (invalider le cache si oui)
+    if (st.session_state.last_category != selected_category or
+        st.session_state.last_timeframe != selected_timeframe):
         st.session_state.signals_loaded = False
         st.session_state.last_category = selected_category
+        st.session_state.last_timeframe = selected_timeframe
 
-    # Charger les signaux seulement si demandé ou si catégorie a changé
+    # Charger les signaux seulement si demandé ou si catégorie/timeframe a changé
     if refresh_signals or not st.session_state.signals_loaded:
-        with st.spinner("Chargement des signaux..."):
-            st.session_state.all_signals = get_all_current_signals(generator, selected_category)
+        with st.spinner(f"Chargement des signaux ({selected_timeframe})..."):
+            # Sauvegarder les signaux précédents pour détecter les changements
+            previous_signals = {}
+            for sig in st.session_state.all_signals:
+                previous_signals[sig.get('symbol')] = sig.get('signal')
+
+            st.session_state.previous_signals = previous_signals
+
+            # Charger les nouveaux signaux avec le timeframe sélectionné
+            st.session_state.all_signals = get_all_current_signals(
+                generator, selected_category, selected_timeframe
+            )
             st.session_state.signals_loaded = True
-            st.sidebar.success("✅ Signaux chargés!")
+            st.sidebar.success(f"✅ Signaux chargés ({selected_timeframe})!")
 
     # Utiliser les signaux en cache
     all_signals = st.session_state.all_signals
@@ -538,13 +876,14 @@ def main():
     # Onglets
     # ========================================================================
 
-    tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
+    tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
         "📊 Vue d'ensemble",
         "🎯 Signaux actifs",
         "📈 Analyse détaillée",
         "📜 Historique",
         "📚 Bibliothèque Backtests",
-        "💼 Paper Trading"
+        "💼 Paper Trading",
+        "🧠 Strategy Allocator"
     ])
 
     # ========================================================================
@@ -642,6 +981,19 @@ def main():
     with tab2:
         st.header("🎯 Signaux actifs")
 
+        # Info sur le système de détection
+        st.info(f"""
+        **Timeframe actuel:** {timeframe_options[selected_timeframe]}
+
+        **Légende des statuts:**
+        - 🆕 **NOUVEAU** : Signal détecté pour la première fois
+        - 🔄 **CHANGEMENT** : Le signal a changé depuis le dernier refresh (ex: BUY → SELL)
+        - ♻️ **Maintenu** : La position recommandée est inchangée (pas de nouveau trade à placer)
+
+        💡 **Conseil:** Si un signal est "Maintenu" et que vous avez déjà une position ouverte,
+        pas besoin de trader à nouveau. Suivez votre plan SL/TP initial.
+        """)
+
         # Filtrer selon paramètres
         filtered_signals = [
             s for s in all_signals
@@ -649,7 +1001,7 @@ def main():
             and s.get('signal') in signal_filter
         ]
 
-        st.info(f"{len(filtered_signals)} signaux correspondent aux critères")
+        st.write(f"**{len(filtered_signals)} signaux correspondent aux critères de filtrage**")
 
         if len(filtered_signals) == 0:
             st.warning("Aucun signal ne correspond aux filtres")
@@ -687,6 +1039,17 @@ def main():
                     is_open, market_status = is_market_open(symbol)
                     status_emoji = "🟢" if is_open else "🔴"
 
+                    # Détecter changement de signal
+                    current_signal = signal.get('signal', 'HOLD')
+                    previous_signal = st.session_state.previous_signals.get(symbol, None)
+
+                    if previous_signal is None:
+                        signal_status = "🆕 NOUVEAU"
+                    elif previous_signal != current_signal:
+                        signal_status = "🔄 CHANGEMENT"
+                    else:
+                        signal_status = "♻️ Maintenu"
+
                     # Informations détaillées
                     asset_name = asset_info.get('name', symbol)
 
@@ -702,6 +1065,7 @@ def main():
                     with st.expander(f"{status_emoji} **{symbol}** - {asset_name}{extra_info} - "
                                      f"{signal.get('signal', 'N/A')} - "
                                      f"{signal.get('confidence', 0):.1%} - "
+                                     f"{signal_status} - "
                                      f"{market_status}"):
 
                         col1, col2, col3, col4 = st.columns(4)
@@ -937,6 +1301,31 @@ def main():
 
             library = st.session_state.backtest_library
 
+            # Bouton pour calculer / recalculer les backtests réels
+            col_calc1, col_calc2 = st.columns([3, 1])
+            with col_calc1:
+                if not library.loaded:
+                    st.warning("Aucun backtest calcule. Cliquez sur le bouton pour lancer le calcul avec Yahoo Finance.")
+                else:
+                    st.success(f"Backtests charges: {len(library.results_df)} combinaisons (source: Yahoo Finance + BacktestEngine)")
+            with col_calc2:
+                calc_label = "Calculer les Backtests" if not library.loaded else "Recalculer"
+                if st.button(f"🔄 {calc_label}", type="primary", key="compute_backtests_btn"):
+                    progress_bar = st.progress(0)
+                    status_text = st.empty()
+
+                    def on_progress(current, total, message):
+                        progress_bar.progress(current / total)
+                        status_text.text(f"[{current}/{total}] {message}")
+
+                    library.compute_all_backtests(progress_callback=on_progress)
+                    st.session_state.backtest_library = library
+
+                    progress_bar.empty()
+                    status_text.empty()
+                    st.success(f"Backtests calcules: {len(library.results_df)} combinaisons")
+                    st.rerun()
+
             if library.loaded:
                 stats = library.get_statistics()
 
@@ -1020,9 +1409,270 @@ def main():
                     fig_heatmap.update_layout(height=600)
                     st.plotly_chart(fig_heatmap, use_container_width=True)
 
+                # ========== EXPLORATEUR DÉTAILLÉ ==========
+                st.markdown("---")
+                st.subheader("🔬 Explorateur Détaillé de Stratégie")
+                st.info("Sélectionnez une combinaison actif + stratégie pour voir le backtest complet avec tous les trades")
+
+                # Sélection actif + stratégie
+                col_select1, col_select2 = st.columns(2)
+
+                with col_select1:
+                    # Liste des actifs disponibles
+                    available_assets = sorted(library.results_df['asset'].unique().tolist())
+                    selected_asset = st.selectbox(
+                        "Choisir un actif",
+                        available_assets,
+                        key='backtest_asset_selector'
+                    )
+
+                with col_select2:
+                    # Liste des stratégies pour cet actif
+                    asset_strategies = library.get_results_by_asset(selected_asset)
+                    available_strategies = sorted(asset_strategies['strategy'].unique().tolist())
+                    selected_strategy = st.selectbox(
+                        "Choisir une stratégie",
+                        available_strategies,
+                        key='backtest_strategy_selector'
+                    )
+
+                # Bouton pour lancer l'analyse détaillée
+                if st.button("🚀 Analyser en Détail", type="primary", key="run_detailed_backtest_btn"):
+                    with st.spinner(f"Exécution du backtest détaillé pour {selected_asset} avec {selected_strategy}..."):
+                        # Exécuter backtest détaillé
+                        backtest_results = run_detailed_backtest(
+                            symbol=selected_asset,
+                            strategy_name=selected_strategy,
+                            start_date='2024-01-01',
+                            end_date='2025-12-31'
+                        )
+
+                        # Stocker dans session_state pour persistance
+                        st.session_state.detailed_backtest_results = backtest_results
+                        st.session_state.detailed_backtest_asset = selected_asset
+                        st.session_state.detailed_backtest_strategy = selected_strategy
+
+                # Afficher les résultats s'ils existent (persistant après rerun)
+                if st.session_state.detailed_backtest_results is not None:
+                    backtest_results = st.session_state.detailed_backtest_results
+                    selected_asset = st.session_state.detailed_backtest_asset
+                    selected_strategy = st.session_state.detailed_backtest_strategy
+
+                    if backtest_results:
+                        # Afficher le symbole Yahoo utilisé
+                        yahoo_symbol = convert_to_yahoo_symbol(selected_asset)
+
+                        col_info1, col_info2 = st.columns([3, 1])
+                        with col_info1:
+                            st.success(f"✅ Backtest chargé: {selected_asset} - {selected_strategy}")
+                            if yahoo_symbol != selected_asset:
+                                st.info(f"📊 Symbole Yahoo Finance: `{yahoo_symbol}` (converti depuis `{selected_asset}`)")
+
+                        with col_info2:
+                            # Bouton pour effacer les résultats
+                            if st.button("🗑️ Effacer", key="clear_backtest_btn", use_container_width=True):
+                                st.session_state.detailed_backtest_results = None
+                                st.session_state.detailed_backtest_asset = None
+                                st.session_state.detailed_backtest_strategy = None
+                                st.rerun()
+
+                        # Afficher warning sur les données
+                        num_candles = len(backtest_results['data'])
+                        num_trades = backtest_results['metrics'].get('total_trades', 0)
+
+                        if num_trades == 0:
+                            st.warning(f"⚠️ Aucun trade généré sur cette période (2024-2025, {num_candles} bougies). "
+                                      f"Cela peut indiquer que les conditions de la stratégie ne sont jamais remplies, "
+                                      f"ou que Yahoo Finance n'a pas assez de données pour cet actif.")
+
+                        st.info(f"""
+                        **Source des donnees:** Yahoo Finance (periode 2024-2025, {num_candles} bougies daily).
+                        La bibliotheque et l'explorateur utilisent le meme moteur (BacktestEngine) et les memes donnees Yahoo Finance.
+                        Les resultats sont identiques.
+                        """)
+
+                        # 1. DESCRIPTION DE LA STRATÉGIE
+                        st.markdown("---")
+                        st.subheader("📖 Description de la Stratégie")
+
+                        strategy_desc = get_strategy_description(selected_strategy)
+
+                        col_desc1, col_desc2 = st.columns([2, 1])
+
+                        with col_desc1:
+                            st.markdown(f"**{strategy_desc['name']}**")
+                            st.write(strategy_desc['description'])
+
+                            st.markdown("**Paramètres:**")
+                            for param, value in strategy_desc['parameters'].items():
+                                st.write(f"- {param}: {value}")
+
+                        with col_desc2:
+                            st.metric("Meilleur pour", strategy_desc['best_for'])
+                            st.metric("Niveau de risque", strategy_desc['risk'])
+
+                            st.markdown("**Indicateurs utilisés:**")
+                            for indicator in strategy_desc['indicators']:
+                                st.write(f"- {indicator}")
+
+                        # 2. MÉTRIQUES DE PERFORMANCE
+                        st.markdown("---")
+                        st.subheader("📊 Métriques de Performance")
+
+                        metrics = backtest_results['metrics']
+
+                        col_m1, col_m2, col_m3, col_m4, col_m5 = st.columns(5)
+
+                        col_m1.metric(
+                            "Rendement Total",
+                            f"{metrics['total_return_pct']:.2f}%",
+                            help="Rendement total sur la période"
+                        )
+                        col_m2.metric(
+                            "Sharpe Ratio",
+                            f"{metrics.get('sharpe_ratio', 0):.2f}",
+                            help="Rendement ajusté au risque (>1 = bon)"
+                        )
+                        col_m3.metric(
+                            "Max Drawdown",
+                            f"{abs(metrics.get('max_drawdown', 0)):.2f}%",
+                            help="Perte maximale depuis un pic"
+                        )
+                        col_m4.metric(
+                            "Win Rate",
+                            f"{metrics.get('win_rate', 0):.1f}%",
+                            help="Pourcentage de trades gagnants"
+                        )
+                        col_m5.metric(
+                            "Nombre de Trades",
+                            metrics.get('total_trades', 0),
+                            help="Trades exécutés sur la période"
+                        )
+
+                        # 3. GRAPHIQUE AVEC TRADES
+                        st.markdown("---")
+                        st.subheader("📈 Évolution du Prix avec Trades")
+
+                        fig_backtest = create_backtest_chart(
+                            data=backtest_results['data'],
+                            trades=backtest_results['trades'],
+                            symbol=selected_asset
+                        )
+                        st.plotly_chart(fig_backtest, use_container_width=True)
+
+                        # Légende
+                        st.markdown("""
+                        **Légende:**
+                        - 🟢 Triangle montant = Entrée LONG (achat)
+                        - 🔴 Triangle descendant = Entrée SHORT (vente à découvert)
+                        - ✖️ Croix verte = Sortie gagnante
+                        - ✖️ Croix rouge = Sortie perdante
+                        """)
+
+                        # 4. LISTE DES TRADES
+                        st.markdown("---")
+                        st.subheader("📋 Liste Complète des Trades")
+
+                        trades = backtest_results['trades']
+
+                        if len(trades) > 0:
+                            # Convertir en DataFrame pour affichage
+                            trades_df = pd.DataFrame(trades)
+
+                            # Formater les colonnes
+                            trades_df['entry_date'] = pd.to_datetime(trades_df['entry_date']).dt.strftime('%Y-%m-%d')
+                            trades_df['exit_date'] = pd.to_datetime(trades_df['exit_date']).dt.strftime('%Y-%m-%d')
+                            trades_df['entry_price'] = trades_df['entry_price'].apply(lambda x: f"${x:.2f}")
+                            trades_df['exit_price'] = trades_df['exit_price'].apply(lambda x: f"${x:.2f}")
+                            trades_df['profit'] = trades_df['profit'].apply(lambda x: f"${x:.2f}")
+                            trades_df['profit_pct'] = trades_df['profit_pct'].apply(lambda x: f"{x:.2f}%")
+
+                            # Afficher avec style
+                            st.dataframe(
+                                trades_df[[
+                                    'entry_date', 'exit_date', 'type',
+                                    'entry_price', 'exit_price',
+                                    'profit', 'profit_pct', 'duration_days'
+                                ]],
+                                use_container_width=True,
+                                height=400
+                            )
+
+                            # Statistiques des trades
+                            st.markdown("**Statistiques des Trades:**")
+
+                            trades_raw = backtest_results['trades']
+                            winning_trades = [t for t in trades_raw if t['profit'] > 0]
+                            losing_trades = [t for t in trades_raw if t['profit'] <= 0]
+
+                            col_t1, col_t2, col_t3, col_t4 = st.columns(4)
+
+                            col_t1.metric("Trades Gagnants", len(winning_trades))
+                            col_t2.metric("Trades Perdants", len(losing_trades))
+
+                            avg_win = sum(t['profit'] for t in winning_trades) / len(winning_trades) if winning_trades else 0
+                            avg_loss = sum(t['profit'] for t in losing_trades) / len(losing_trades) if losing_trades else 0
+
+                            col_t3.metric("Gain Moyen", f"${avg_win:.2f}")
+                            col_t4.metric("Perte Moyenne", f"${avg_loss:.2f}")
+
+                            # Profit Factor
+                            total_wins = sum(t['profit'] for t in winning_trades)
+                            total_losses = abs(sum(t['profit'] for t in losing_trades))
+                            profit_factor = total_wins / total_losses if total_losses > 0 else 0
+
+                            st.metric(
+                                "Profit Factor",
+                                f"{profit_factor:.2f}",
+                                help="Ratio gains/pertes (>1 = profitable)"
+                            )
+
+                        else:
+                            st.warning("Aucun trade exécuté durant cette période")
+
+                        # 5. COURBE D'ÉQUITÉ
+                        st.markdown("---")
+                        st.subheader("💰 Évolution du Capital")
+
+                        if backtest_results['equity_curve']:
+                            equity_df = pd.DataFrame(backtest_results['equity_curve'])
+
+                            fig_equity = go.Figure()
+
+                            fig_equity.add_trace(go.Scatter(
+                                x=equity_df['date'],
+                                y=equity_df['equity'],
+                                mode='lines',
+                                name='Capital',
+                                fill='tozeroy',
+                                line=dict(color='blue', width=2)
+                            ))
+
+                            # Ligne de capital initial
+                            fig_equity.add_hline(
+                                y=10000,
+                                line_dash="dash",
+                                line_color="gray",
+                                annotation_text="Capital Initial (€10,000)"
+                            )
+
+                            fig_equity.update_layout(
+                                title="Évolution du Capital (Portfolio €10,000)",
+                                xaxis_title="Date",
+                                yaxis_title="Capital (€)",
+                                height=400,
+                                template="plotly_white",
+                                hovermode='x unified'
+                            )
+
+                            st.plotly_chart(fig_equity, use_container_width=True)
+
+                    else:
+                        st.error("❌ Impossible d'exécuter le backtest. Vérifiez que l'actif et la stratégie sont valides.")
+
             else:
-                st.warning("Aucune donnée de backtesting disponible.")
-                st.info("Générez des données avec: python generate_demo_backtests.py")
+                st.warning("Aucune donnee de backtesting disponible.")
+                st.info("Cliquez sur 'Calculer les Backtests' ci-dessus pour lancer le calcul via Yahoo Finance.")
 
         except Exception as e:
             st.error(f"Erreur chargement bibliothèque: {e}")
@@ -1170,6 +1820,314 @@ def main():
 
         except Exception as e:
             st.error(f"Erreur Paper Trading: {e}")
+
+    # ========================================================================
+    # TAB 7: Strategy Allocator
+    # ========================================================================
+
+    with tab7:
+        st.header("🧠 Strategy Allocator")
+        st.info("Allocation intelligente des strategies basee sur les resultats de backtesting. "
+                "Filtre, score et alloue le capital aux meilleures paires actif/strategie.")
+
+        try:
+            # Charger la bibliotheque (reutiliser le cache session)
+            if st.session_state.backtest_library is None:
+                with st.spinner("Chargement de la bibliotheque backtests..."):
+                    st.session_state.backtest_library = BacktestLibrary()
+
+            library = st.session_state.backtest_library
+
+            if not library.loaded:
+                st.warning("Aucun backtest disponible. Allez dans l'onglet 'Bibliotheque Backtests' pour lancer le calcul.")
+            else:
+                # ---- Parametres dans la sidebar ----
+                st.sidebar.markdown("---")
+                st.sidebar.header("🧠 Allocator Config")
+
+                alloc_capital = st.sidebar.number_input(
+                    "Capital a allouer (EUR)",
+                    min_value=1000, max_value=1000000,
+                    value=10000, step=1000,
+                    key="alloc_capital"
+                )
+                alloc_max_pos = st.sidebar.slider(
+                    "Max positions", 3, 15, 8, key="alloc_max_pos"
+                )
+                alloc_method = st.sidebar.selectbox(
+                    "Methode d'allocation",
+                    ["score_weighted", "equal", "risk_parity"],
+                    format_func=lambda x: {
+                        'score_weighted': 'Score-Weighted (recommande)',
+                        'equal': 'Equal Weight',
+                        'risk_parity': 'Risk Parity (inverse volatilite)',
+                    }[x],
+                    key="alloc_method"
+                )
+
+                st.sidebar.markdown("**Filtres**")
+                alloc_min_trades = st.sidebar.slider(
+                    "Min trades", 5, 50, 20, key="alloc_min_trades"
+                )
+                alloc_min_sharpe = st.sidebar.slider(
+                    "Min Sharpe", -1.0, 2.0, 0.0, 0.1, key="alloc_min_sharpe"
+                )
+                alloc_max_dd = st.sidebar.slider(
+                    "Max Drawdown (%)", 10.0, 80.0, 50.0, 5.0, key="alloc_max_dd"
+                )
+                alloc_walk_forward = st.sidebar.checkbox(
+                    "Walk-Forward Validation", value=False, key="alloc_wf",
+                    help="Valide la robustesse sur sous-periodes (plus lent)"
+                )
+
+                # ---- Bouton de lancement ----
+                run_allocator = st.button("🚀 Lancer l'allocation", type="primary", key="run_allocator_btn")
+
+                if run_allocator:
+                    with st.spinner("Allocation en cours..." + (" (walk-forward active, peut prendre quelques minutes)" if alloc_walk_forward else "")):
+                        allocator = StrategyAllocator(
+                            min_trades=alloc_min_trades,
+                            min_sharpe=alloc_min_sharpe,
+                            max_drawdown=alloc_max_dd,
+                            allocation_method=alloc_method,
+                            enable_walk_forward=alloc_walk_forward,
+                        )
+                        plan = allocator.allocate_from_library(
+                            library=library,
+                            total_capital=alloc_capital,
+                            max_positions=alloc_max_pos,
+                        )
+                        st.session_state.alloc_plan = plan
+                        st.session_state.alloc_allocator = allocator
+
+                # ---- Affichage du plan ----
+                if 'alloc_plan' in st.session_state and st.session_state.alloc_plan is not None:
+                    plan = st.session_state.alloc_plan
+                    allocator = st.session_state.alloc_allocator
+
+                    if not plan.assignments:
+                        st.warning("Aucune paire actif/strategie ne passe les filtres. Essayez d'assouplir les criteres.")
+                    else:
+                        # -- Metriques globales --
+                        stats = plan.summary_stats
+                        col_a1, col_a2, col_a3, col_a4 = st.columns(4)
+                        col_a1.metric("Actifs selectionnes", stats.get('n_assets', 0))
+                        col_a2.metric("Rendement moyen backtest", f"{stats.get('avg_return', 0):+.1f}%")
+                        col_a3.metric("Sharpe moyen", f"{stats.get('avg_sharpe', 0):.2f}")
+                        col_a4.metric("Capital alloue",
+                                      f"{stats.get('total_allocation_pct', 0):.0f}%",
+                                      f"Reserve: {100 - stats.get('total_allocation_pct', 0):.0f}%")
+
+                        # -- Tableau des allocations --
+                        st.subheader("Allocations")
+
+                        table_data = []
+                        for a in plan.assignments:
+                            rp = plan.risk_params.get(a.asset)
+                            table_data.append({
+                                'Actif': a.asset,
+                                'Nom': a.asset_name,
+                                'Categorie': a.asset_type,
+                                'Strategie': a.strategy_name,
+                                'Score': round(a.score, 3),
+                                'Sharpe': round(a.sharpe_ratio, 2),
+                                'Return (%)': round(a.total_return_pct, 1),
+                                'Drawdown (%)': round(a.max_drawdown_pct, 1),
+                                'Win Rate (%)': round(a.win_rate, 1),
+                                'Trades': a.num_trades,
+                                'Allocation (%)': round(a.allocation_pct, 1),
+                                'Capital (EUR)': round(a.allocation_pct / 100 * plan.config['total_capital'], 0),
+                                'SL (%)': rp.stop_loss_pct if rp else 0,
+                                'TP (%)': rp.take_profit_pct if rp else 0,
+                            })
+                            if a.stability_score is not None:
+                                table_data[-1]['Stabilite'] = round(a.stability_score, 2)
+
+                        alloc_df = pd.DataFrame(table_data)
+                        st.dataframe(alloc_df, use_container_width=True, height=400)
+
+                        # -- Visualisations --
+                        col_chart1, col_chart2 = st.columns(2)
+
+                        with col_chart1:
+                            st.subheader("Allocation par categorie")
+                            cat_data = alloc_df.groupby('Categorie')['Allocation (%)'].sum().reset_index()
+                            # Ajouter reserve cash
+                            cash_reserve = 100 - cat_data['Allocation (%)'].sum()
+                            if cash_reserve > 0.5:
+                                cat_data = pd.concat([
+                                    cat_data,
+                                    pd.DataFrame([{'Categorie': 'Cash reserve', 'Allocation (%)': cash_reserve}])
+                                ], ignore_index=True)
+
+                            fig_alloc_pie = px.pie(
+                                cat_data,
+                                values='Allocation (%)',
+                                names='Categorie',
+                                color_discrete_sequence=px.colors.qualitative.Set2
+                            )
+                            fig_alloc_pie.update_layout(height=350)
+                            st.plotly_chart(fig_alloc_pie, use_container_width=True)
+
+                        with col_chart2:
+                            st.subheader("Score par actif")
+                            fig_scores = go.Figure(data=[
+                                go.Bar(
+                                    x=[a.score for a in plan.assignments],
+                                    y=[f"{a.asset}" for a in plan.assignments],
+                                    orientation='h',
+                                    marker=dict(
+                                        color=[a.score for a in plan.assignments],
+                                        colorscale='Viridis'
+                                    ),
+                                    text=[f"{a.score:.3f}" for a in plan.assignments],
+                                    textposition='outside'
+                                )
+                            ])
+                            fig_scores.update_layout(
+                                xaxis_title="Score composite",
+                                height=350,
+                                margin=dict(l=100)
+                            )
+                            st.plotly_chart(fig_scores, use_container_width=True)
+
+                        # -- Risk/Return scatter --
+                        st.subheader("Rendement vs Risque")
+                        fig_scatter = go.Figure()
+                        for a in plan.assignments:
+                            fig_scatter.add_trace(go.Scatter(
+                                x=[a.max_drawdown_pct],
+                                y=[a.total_return_pct],
+                                mode='markers+text',
+                                text=[a.asset],
+                                textposition='top center',
+                                marker=dict(
+                                    size=a.allocation_pct * 2,
+                                    color=a.score,
+                                    colorscale='Viridis',
+                                    showscale=False,
+                                ),
+                                name=a.asset,
+                                showlegend=False,
+                                hovertemplate=(
+                                    f"<b>{a.asset}</b><br>"
+                                    f"Return: {a.total_return_pct:+.1f}%<br>"
+                                    f"Drawdown: {a.max_drawdown_pct:.1f}%<br>"
+                                    f"Sharpe: {a.sharpe_ratio:.2f}<br>"
+                                    f"Allocation: {a.allocation_pct:.1f}%<br>"
+                                    f"Strategie: {a.strategy_name}"
+                                    "<extra></extra>"
+                                ),
+                            ))
+                        fig_scatter.update_layout(
+                            xaxis_title="Max Drawdown (%)",
+                            yaxis_title="Return (%)",
+                            height=450,
+                            template="plotly_white",
+                        )
+                        fig_scatter.add_hline(y=0, line_dash="dash", line_color="gray")
+                        st.plotly_chart(fig_scatter, use_container_width=True)
+                        st.caption("Taille des bulles = poids de l'allocation. Couleur = score composite.")
+
+                        # -- Walk-forward results --
+                        stab_scores = [a for a in plan.assignments if a.stability_score is not None]
+                        if stab_scores:
+                            st.subheader("Walk-Forward Validation")
+                            col_wf1, col_wf2, col_wf3 = st.columns(3)
+                            all_stab = [a.stability_score for a in stab_scores]
+                            col_wf1.metric("Stabilite moyenne", f"{np.mean(all_stab):.2f}")
+                            col_wf2.metric("Min", f"{min(all_stab):.2f}")
+                            col_wf3.metric("Max", f"{max(all_stab):.2f}")
+
+                            fig_stab = go.Figure(data=[
+                                go.Bar(
+                                    x=[a.asset for a in stab_scores],
+                                    y=[a.stability_score for a in stab_scores],
+                                    marker=dict(
+                                        color=[a.stability_score for a in stab_scores],
+                                        colorscale='RdYlGn',
+                                        cmin=0, cmax=1,
+                                    ),
+                                    text=[f"{a.stability_score:.2f}" for a in stab_scores],
+                                    textposition='outside'
+                                )
+                            ])
+                            fig_stab.update_layout(
+                                yaxis_title="Stability Score",
+                                height=300,
+                                yaxis=dict(range=[0, 1.1])
+                            )
+                            st.plotly_chart(fig_stab, use_container_width=True)
+
+                        # -- Export --
+                        st.subheader("Export")
+                        col_exp1, col_exp2, col_exp3 = st.columns(3)
+
+                        with col_exp1:
+                            plan_json = json.dumps({
+                                'generated_at': plan.generated_at.isoformat(),
+                                'config': plan.config,
+                                'summary_stats': plan.summary_stats,
+                                'assignments': [
+                                    {
+                                        'asset': a.asset, 'asset_name': a.asset_name,
+                                        'asset_type': a.asset_type,
+                                        'strategy': a.strategy_name,
+                                        'score': a.score, 'sharpe': a.sharpe_ratio,
+                                        'return_pct': a.total_return_pct,
+                                        'drawdown_pct': a.max_drawdown_pct,
+                                        'win_rate': a.win_rate,
+                                        'allocation_pct': a.allocation_pct,
+                                        'stability': a.stability_score,
+                                    } for a in plan.assignments
+                                ],
+                                'risk_params': {
+                                    k: {'sl': v.stop_loss_pct, 'tp': v.take_profit_pct,
+                                         'position_size': v.position_size_pct}
+                                    for k, v in plan.risk_params.items()
+                                },
+                            }, indent=2, default=str)
+
+                            st.download_button(
+                                "Telecharger le plan (JSON)",
+                                data=plan_json,
+                                file_name=f"trading_plan_{datetime.now().strftime('%Y%m%d')}.json",
+                                mime="application/json",
+                                key="download_plan_json"
+                            )
+
+                        with col_exp2:
+                            csv_data = alloc_df.to_csv(index=False)
+                            st.download_button(
+                                "Telecharger allocations (CSV)",
+                                data=csv_data,
+                                file_name=f"allocations_{datetime.now().strftime('%Y%m%d')}.csv",
+                                mime="text/csv",
+                                key="download_plan_csv"
+                            )
+
+                        with col_exp3:
+                            sg_format = allocator.export_for_signal_generator(plan)
+                            sg_text = "# Format pour signal_generator.recommended_strategies\n"
+                            sg_text += "# Genere le " + datetime.now().strftime('%Y-%m-%d %H:%M') + "\n\n"
+                            for symbol, strategies in sg_format.items():
+                                for name, inst in strategies:
+                                    rp = plan.risk_params.get(symbol)
+                                    sl_tp = f"SL={rp.stop_loss_pct}%/TP={rp.take_profit_pct}%" if rp else ""
+                                    sg_text += f"{symbol:<14} -> {name:<22} {sl_tp}\n"
+
+                            st.download_button(
+                                "Telecharger mapping strategies (TXT)",
+                                data=sg_text,
+                                file_name=f"strategy_mapping_{datetime.now().strftime('%Y%m%d')}.txt",
+                                mime="text/plain",
+                                key="download_plan_txt"
+                            )
+
+        except Exception as e:
+            st.error(f"Erreur Strategy Allocator: {e}")
+            import traceback
+            st.code(traceback.format_exc())
 
     # ========================================================================
     # Auto-refresh

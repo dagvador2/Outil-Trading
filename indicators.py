@@ -197,6 +197,59 @@ class TechnicalIndicators:
         return atr
     
     @staticmethod
+    def adx(high: pd.Series, low: pd.Series, close: pd.Series,
+            period: int = 14) -> pd.Series:
+        """
+        Average Directional Index
+
+        Args:
+            high: Série des prix hauts
+            low: Série des prix bas
+            close: Série des prix de clôture
+            period: Période de l'ADX
+
+        Returns:
+            Série avec l'ADX (0-100)
+        """
+        plus_dm = high.diff()
+        minus_dm = -low.diff()
+
+        plus_dm = plus_dm.where((plus_dm > minus_dm) & (plus_dm > 0), 0)
+        minus_dm = minus_dm.where((minus_dm > plus_dm) & (minus_dm > 0), 0)
+
+        atr = TechnicalIndicators.atr(high, low, close, period)
+
+        plus_di = 100 * (plus_dm.rolling(window=period).mean() / atr)
+        minus_di = 100 * (minus_dm.rolling(window=period).mean() / atr)
+
+        dx = 100 * abs(plus_di - minus_di) / (plus_di + minus_di)
+        adx = dx.rolling(window=period).mean()
+
+        return adx
+
+    @staticmethod
+    def plus_di(high: pd.Series, low: pd.Series, close: pd.Series,
+                period: int = 14) -> pd.Series:
+        """Positive Directional Indicator (+DI)"""
+        plus_dm = high.diff()
+        minus_dm = -low.diff()
+        plus_dm = plus_dm.where((plus_dm > minus_dm) & (plus_dm > 0), 0)
+
+        atr = TechnicalIndicators.atr(high, low, close, period)
+        return 100 * (plus_dm.rolling(window=period).mean() / atr)
+
+    @staticmethod
+    def minus_di(high: pd.Series, low: pd.Series, close: pd.Series,
+                 period: int = 14) -> pd.Series:
+        """Negative Directional Indicator (-DI)"""
+        minus_dm = -low.diff()
+        plus_dm = high.diff()
+        minus_dm = minus_dm.where((minus_dm > plus_dm) & (minus_dm > 0), 0)
+
+        atr = TechnicalIndicators.atr(high, low, close, period)
+        return 100 * (minus_dm.rolling(window=period).mean() / atr)
+
+    @staticmethod
     def add_all_indicators(df: pd.DataFrame) -> pd.DataFrame:
         """
         Ajoute tous les indicateurs principaux à un DataFrame OHLCV

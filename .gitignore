@@ -41,10 +41,23 @@ ENV/
 .env
 .env.local
 
-# Generated files (optionnel - décommentez si vous voulez les ignorer)
-# *.png
-# *.csv
-# *.xlsx
+# Credentials
+discord_webhook.txt
+*.key
+
+# Runtime data
+paper_trading_portfolio.json
+signals_history.csv
+trading_plan_*.json
+
+# Generated CSV (sauf RESULTS_2024_2025_COMPLETE.csv)
+trades_*.csv
+events_*.csv
+*_results_sample.csv
+optimization_results_*.csv
+
+# Generated HTML dashboards
+*.html
 
 # Logs
 *.log
