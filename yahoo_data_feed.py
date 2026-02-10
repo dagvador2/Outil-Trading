@@ -186,6 +186,10 @@ SYMBOL_MAPPING = {
     'PL=F': 'PL=F',      # Platinum
     'PA=F': 'PA=F',      # Palladium
     'ZC=F': 'ZC=F',      # Corn
+    'ZW=F': 'ZW=F',      # Wheat
+    'ZS=F': 'ZS=F',      # Soybeans
+    'KC=F': 'KC=F',      # Coffee
+    'CT=F': 'CT=F',      # Cotton
 
     # Indices (^ reste identique)
     '^GSPC': '^GSPC',    # S&P 500
@@ -195,6 +199,9 @@ SYMBOL_MAPPING = {
     '^GDAXI': '^GDAXI',  # DAX
     '^FCHI': '^FCHI',    # CAC 40
     '^N225': '^N225',    # Nikkei 225
+    '^RUT': '^RUT',      # Russell 2000
+    '^HSI': '^HSI',      # Hang Seng
+    '^STOXX50E': '^STOXX50E',  # Euro Stoxx 50
 
     # Forex (=X reste identique)
     'EURUSD=X': 'EURUSD=X',
@@ -202,8 +209,13 @@ SYMBOL_MAPPING = {
     'USDJPY=X': 'JPY=X',     # Yahoo utilise JPY=X
     'USDCHF=X': 'CHF=X',     # Yahoo utilise CHF=X
     'AUDUSD=X': 'AUDUSD=X',
+    'NZDUSD=X': 'NZDUSD=X',
+    'USDCAD=X': 'CAD=X',     # Yahoo utilise CAD=X
+    'EURGBP=X': 'EURGBP=X',
+    'EURJPY=X': 'EURJPY=X',
+    'GBPJPY=X': 'GBPJPY=X',
 
-    # Stocks (reste identique)
+    # Tech Stocks
     'NVDA': 'NVDA',
     'AAPL': 'AAPL',
     'MSFT': 'MSFT',
@@ -214,11 +226,58 @@ SYMBOL_MAPPING = {
     'AMD': 'AMD',
     'NFLX': 'NFLX',
     'COIN': 'COIN',
+
+    # Semiconductors
+    'AVGO': 'AVGO',
+    'INTC': 'INTC',
+    'QCOM': 'QCOM',
+
+    # Finance
+    'JPM': 'JPM',
+    'GS': 'GS',
+    'V': 'V',
+    'MA': 'MA',
+    'BAC': 'BAC',
+
+    # Healthcare
+    'UNH': 'UNH',
+    'ABBV': 'ABBV',
+    'LLY': 'LLY',
+    'MRK': 'MRK',
+    'PFE': 'PFE',
+
+    # Energy
+    'XOM': 'XOM',
+    'CVX': 'CVX',
+    'COP': 'COP',
+    'SLB': 'SLB',
+    'EOG': 'EOG',
+
+    # Consumer
+    'NKE': 'NKE',
+    'SBUX': 'SBUX',
+    'MCD': 'MCD',
+    'HD': 'HD',
+    'COST': 'COST',
+
+    # Defensive Stocks
     'JNJ': 'JNJ',
     'PG': 'PG',
     'KO': 'KO',
     'PEP': 'PEP',
     'WMT': 'WMT',
+
+    # ETF
+    'SPY': 'SPY',
+    'QQQ': 'QQQ',
+    'IWM': 'IWM',
+    'EEM': 'EEM',
+    'GLD': 'GLD',
+    'SLV': 'SLV',
+    'TLT': 'TLT',
+    'XLF': 'XLF',
+    'XLE': 'XLE',
+    'VNQ': 'VNQ',
 
     # Cryptos (Yahoo utilise -USD au lieu de /USDT)
     'BTC/USDT': 'BTC-USD',
@@ -230,12 +289,17 @@ SYMBOL_MAPPING = {
     'AVAX/USDT': 'AVAX-USD',
     'DOT/USDT': 'DOT-USD',
     'LINK/USDT': 'LINK-USD',
-    'MATIC/USDT': 'MATIC-USD',
+    'TRX/USDT': 'TRX-USD',
     'UNI/USDT': 'UNI7083-USD',  # Yahoo a un ID spécial pour UNI
     'LTC/USDT': 'LTC-USD',
     'ATOM/USDT': 'ATOM-USD',
     'ARB/USDT': 'ARB11841-USD',  # Yahoo a un ID spécial
     'OP/USDT': 'OP-USD',
+    'DOGE/USDT': 'DOGE-USD',
+    'SHIB/USDT': 'SHIB-USD',
+    'NEAR/USDT': 'NEAR-USD',
+    'SUI/USDT': 'SUI20947-USD',
+    'ALGO/USDT': 'ALGO-USD',
 }
 
 

@@ -89,16 +89,16 @@ LINK/USDT,crypto,Chainlink,Combined,-80.5752,-1.6056,83.242,38.96,77,-1.698,yaho
 LINK/USDT,crypto,Chainlink,ADX_Trend_14_25,60.8135,1.164,8.1019,65.38,26,2.1633,yahoo_finance,730,2024-01-01 - 2025-12-31
 LINK/USDT,crypto,Chainlink,VWAP_20,2.6711,0.1362,26.0672,52.27,44,0.3361,yahoo_finance,730,2024-01-01 - 2025-12-31
 LINK/USDT,crypto,Chainlink,Ichimoku_9_26_52,-46.0481,-0.5623,58.0816,42.37,59,-0.6116,yahoo_finance,730,2024-01-01 - 2025-12-31
-MATIC/USDT,crypto,Polygon,MA_Crossover_20_50,2.6733,0.7092,0.1498,100.0,1,2.8789,yahoo_finance,449,2024-01-01 - 2025-12-31
-MATIC/USDT,crypto,Polygon,MA_Crossover_10_30,1.3799,0.6733,0.1499,100.0,1,1.5829,yahoo_finance,449,2024-01-01 - 2025-12-31
-MATIC/USDT,crypto,Polygon,RSI_14_30_70,-45.1791,-1.1506,51.1144,44.44,54,-0.8078,yahoo_finance,449,2024-01-01 - 2025-12-31
-MATIC/USDT,crypto,Polygon,RSI_14_35_80,-15.1009,-0.2739,34.7036,45.95,37,-0.1288,yahoo_finance,449,2024-01-01 - 2025-12-31
-MATIC/USDT,crypto,Polygon,MACD_Standard,11.4752,0.7403,0.1499,100.0,1,11.6984,yahoo_finance,449,2024-01-01 - 2025-12-31
-MATIC/USDT,crypto,Polygon,Bollinger_20_2,-49.1158,-1.3223,51.6871,38.24,34,-1.6407,yahoo_finance,449,2024-01-01 - 2025-12-31
-MATIC/USDT,crypto,Polygon,Combined,-11.6672,-0.2094,24.9801,45.45,44,0.0423,yahoo_finance,449,2024-01-01 - 2025-12-31
-MATIC/USDT,crypto,Polygon,ADX_Trend_14_25,-12.0844,-0.5682,15.5116,38.46,13,-0.6994,yahoo_finance,449,2024-01-01 - 2025-12-31
-MATIC/USDT,crypto,Polygon,VWAP_20,-13.6274,-0.3902,21.996,33.33,18,-0.4468,yahoo_finance,449,2024-01-01 - 2025-12-31
-MATIC/USDT,crypto,Polygon,Ichimoku_9_26_52,0.8765,0.1295,25.4714,58.62,29,0.3015,yahoo_finance,449,2024-01-01 - 2025-12-31
+TRX/USDT,crypto,Tron,MA_Crossover_20_50,1.8258,0.5418,0.1498,100.0,1,2.0296,yahoo_finance,730,2024-01-01 - 2025-12-31
+TRX/USDT,crypto,Tron,MA_Crossover_10_30,-0.1278,-0.496,0.1498,100.0,1,0.0721,yahoo_finance,730,2024-01-01 - 2025-12-31
+TRX/USDT,crypto,Tron,RSI_14_30_70,-0.1792,0.0864,26.5239,53.23,62,0.2882,yahoo_finance,730,2024-01-01 - 2025-12-31
+TRX/USDT,crypto,Tron,RSI_14_35_80,-21.1975,-0.3166,26.7717,42.37,59,-0.0943,yahoo_finance,730,2024-01-01 - 2025-12-31
+TRX/USDT,crypto,Tron,MACD_Standard,-1.4763,-0.6072,1.567,0.0,1,-1.2791,yahoo_finance,730,2024-01-01 - 2025-12-31
+TRX/USDT,crypto,Tron,Bollinger_20_2,-12.1149,-0.1381,24.0295,44.64,56,0.0805,yahoo_finance,730,2024-01-01 - 2025-12-31
+TRX/USDT,crypto,Tron,Combined,5.9746,0.2209,31.235,43.75,80,0.6492,yahoo_finance,730,2024-01-01 - 2025-12-31
+TRX/USDT,crypto,Tron,ADX_Trend_14_25,-14.9868,-0.7242,15.5145,50.0,34,-0.255,yahoo_finance,730,2024-01-01 - 2025-12-31
+TRX/USDT,crypto,Tron,VWAP_20,-2.131,-0.0473,13.7109,56.0,50,0.1771,yahoo_finance,730,2024-01-01 - 2025-12-31
+TRX/USDT,crypto,Tron,Ichimoku_9_26_52,33.7303,0.7211,11.2497,50.0,46,0.901,yahoo_finance,730,2024-01-01 - 2025-12-31
 UNI/USDT,crypto,Uniswap,MA_Crossover_20_50,-2.1548,-0.6301,2.1548,0.0,1,-1.9589,yahoo_finance,730,2024-01-01 - 2025-12-31
 UNI/USDT,crypto,Uniswap,MA_Crossover_10_30,3.834,0.5654,0.1499,100.0,1,4.0419,yahoo_finance,730,2024-01-01 - 2025-12-31
 UNI/USDT,crypto,Uniswap,RSI_14_30_70,75.9916,0.8265,27.7274,53.57,56,1.4735,yahoo_finance,730,2024-01-01 - 2025-12-31
@@ -149,6 +149,56 @@ OP/USDT,crypto,Optimism,Combined,-46.7789,-0.7409,64.8155,44.16,77,-0.4662,yahoo
 OP/USDT,crypto,Optimism,ADX_Trend_14_25,-3.526,0.0179,30.5653,48.28,29,0.2851,yahoo_finance,730,2024-01-01 - 2025-12-31
 OP/USDT,crypto,Optimism,VWAP_20,-42.0261,-0.6489,57.338,30.23,43,-0.8442,yahoo_finance,730,2024-01-01 - 2025-12-31
 OP/USDT,crypto,Optimism,Ichimoku_9_26_52,-52.8612,-0.5408,67.7741,53.12,64,-0.6016,yahoo_finance,730,2024-01-01 - 2025-12-31
+DOGE/USDT,crypto,Dogecoin,MA_Crossover_20_50,-4.0145,-0.6103,4.0145,0.0,1,-3.8223,yahoo_finance,730,2024-01-01 - 2025-12-31
+DOGE/USDT,crypto,Dogecoin,MA_Crossover_10_30,0.9021,0.4992,0.1499,100.0,1,1.1041,yahoo_finance,730,2024-01-01 - 2025-12-31
+DOGE/USDT,crypto,Dogecoin,RSI_14_30_70,-48.3964,-0.6898,51.2163,42.65,68,-0.6252,yahoo_finance,730,2024-01-01 - 2025-12-31
+DOGE/USDT,crypto,Dogecoin,RSI_14_35_80,-43.7923,-0.5706,49.8731,45.83,72,-0.443,yahoo_finance,730,2024-01-01 - 2025-12-31
+DOGE/USDT,crypto,Dogecoin,MACD_Standard,9.7359,0.579,0.1499,100.0,1,9.9556,yahoo_finance,730,2024-01-01 - 2025-12-31
+DOGE/USDT,crypto,Dogecoin,Bollinger_20_2,-35.7686,-0.377,50.8655,45.9,61,-0.3319,yahoo_finance,730,2024-01-01 - 2025-12-31
+DOGE/USDT,crypto,Dogecoin,Combined,-27.3037,-0.2574,39.0952,48.75,80,-0.0426,yahoo_finance,730,2024-01-01 - 2025-12-31
+DOGE/USDT,crypto,Dogecoin,ADX_Trend_14_25,-19.1612,-0.2225,26.7244,56.52,23,-0.3673,yahoo_finance,730,2024-01-01 - 2025-12-31
+DOGE/USDT,crypto,Dogecoin,VWAP_20,-46.2108,-0.8654,51.3489,51.28,39,-1.2011,yahoo_finance,730,2024-01-01 - 2025-12-31
+DOGE/USDT,crypto,Dogecoin,Ichimoku_9_26_52,-34.399,-0.6512,43.8317,39.02,41,-0.6742,yahoo_finance,730,2024-01-01 - 2025-12-31
+SHIB/USDT,crypto,Shiba Inu,MA_Crossover_20_50,-0.2997,-0.8321,0.2997,0.0,1,-0.1001,yahoo_finance,730,2024-01-01 - 2025-12-31
+SHIB/USDT,crypto,Shiba Inu,MA_Crossover_10_30,-0.5983,-1.1783,0.5983,0.0,2,-0.1,yahoo_finance,730,2024-01-01 - 2025-12-31
+SHIB/USDT,crypto,Shiba Inu,RSI_14_30_70,-23.7206,-0.0876,39.4089,25.0,72,0.018,yahoo_finance,730,2024-01-01 - 2025-12-31
+SHIB/USDT,crypto,Shiba Inu,RSI_14_35_80,-23.5656,-0.1919,47.7497,19.28,83,0.0114,yahoo_finance,730,2024-01-01 - 2025-12-31
+SHIB/USDT,crypto,Shiba Inu,MACD_Standard,-0.2997,-0.8321,0.2997,0.0,1,-0.1001,yahoo_finance,730,2024-01-01 - 2025-12-31
+SHIB/USDT,crypto,Shiba Inu,Bollinger_20_2,-55.9508,-0.6868,62.2327,20.0,45,-1.3411,yahoo_finance,730,2024-01-01 - 2025-12-31
+SHIB/USDT,crypto,Shiba Inu,Combined,-28.1597,-0.1839,57.858,21.25,80,-0.0425,yahoo_finance,730,2024-01-01 - 2025-12-31
+SHIB/USDT,crypto,Shiba Inu,ADX_Trend_14_25,93.9443,1.211,14.2539,32.56,43,1.8767,yahoo_finance,730,2024-01-01 - 2025-12-31
+SHIB/USDT,crypto,Shiba Inu,VWAP_20,-48.0542,-0.8195,58.2508,13.64,44,-1.1212,yahoo_finance,730,2024-01-01 - 2025-12-31
+SHIB/USDT,crypto,Shiba Inu,Ichimoku_9_26_52,-23.2655,-0.2521,43.2455,22.64,53,-0.1863,yahoo_finance,730,2024-01-01 - 2025-12-31
+NEAR/USDT,crypto,NEAR Protocol,MA_Crossover_20_50,3.4145,0.5627,0.1499,100.0,1,3.6216,yahoo_finance,730,2024-01-01 - 2025-12-31
+NEAR/USDT,crypto,NEAR Protocol,MA_Crossover_10_30,5.9116,0.5732,0.1499,100.0,1,6.1236,yahoo_finance,730,2024-01-01 - 2025-12-31
+NEAR/USDT,crypto,NEAR Protocol,RSI_14_30_70,-26.2342,-0.1975,58.501,40.28,72,-0.0366,yahoo_finance,730,2024-01-01 - 2025-12-31
+NEAR/USDT,crypto,NEAR Protocol,RSI_14_35_80,-47.4361,-0.7484,57.1571,37.5,64,-0.6775,yahoo_finance,730,2024-01-01 - 2025-12-31
+NEAR/USDT,crypto,NEAR Protocol,MACD_Standard,-4.0404,-0.6101,4.0404,0.0,1,-3.8483,yahoo_finance,730,2024-01-01 - 2025-12-31
+NEAR/USDT,crypto,NEAR Protocol,Bollinger_20_2,-60.7409,-0.7974,77.3249,41.94,62,-1.0451,yahoo_finance,730,2024-01-01 - 2025-12-31
+NEAR/USDT,crypto,NEAR Protocol,Combined,5.1853,0.1987,33.005,44.87,78,0.4076,yahoo_finance,730,2024-01-01 - 2025-12-31
+NEAR/USDT,crypto,NEAR Protocol,ADX_Trend_14_25,43.0343,0.6831,10.5608,56.52,23,1.9925,yahoo_finance,730,2024-01-01 - 2025-12-31
+NEAR/USDT,crypto,NEAR Protocol,VWAP_20,-65.0654,-1.8559,65.9574,30.43,46,-1.9738,yahoo_finance,730,2024-01-01 - 2025-12-31
+NEAR/USDT,crypto,NEAR Protocol,Ichimoku_9_26_52,0.9801,0.1337,35.4982,54.76,42,0.4535,yahoo_finance,730,2024-01-01 - 2025-12-31
+SUI/USDT,crypto,Sui,MA_Crossover_20_50,-3.4482,-0.614,3.4482,0.0,1,-3.2549,yahoo_finance,730,2024-01-01 - 2025-12-31
+SUI/USDT,crypto,Sui,MA_Crossover_10_30,-1.9455,-0.6348,1.9455,0.0,1,-1.7492,yahoo_finance,730,2024-01-01 - 2025-12-31
+SUI/USDT,crypto,Sui,RSI_14_30_70,-70.2309,-0.8143,73.5836,40.0,65,-1.2378,yahoo_finance,730,2024-01-01 - 2025-12-31
+SUI/USDT,crypto,Sui,RSI_14_35_80,-74.4139,-1.3986,76.3846,33.33,60,-1.8514,yahoo_finance,730,2024-01-01 - 2025-12-31
+SUI/USDT,crypto,Sui,MACD_Standard,-7.1655,-0.6004,7.1655,0.0,1,-6.9797,yahoo_finance,730,2024-01-01 - 2025-12-31
+SUI/USDT,crypto,Sui,Bollinger_20_2,-10.4213,0.0498,41.652,51.79,56,0.3069,yahoo_finance,730,2024-01-01 - 2025-12-31
+SUI/USDT,crypto,Sui,Combined,-49.7258,-0.5735,58.7829,48.1,79,-0.448,yahoo_finance,730,2024-01-01 - 2025-12-31
+SUI/USDT,crypto,Sui,ADX_Trend_14_25,-9.5579,-0.1513,18.5101,54.17,24,-0.0946,yahoo_finance,730,2024-01-01 - 2025-12-31
+SUI/USDT,crypto,Sui,VWAP_20,-31.4422,-0.4697,35.7593,42.22,45,-0.4796,yahoo_finance,730,2024-01-01 - 2025-12-31
+SUI/USDT,crypto,Sui,Ichimoku_9_26_52,41.6027,0.5603,36.1162,52.0,50,1.1556,yahoo_finance,730,2024-01-01 - 2025-12-31
+ALGO/USDT,crypto,Algorand,MA_Crossover_20_50,3.2266,0.5613,0.1499,100.0,1,3.4333,yahoo_finance,730,2024-01-01 - 2025-12-31
+ALGO/USDT,crypto,Algorand,MA_Crossover_10_30,2.8073,0.5574,0.1499,100.0,1,3.0132,yahoo_finance,730,2024-01-01 - 2025-12-31
+ALGO/USDT,crypto,Algorand,RSI_14_30_70,-33.7816,-0.303,52.978,38.24,68,-0.1753,yahoo_finance,730,2024-01-01 - 2025-12-31
+ALGO/USDT,crypto,Algorand,RSI_14_35_80,-54.7425,-0.7669,63.4274,40.28,72,-0.7198,yahoo_finance,730,2024-01-01 - 2025-12-31
+ALGO/USDT,crypto,Algorand,MACD_Standard,9.4857,0.5787,0.1499,100.0,1,9.7049,yahoo_finance,730,2024-01-01 - 2025-12-31
+ALGO/USDT,crypto,Algorand,Bollinger_20_2,-26.9739,-0.2066,49.7868,43.75,64,-0.1048,yahoo_finance,730,2024-01-01 - 2025-12-31
+ALGO/USDT,crypto,Algorand,Combined,-21.79,-0.1431,49.5178,45.68,81,0.0619,yahoo_finance,730,2024-01-01 - 2025-12-31
+ALGO/USDT,crypto,Algorand,ADX_Trend_14_25,32.3681,0.7579,13.528,60.71,28,1.2927,yahoo_finance,730,2024-01-01 - 2025-12-31
+ALGO/USDT,crypto,Algorand,VWAP_20,-47.2225,-1.2868,49.4348,32.0,50,-1.0002,yahoo_finance,730,2024-01-01 - 2025-12-31
+ALGO/USDT,crypto,Algorand,Ichimoku_9_26_52,-24.3979,-0.4333,42.3173,45.24,42,-0.3369,yahoo_finance,730,2024-01-01 - 2025-12-31
 NVDA,tech_stocks,Nvidia,MA_Crossover_20_50,-3.529,-0.7407,3.529,0.0,1,-3.3359,yahoo_finance,501,2024-01-01 - 2025-12-31
 NVDA,tech_stocks,Nvidia,MA_Crossover_10_30,2.1498,0.6623,0.1498,100.0,1,2.3543,yahoo_finance,501,2024-01-01 - 2025-12-31
 NVDA,tech_stocks,Nvidia,RSI_14_30_70,16.543,0.5025,14.1249,52.5,40,0.6447,yahoo_finance,501,2024-01-01 - 2025-12-31
@@ -156,37 +206,37 @@ NVDA,tech_stocks,Nvidia,RSI_14_35_80,25.9979,0.7132,18.3169,54.29,35,0.9485,yaho
 NVDA,tech_stocks,Nvidia,MACD_Standard,-1.2006,-0.8032,1.2006,0.0,1,-1.0028,yahoo_finance,501,2024-01-01 - 2025-12-31
 NVDA,tech_stocks,Nvidia,Bollinger_20_2,-8.1878,-0.1577,22.3979,46.67,30,-0.0178,yahoo_finance,501,2024-01-01 - 2025-12-31
 NVDA,tech_stocks,Nvidia,Combined,15.7423,0.4568,18.8446,54.39,57,0.5273,yahoo_finance,501,2024-01-01 - 2025-12-31
-NVDA,tech_stocks,Nvidia,ADX_Trend_14_25,-13.124,-0.3354,22.7184,45.83,24,-0.2618,yahoo_finance,501,2024-01-01 - 2025-12-31
+NVDA,tech_stocks,Nvidia,ADX_Trend_14_25,-13.1239,-0.3354,22.7184,45.83,24,-0.2618,yahoo_finance,501,2024-01-01 - 2025-12-31
 NVDA,tech_stocks,Nvidia,VWAP_20,11.7227,0.4309,10.3544,48.28,29,0.6611,yahoo_finance,501,2024-01-01 - 2025-12-31
 NVDA,tech_stocks,Nvidia,Ichimoku_9_26_52,-21.2333,-0.8254,24.6042,33.33,24,-0.7278,yahoo_finance,501,2024-01-01 - 2025-12-31
 AAPL,tech_stocks,Apple,MA_Crossover_20_50,-1.3913,-0.79,1.3913,0.0,1,-1.1939,yahoo_finance,501,2024-01-01 - 2025-12-31
-AAPL,tech_stocks,Apple,MA_Crossover_10_30,0.1809,0.3539,0.1499,100.0,1,0.3814,yahoo_finance,501,2024-01-01 - 2025-12-31
+AAPL,tech_stocks,Apple,MA_Crossover_10_30,0.1808,0.3538,0.1499,100.0,1,0.3814,yahoo_finance,501,2024-01-01 - 2025-12-31
 AAPL,tech_stocks,Apple,RSI_14_30_70,-11.3236,-0.3804,23.6285,44.44,54,0.0229,yahoo_finance,501,2024-01-01 - 2025-12-31
-AAPL,tech_stocks,Apple,RSI_14_35_80,-14.0356,-0.7735,20.0667,50.0,42,-0.1382,yahoo_finance,501,2024-01-01 - 2025-12-31
+AAPL,tech_stocks,Apple,RSI_14_35_80,-14.0356,-0.7735,20.0668,50.0,42,-0.1382,yahoo_finance,501,2024-01-01 - 2025-12-31
 AAPL,tech_stocks,Apple,MACD_Standard,0.9691,0.6094,0.1499,100.0,1,1.1712,yahoo_finance,501,2024-01-01 - 2025-12-31
 AAPL,tech_stocks,Apple,Bollinger_20_2,-36.1696,-2.0255,36.1696,29.73,37,-0.9841,yahoo_finance,501,2024-01-01 - 2025-12-31
-AAPL,tech_stocks,Apple,Combined,-1.2669,0.0224,20.1471,40.98,61,0.2134,yahoo_finance,501,2024-01-01 - 2025-12-31
-AAPL,tech_stocks,Apple,ADX_Trend_14_25,-2.821,-0.474,4.9103,50.0,16,0.0255,yahoo_finance,501,2024-01-01 - 2025-12-31
+AAPL,tech_stocks,Apple,Combined,-1.267,0.0224,20.1471,40.98,61,0.2134,yahoo_finance,501,2024-01-01 - 2025-12-31
+AAPL,tech_stocks,Apple,ADX_Trend_14_25,-2.8209,-0.474,4.9103,50.0,16,0.0255,yahoo_finance,501,2024-01-01 - 2025-12-31
 AAPL,tech_stocks,Apple,VWAP_20,-26.1676,-1.5116,29.5766,33.33,33,-0.6845,yahoo_finance,501,2024-01-01 - 2025-12-31
-AAPL,tech_stocks,Apple,Ichimoku_9_26_52,-7.1668,-0.4438,11.121,48.39,31,-0.0217,yahoo_finance,501,2024-01-01 - 2025-12-31
+AAPL,tech_stocks,Apple,Ichimoku_9_26_52,-7.1668,-0.4438,11.1211,48.39,31,-0.0217,yahoo_finance,501,2024-01-01 - 2025-12-31
 MSFT,tech_stocks,Microsoft,MA_Crossover_20_50,2.1311,0.6619,0.1498,100.0,1,2.3356,yahoo_finance,501,2024-01-01 - 2025-12-31
 MSFT,tech_stocks,Microsoft,MA_Crossover_10_30,0.6641,0.5697,0.1498,100.0,1,0.8656,yahoo_finance,501,2024-01-01 - 2025-12-31
-MSFT,tech_stocks,Microsoft,RSI_14_30_70,-3.0006,-0.0914,8.7934,56.0,50,0.1513,yahoo_finance,501,2024-01-01 - 2025-12-31
+MSFT,tech_stocks,Microsoft,RSI_14_30_70,-3.0004,-0.0913,8.7933,56.0,50,0.1513,yahoo_finance,501,2024-01-01 - 2025-12-31
 MSFT,tech_stocks,Microsoft,RSI_14_35_80,-26.5142,-1.9812,28.785,25.58,43,-0.5046,yahoo_finance,501,2024-01-01 - 2025-12-31
 MSFT,tech_stocks,Microsoft,MACD_Standard,0.4174,0.5051,0.1499,100.0,1,0.6184,yahoo_finance,501,2024-01-01 - 2025-12-31
-MSFT,tech_stocks,Microsoft,Bollinger_20_2,-0.1544,0.0304,10.2163,45.71,35,0.2117,yahoo_finance,501,2024-01-01 - 2025-12-31
-MSFT,tech_stocks,Microsoft,Combined,-19.215,-1.1037,20.666,49.15,59,-0.1502,yahoo_finance,501,2024-01-01 - 2025-12-31
+MSFT,tech_stocks,Microsoft,Bollinger_20_2,-0.1543,0.0304,10.2163,45.71,35,0.2117,yahoo_finance,501,2024-01-01 - 2025-12-31
+MSFT,tech_stocks,Microsoft,Combined,-19.2149,-1.1037,20.6659,49.15,59,-0.1502,yahoo_finance,501,2024-01-01 - 2025-12-31
 MSFT,tech_stocks,Microsoft,ADX_Trend_14_25,3.2482,0.419,6.1895,65.38,26,0.3284,yahoo_finance,501,2024-01-01 - 2025-12-31
-MSFT,tech_stocks,Microsoft,VWAP_20,-14.7376,-1.4785,18.8107,48.84,43,-0.1644,yahoo_finance,501,2024-01-01 - 2025-12-31
-MSFT,tech_stocks,Microsoft,Ichimoku_9_26_52,-10.1886,-1.0651,11.7452,52.17,23,-0.2576,yahoo_finance,501,2024-01-01 - 2025-12-31
+MSFT,tech_stocks,Microsoft,VWAP_20,-14.7375,-1.4785,18.8106,48.84,43,-0.1644,yahoo_finance,501,2024-01-01 - 2025-12-31
+MSFT,tech_stocks,Microsoft,Ichimoku_9_26_52,-10.1886,-1.0651,11.7453,52.17,23,-0.2576,yahoo_finance,501,2024-01-01 - 2025-12-31
 GOOGL,tech_stocks,Alphabet (Google),MA_Crossover_20_50,-2.6651,-0.7509,2.6651,0.0,1,-2.4703,yahoo_finance,501,2024-01-01 - 2025-12-31
 GOOGL,tech_stocks,Alphabet (Google),MA_Crossover_10_30,0.25,0.4158,0.1498,100.0,1,0.4507,yahoo_finance,501,2024-01-01 - 2025-12-31
-GOOGL,tech_stocks,Alphabet (Google),RSI_14_30_70,3.3395,0.1872,15.5916,47.17,53,0.29,yahoo_finance,501,2024-01-01 - 2025-12-31
-GOOGL,tech_stocks,Alphabet (Google),RSI_14_35_80,-35.1643,-2.0784,35.1643,32.35,34,-1.0451,yahoo_finance,501,2024-01-01 - 2025-12-31
-GOOGL,tech_stocks,Alphabet (Google),MACD_Standard,-2.589,-0.9567,2.589,0.0,1,-2.3939,yahoo_finance,501,2024-01-01 - 2025-12-31
-GOOGL,tech_stocks,Alphabet (Google),Bollinger_20_2,-15.6623,-0.631,17.6989,47.06,34,-0.2618,yahoo_finance,501,2024-01-01 - 2025-12-31
-GOOGL,tech_stocks,Alphabet (Google),Combined,-4.9617,-0.1948,16.6419,44.44,45,0.1092,yahoo_finance,501,2024-01-01 - 2025-12-31
-GOOGL,tech_stocks,Alphabet (Google),ADX_Trend_14_25,-7.3246,-0.5812,13.3783,42.86,21,-0.1439,yahoo_finance,501,2024-01-01 - 2025-12-31
+GOOGL,tech_stocks,Alphabet (Google),RSI_14_30_70,3.3395,0.1872,15.5915,47.17,53,0.29,yahoo_finance,501,2024-01-01 - 2025-12-31
+GOOGL,tech_stocks,Alphabet (Google),RSI_14_35_80,-35.1644,-2.0784,35.1644,32.35,34,-1.0451,yahoo_finance,501,2024-01-01 - 2025-12-31
+GOOGL,tech_stocks,Alphabet (Google),MACD_Standard,-2.589,-0.9567,2.589,0.0,1,-2.394,yahoo_finance,501,2024-01-01 - 2025-12-31
+GOOGL,tech_stocks,Alphabet (Google),Bollinger_20_2,-15.6622,-0.631,17.6989,47.06,34,-0.2618,yahoo_finance,501,2024-01-01 - 2025-12-31
+GOOGL,tech_stocks,Alphabet (Google),Combined,-4.9616,-0.1948,16.6418,44.44,45,0.1092,yahoo_finance,501,2024-01-01 - 2025-12-31
+GOOGL,tech_stocks,Alphabet (Google),ADX_Trend_14_25,-7.3246,-0.5812,13.3784,42.86,21,-0.1439,yahoo_finance,501,2024-01-01 - 2025-12-31
 GOOGL,tech_stocks,Alphabet (Google),VWAP_20,-15.7918,-1.0483,19.9029,46.67,30,-0.352,yahoo_finance,501,2024-01-01 - 2025-12-31
 GOOGL,tech_stocks,Alphabet (Google),Ichimoku_9_26_52,-9.2738,-0.4826,19.7948,50.0,24,-0.1695,yahoo_finance,501,2024-01-01 - 2025-12-31
 AMZN,tech_stocks,Amazon,MA_Crossover_20_50,0.9371,0.6063,0.1498,100.0,1,1.1392,yahoo_finance,501,2024-01-01 - 2025-12-31
@@ -202,13 +252,13 @@ AMZN,tech_stocks,Amazon,Ichimoku_9_26_52,-14.0594,-0.8522,19.6383,54.84,31,-0.26
 META,tech_stocks,Meta (Facebook),MA_Crossover_20_50,-1.052,-0.8168,1.052,0.0,1,-0.8539,yahoo_finance,501,2024-01-01 - 2025-12-31
 META,tech_stocks,Meta (Facebook),MA_Crossover_10_30,2.552,0.6695,0.1498,100.0,1,2.7573,yahoo_finance,501,2024-01-01 - 2025-12-31
 META,tech_stocks,Meta (Facebook),RSI_14_30_70,-7.1987,-0.2544,13.4641,57.45,47,0.0681,yahoo_finance,501,2024-01-01 - 2025-12-31
-META,tech_stocks,Meta (Facebook),RSI_14_35_80,-22.6334,-0.9158,29.6447,44.74,38,-0.4364,yahoo_finance,501,2024-01-01 - 2025-12-31
+META,tech_stocks,Meta (Facebook),RSI_14_35_80,-22.6333,-0.9158,29.6447,44.74,38,-0.4364,yahoo_finance,501,2024-01-01 - 2025-12-31
 META,tech_stocks,Meta (Facebook),MACD_Standard,-1.0682,-0.8151,1.0682,0.0,1,-0.8701,yahoo_finance,501,2024-01-01 - 2025-12-31
 META,tech_stocks,Meta (Facebook),Bollinger_20_2,-20.6591,-0.6025,36.9659,55.26,38,-0.3253,yahoo_finance,501,2024-01-01 - 2025-12-31
-META,tech_stocks,Meta (Facebook),Combined,-6.3332,-0.2464,13.1953,60.0,55,0.0996,yahoo_finance,501,2024-01-01 - 2025-12-31
+META,tech_stocks,Meta (Facebook),Combined,-6.3333,-0.2464,13.1953,60.0,55,0.0996,yahoo_finance,501,2024-01-01 - 2025-12-31
 META,tech_stocks,Meta (Facebook),ADX_Trend_14_25,-6.991,-0.8339,6.991,52.38,21,-0.1367,yahoo_finance,501,2024-01-01 - 2025-12-31
 META,tech_stocks,Meta (Facebook),VWAP_20,-6.5154,-0.3769,16.3554,50.0,36,0.031,yahoo_finance,501,2024-01-01 - 2025-12-31
-META,tech_stocks,Meta (Facebook),Ichimoku_9_26_52,-6.2169,-0.3831,11.2457,42.86,28,-0.0116,yahoo_finance,501,2024-01-01 - 2025-12-31
+META,tech_stocks,Meta (Facebook),Ichimoku_9_26_52,-6.2169,-0.3832,11.2458,42.86,28,-0.0116,yahoo_finance,501,2024-01-01 - 2025-12-31
 TSLA,tech_stocks,Tesla,MA_Crossover_20_50,3.8147,0.6826,0.1499,100.0,1,4.0225,yahoo_finance,501,2024-01-01 - 2025-12-31
 TSLA,tech_stocks,Tesla,MA_Crossover_10_30,-2.8457,-0.7483,2.8457,0.0,1,-2.6512,yahoo_finance,501,2024-01-01 - 2025-12-31
 TSLA,tech_stocks,Tesla,RSI_14_30_70,-31.5284,-0.8877,39.2037,40.48,42,-0.5926,yahoo_finance,501,2024-01-01 - 2025-12-31
@@ -249,6 +299,236 @@ COIN,tech_stocks,Coinbase,Combined,-42.5438,-0.9584,48.2826,50.98,51,-0.7467,yah
 COIN,tech_stocks,Coinbase,ADX_Trend_14_25,3.1856,0.187,13.1188,50.0,22,0.4161,yahoo_finance,501,2024-01-01 - 2025-12-31
 COIN,tech_stocks,Coinbase,VWAP_20,-19.3539,-0.5114,31.7489,37.04,27,-0.4359,yahoo_finance,501,2024-01-01 - 2025-12-31
 COIN,tech_stocks,Coinbase,Ichimoku_9_26_52,-0.4834,0.0746,19.1565,56.0,25,0.3116,yahoo_finance,501,2024-01-01 - 2025-12-31
+AVGO,semiconductors,Broadcom,MA_Crossover_20_50,0.0492,0.1408,0.1498,100.0,1,0.2495,yahoo_finance,501,2024-01-01 - 2025-12-31
+AVGO,semiconductors,Broadcom,MA_Crossover_10_30,0.5424,0.5437,0.1498,100.0,1,0.7437,yahoo_finance,501,2024-01-01 - 2025-12-31
+AVGO,semiconductors,Broadcom,RSI_14_30_70,81.5416,1.2396,13.2523,57.69,52,1.5669,yahoo_finance,501,2024-01-01 - 2025-12-31
+AVGO,semiconductors,Broadcom,RSI_14_35_80,-28.0497,-0.7679,39.4594,48.57,35,-0.6433,yahoo_finance,501,2024-01-01 - 2025-12-31
+AVGO,semiconductors,Broadcom,MACD_Standard,0.6035,0.5578,0.1499,100.0,1,0.8049,yahoo_finance,501,2024-01-01 - 2025-12-31
+AVGO,semiconductors,Broadcom,Bollinger_20_2,-62.7493,-1.6853,63.2656,32.35,34,-2.3694,yahoo_finance,501,2024-01-01 - 2025-12-31
+AVGO,semiconductors,Broadcom,Combined,34.2715,0.7181,18.8245,51.67,60,0.8589,yahoo_finance,501,2024-01-01 - 2025-12-31
+AVGO,semiconductors,Broadcom,ADX_Trend_14_25,1.6572,0.1273,12.0157,50.0,24,0.3355,yahoo_finance,501,2024-01-01 - 2025-12-31
+AVGO,semiconductors,Broadcom,VWAP_20,-33.8563,-2.1481,34.1964,38.71,31,-1.1041,yahoo_finance,501,2024-01-01 - 2025-12-31
+AVGO,semiconductors,Broadcom,Ichimoku_9_26_52,20.8759,0.6483,16.8689,56.67,30,0.8844,yahoo_finance,501,2024-01-01 - 2025-12-31
+INTC,semiconductors,Intel,MA_Crossover_20_50,0.8096,0.5919,0.1499,100.0,1,1.0114,yahoo_finance,501,2024-01-01 - 2025-12-31
+INTC,semiconductors,Intel,MA_Crossover_10_30,-2.6837,-0.7506,2.6837,0.0,1,-2.4889,yahoo_finance,501,2024-01-01 - 2025-12-31
+INTC,semiconductors,Intel,RSI_14_30_70,3.4725,0.1832,18.4312,43.59,39,0.431,yahoo_finance,501,2024-01-01 - 2025-12-31
+INTC,semiconductors,Intel,RSI_14_35_80,-16.1617,-0.4961,19.7001,41.18,34,-0.2602,yahoo_finance,501,2024-01-01 - 2025-12-31
+INTC,semiconductors,Intel,MACD_Standard,0.0825,0.2124,0.1499,100.0,1,0.2829,yahoo_finance,501,2024-01-01 - 2025-12-31
+INTC,semiconductors,Intel,Bollinger_20_2,-25.2468,-0.2835,38.9033,50.0,36,-0.3783,yahoo_finance,501,2024-01-01 - 2025-12-31
+INTC,semiconductors,Intel,Combined,4.0704,0.1975,30.7222,41.51,53,0.3934,yahoo_finance,501,2024-01-01 - 2025-12-31
+INTC,semiconductors,Intel,ADX_Trend_14_25,-6.8736,-0.2911,14.0187,61.11,18,-0.145,yahoo_finance,501,2024-01-01 - 2025-12-31
+INTC,semiconductors,Intel,VWAP_20,-3.752,-0.0109,19.8782,54.55,33,0.18,yahoo_finance,501,2024-01-01 - 2025-12-31
+INTC,semiconductors,Intel,Ichimoku_9_26_52,18.886,0.6083,13.5587,54.55,33,0.793,yahoo_finance,501,2024-01-01 - 2025-12-31
+QCOM,semiconductors,Qualcomm,MA_Crossover_20_50,-0.7708,-0.8568,0.7708,0.0,1,-0.5722,yahoo_finance,501,2024-01-01 - 2025-12-31
+QCOM,semiconductors,Qualcomm,MA_Crossover_10_30,2.292,0.6651,0.1498,100.0,1,2.4968,yahoo_finance,501,2024-01-01 - 2025-12-31
+QCOM,semiconductors,Qualcomm,RSI_14_30_70,18.0082,0.551,26.0944,48.78,41,0.666,yahoo_finance,501,2024-01-01 - 2025-12-31
+QCOM,semiconductors,Qualcomm,RSI_14_35_80,25.9444,0.8258,13.4354,57.14,35,0.937,yahoo_finance,501,2024-01-01 - 2025-12-31
+QCOM,semiconductors,Qualcomm,MACD_Standard,0.7386,0.582,0.1499,100.0,1,0.9402,yahoo_finance,501,2024-01-01 - 2025-12-31
+QCOM,semiconductors,Qualcomm,Bollinger_20_2,10.0988,0.3742,14.3079,52.78,36,0.5197,yahoo_finance,501,2024-01-01 - 2025-12-31
+QCOM,semiconductors,Qualcomm,Combined,-16.7943,-0.6177,27.6783,46.15,52,-0.1205,yahoo_finance,501,2024-01-01 - 2025-12-31
+QCOM,semiconductors,Qualcomm,ADX_Trend_14_25,-4.3805,-0.3871,8.4908,44.44,27,0.0437,yahoo_finance,501,2024-01-01 - 2025-12-31
+QCOM,semiconductors,Qualcomm,VWAP_20,-7.4758,-0.2897,16.5755,58.97,39,0.0325,yahoo_finance,501,2024-01-01 - 2025-12-31
+QCOM,semiconductors,Qualcomm,Ichimoku_9_26_52,-29.9766,-1.1414,34.1515,29.73,37,-0.7212,yahoo_finance,501,2024-01-01 - 2025-12-31
+JPM,finance,JPMorgan Chase,MA_Crossover_20_50,-2.076,-0.7629,2.076,0.0,1,-1.88,yahoo_finance,501,2024-01-01 - 2025-12-31
+JPM,finance,JPMorgan Chase,MA_Crossover_10_30,0.7131,0.578,0.1498,100.0,1,0.9148,yahoo_finance,501,2024-01-01 - 2025-12-31
+JPM,finance,JPMorgan Chase,RSI_14_30_70,-10.4448,-0.5157,13.3838,30.0,50,0.0063,yahoo_finance,501,2024-01-01 - 2025-12-31
+JPM,finance,JPMorgan Chase,RSI_14_35_80,3.0843,0.2072,9.5952,47.37,38,0.2972,yahoo_finance,501,2024-01-01 - 2025-12-31
+JPM,finance,JPMorgan Chase,MACD_Standard,-0.9626,-0.827,0.9626,0.0,1,-0.7643,yahoo_finance,501,2024-01-01 - 2025-12-31
+JPM,finance,JPMorgan Chase,Bollinger_20_2,-0.8649,-0.0191,8.1163,51.43,35,0.1879,yahoo_finance,501,2024-01-01 - 2025-12-31
+JPM,finance,JPMorgan Chase,Combined,-6.2888,-0.2849,16.4629,41.86,43,0.0757,yahoo_finance,501,2024-01-01 - 2025-12-31
+JPM,finance,JPMorgan Chase,ADX_Trend_14_25,1.1395,0.172,3.836,60.0,15,0.2825,yahoo_finance,501,2024-01-01 - 2025-12-31
+JPM,finance,JPMorgan Chase,VWAP_20,-9.6134,-0.6914,12.0323,36.11,36,-0.0711,yahoo_finance,501,2024-01-01 - 2025-12-31
+JPM,finance,JPMorgan Chase,Ichimoku_9_26_52,-7.9359,-0.4765,16.5325,43.59,39,0.0104,yahoo_finance,501,2024-01-01 - 2025-12-31
+GS,finance,Goldman Sachs,MA_Crossover_20_50,-1.2399,-0.8001,1.2399,0.0,1,-1.0421,yahoo_finance,501,2024-01-01 - 2025-12-31
+GS,finance,Goldman Sachs,MA_Crossover_10_30,-0.4864,-0.9378,0.4864,0.0,1,-0.2872,yahoo_finance,501,2024-01-01 - 2025-12-31
+GS,finance,Goldman Sachs,RSI_14_30_70,-14.0566,-0.6495,16.0741,41.18,51,-0.0778,yahoo_finance,501,2024-01-01 - 2025-12-31
+GS,finance,Goldman Sachs,RSI_14_35_80,-26.5248,-1.5122,26.9623,41.18,34,-0.6778,yahoo_finance,501,2024-01-01 - 2025-12-31
+GS,finance,Goldman Sachs,MACD_Standard,-0.6032,-0.8972,0.6032,0.0,1,-0.4042,yahoo_finance,501,2024-01-01 - 2025-12-31
+GS,finance,Goldman Sachs,Bollinger_20_2,-15.1433,-0.6561,22.4901,45.24,42,-0.1601,yahoo_finance,501,2024-01-01 - 2025-12-31
+GS,finance,Goldman Sachs,Combined,-4.4446,-0.1526,20.2653,50.0,48,0.1275,yahoo_finance,501,2024-01-01 - 2025-12-31
+GS,finance,Goldman Sachs,ADX_Trend_14_25,5.3947,0.3818,7.2404,60.87,23,0.4521,yahoo_finance,501,2024-01-01 - 2025-12-31
+GS,finance,Goldman Sachs,VWAP_20,-20.7776,-1.1391,23.8757,41.86,43,-0.3206,yahoo_finance,501,2024-01-01 - 2025-12-31
+GS,finance,Goldman Sachs,Ichimoku_9_26_52,-6.3403,-0.347,7.8763,42.42,33,0.0162,yahoo_finance,501,2024-01-01 - 2025-12-31
+V,finance,Visa,MA_Crossover_20_50,0.1445,0.311,0.1498,100.0,1,0.345,yahoo_finance,501,2024-01-01 - 2025-12-31
+V,finance,Visa,MA_Crossover_10_30,0.333,0.4678,0.1498,100.0,1,0.5339,yahoo_finance,501,2024-01-01 - 2025-12-31
+V,finance,Visa,RSI_14_30_70,4.0154,0.2733,10.726,41.67,36,0.326,yahoo_finance,501,2024-01-01 - 2025-12-31
+V,finance,Visa,RSI_14_35_80,-20.3452,-1.2442,23.8912,27.66,47,-0.2735,yahoo_finance,501,2024-01-01 - 2025-12-31
+V,finance,Visa,MACD_Standard,-0.9618,-1.0152,0.9618,0.0,1,-0.7635,yahoo_finance,501,2024-01-01 - 2025-12-31
+V,finance,Visa,Bollinger_20_2,-18.5003,-1.8574,18.5446,36.11,36,-0.3623,yahoo_finance,501,2024-01-01 - 2025-12-31
+V,finance,Visa,Combined,-20.5493,-1.4611,25.5842,41.54,65,-0.1432,yahoo_finance,501,2024-01-01 - 2025-12-31
+V,finance,Visa,ADX_Trend_14_25,-1.8481,-0.306,4.5251,63.16,19,0.1062,yahoo_finance,501,2024-01-01 - 2025-12-31
+V,finance,Visa,VWAP_20,-15.0358,-1.7384,15.7487,40.43,47,-0.1437,yahoo_finance,501,2024-01-01 - 2025-12-31
+V,finance,Visa,Ichimoku_9_26_52,-10.1458,-1.1045,11.7992,47.06,34,-0.1092,yahoo_finance,501,2024-01-01 - 2025-12-31
+MA,finance,Mastercard,MA_Crossover_20_50,0.5117,0.5356,0.1498,100.0,1,0.7129,yahoo_finance,501,2024-01-01 - 2025-12-31
+MA,finance,Mastercard,MA_Crossover_10_30,0.7246,0.5799,0.1498,100.0,1,0.9263,yahoo_finance,501,2024-01-01 - 2025-12-31
+MA,finance,Mastercard,RSI_14_30_70,5.5509,0.3407,11.8334,41.03,39,0.36,yahoo_finance,501,2024-01-01 - 2025-12-31
+MA,finance,Mastercard,RSI_14_35_80,-13.5018,-1.0856,14.25,34.15,41,-0.1422,yahoo_finance,501,2024-01-01 - 2025-12-31
+MA,finance,Mastercard,MACD_Standard,-0.5382,-0.9183,0.5382,0.0,1,-0.3391,yahoo_finance,501,2024-01-01 - 2025-12-31
+MA,finance,Mastercard,Bollinger_20_2,-14.6702,-1.1721,15.9834,35.0,40,-0.1867,yahoo_finance,501,2024-01-01 - 2025-12-31
+MA,finance,Mastercard,Combined,14.1649,0.8858,4.9551,62.75,51,0.4786,yahoo_finance,501,2024-01-01 - 2025-12-31
+MA,finance,Mastercard,ADX_Trend_14_25,-13.0636,-2.282,13.849,31.03,29,-0.2794,yahoo_finance,501,2024-01-01 - 2025-12-31
+MA,finance,Mastercard,VWAP_20,-12.5754,-1.5576,13.9879,45.45,44,-0.1011,yahoo_finance,501,2024-01-01 - 2025-12-31
+MA,finance,Mastercard,Ichimoku_9_26_52,-5.3175,-0.6635,9.1005,46.43,28,0.0103,yahoo_finance,501,2024-01-01 - 2025-12-31
+BAC,finance,Bank of America,MA_Crossover_20_50,-1.3772,-0.7908,1.3772,0.0,1,-1.1798,yahoo_finance,501,2024-01-01 - 2025-12-31
+BAC,finance,Bank of America,MA_Crossover_10_30,3.7798,0.869,0.1498,100.0,1,3.9876,yahoo_finance,501,2024-01-01 - 2025-12-31
+BAC,finance,Bank of America,RSI_14_30_70,-15.0176,-0.9406,18.6511,33.33,57,-0.0724,yahoo_finance,501,2024-01-01 - 2025-12-31
+BAC,finance,Bank of America,RSI_14_35_80,-27.255,-1.8999,27.255,30.77,39,-0.5984,yahoo_finance,501,2024-01-01 - 2025-12-31
+BAC,finance,Bank of America,MACD_Standard,-1.1041,-0.8116,1.1041,0.0,1,-0.9061,yahoo_finance,501,2024-01-01 - 2025-12-31
+BAC,finance,Bank of America,Bollinger_20_2,-22.2699,-1.245,27.2635,39.47,38,-0.4364,yahoo_finance,501,2024-01-01 - 2025-12-31
+BAC,finance,Bank of America,Combined,-1.6521,-0.0511,7.0711,46.3,54,0.185,yahoo_finance,501,2024-01-01 - 2025-12-31
+BAC,finance,Bank of America,ADX_Trend_14_25,-14.8308,-1.8897,16.3133,36.84,19,-0.6357,yahoo_finance,501,2024-01-01 - 2025-12-31
+BAC,finance,Bank of America,VWAP_20,-17.8966,-1.239,19.4592,39.47,38,-0.3028,yahoo_finance,501,2024-01-01 - 2025-12-31
+BAC,finance,Bank of America,Ichimoku_9_26_52,-22.5498,-1.1285,23.608,38.71,31,-0.563,yahoo_finance,501,2024-01-01 - 2025-12-31
+UNH,healthcare,UnitedHealth,MA_Crossover_20_50,-0.5044,-0.9308,0.5044,0.0,1,-0.3052,yahoo_finance,501,2024-01-01 - 2025-12-31
+UNH,healthcare,UnitedHealth,MA_Crossover_10_30,-0.3171,-1.0035,0.3171,0.0,1,-0.1175,yahoo_finance,501,2024-01-01 - 2025-12-31
+UNH,healthcare,UnitedHealth,RSI_14_30_70,-31.5785,-1.376,35.8134,38.46,52,-0.5004,yahoo_finance,501,2024-01-01 - 2025-12-31
+UNH,healthcare,UnitedHealth,RSI_14_35_80,-8.0169,-0.3116,22.2267,54.17,48,0.0598,yahoo_finance,501,2024-01-01 - 2025-12-31
+UNH,healthcare,UnitedHealth,MACD_Standard,0.324,0.463,0.1498,100.0,1,0.5248,yahoo_finance,501,2024-01-01 - 2025-12-31
+UNH,healthcare,UnitedHealth,Bollinger_20_2,-23.1874,-0.7055,29.4328,36.84,38,-0.409,yahoo_finance,501,2024-01-01 - 2025-12-31
+UNH,healthcare,UnitedHealth,Combined,-14.2505,-0.5379,27.7216,41.67,48,-0.0877,yahoo_finance,501,2024-01-01 - 2025-12-31
+UNH,healthcare,UnitedHealth,ADX_Trend_14_25,-7.399,-0.6967,8.2678,47.37,19,-0.1897,yahoo_finance,501,2024-01-01 - 2025-12-31
+UNH,healthcare,UnitedHealth,VWAP_20,-13.7812,-0.7748,19.3058,36.84,38,-0.1701,yahoo_finance,501,2024-01-01 - 2025-12-31
+UNH,healthcare,UnitedHealth,Ichimoku_9_26_52,-4.9245,-0.3719,8.0518,48.0,25,0.0135,yahoo_finance,501,2024-01-01 - 2025-12-31
+ABBV,healthcare,AbbVie,MA_Crossover_20_50,0.4432,0.5145,0.1498,100.0,1,0.6443,yahoo_finance,501,2024-01-01 - 2025-12-31
+ABBV,healthcare,AbbVie,MA_Crossover_10_30,0.3506,0.4766,0.1498,100.0,1,0.5515,yahoo_finance,501,2024-01-01 - 2025-12-31
+ABBV,healthcare,AbbVie,RSI_14_30_70,-18.263,-0.7995,21.2129,36.0,50,-0.1721,yahoo_finance,501,2024-01-01 - 2025-12-31
+ABBV,healthcare,AbbVie,RSI_14_35_80,-14.8515,-0.7422,18.6701,43.18,44,-0.1428,yahoo_finance,501,2024-01-01 - 2025-12-31
+ABBV,healthcare,AbbVie,MACD_Standard,0.3218,0.4618,0.1498,100.0,1,0.5226,yahoo_finance,501,2024-01-01 - 2025-12-31
+ABBV,healthcare,AbbVie,Bollinger_20_2,-19.2016,-1.1935,19.2016,40.0,35,-0.3916,yahoo_finance,501,2024-01-01 - 2025-12-31
+ABBV,healthcare,AbbVie,Combined,-12.3403,-0.7717,16.5137,46.15,52,-0.0432,yahoo_finance,501,2024-01-01 - 2025-12-31
+ABBV,healthcare,AbbVie,ADX_Trend_14_25,-10.3975,-0.9702,11.3246,42.31,26,-0.2091,yahoo_finance,501,2024-01-01 - 2025-12-31
+ABBV,healthcare,AbbVie,VWAP_20,-11.8108,-0.7651,15.2392,55.0,40,-0.0987,yahoo_finance,501,2024-01-01 - 2025-12-31
+ABBV,healthcare,AbbVie,Ichimoku_9_26_52,-11.2461,-0.8406,12.6309,36.0,25,-0.2671,yahoo_finance,501,2024-01-01 - 2025-12-31
+LLY,healthcare,Eli Lilly,MA_Crossover_20_50,0.0807,0.2088,0.1498,100.0,1,0.281,yahoo_finance,501,2024-01-01 - 2025-12-31
+LLY,healthcare,Eli Lilly,MA_Crossover_10_30,1.8029,0.6535,0.1498,100.0,1,2.0067,yahoo_finance,501,2024-01-01 - 2025-12-31
+LLY,healthcare,Eli Lilly,RSI_14_30_70,-18.6788,-0.944,18.6788,47.17,53,-0.1712,yahoo_finance,501,2024-01-01 - 2025-12-31
+LLY,healthcare,Eli Lilly,RSI_14_35_80,-15.8139,-0.4684,22.819,47.62,42,-0.1649,yahoo_finance,501,2024-01-01 - 2025-12-31
+LLY,healthcare,Eli Lilly,MACD_Standard,-0.8161,-0.8486,0.8161,0.0,1,-0.6175,yahoo_finance,501,2024-01-01 - 2025-12-31
+LLY,healthcare,Eli Lilly,Bollinger_20_2,11.0903,0.5763,8.7173,65.52,29,0.5987,yahoo_finance,501,2024-01-01 - 2025-12-31
+LLY,healthcare,Eli Lilly,Combined,17.8169,0.8336,6.4227,56.36,55,0.5178,yahoo_finance,501,2024-01-01 - 2025-12-31
+LLY,healthcare,Eli Lilly,ADX_Trend_14_25,3.0422,0.2943,7.1823,57.89,19,0.3744,yahoo_finance,501,2024-01-01 - 2025-12-31
+LLY,healthcare,Eli Lilly,VWAP_20,-25.4853,-1.4744,25.8624,41.38,29,-0.7833,yahoo_finance,501,2024-01-01 - 2025-12-31
+LLY,healthcare,Eli Lilly,Ichimoku_9_26_52,-5.4748,-0.2117,12.1111,46.43,28,0.0375,yahoo_finance,501,2024-01-01 - 2025-12-31
+MRK,healthcare,Merck,MA_Crossover_20_50,-1.0223,-0.82,1.0223,0.0,1,-0.8242,yahoo_finance,501,2024-01-01 - 2025-12-31
+MRK,healthcare,Merck,MA_Crossover_10_30,0.0104,0.0345,0.1498,100.0,1,0.2107,yahoo_finance,501,2024-01-01 - 2025-12-31
+MRK,healthcare,Merck,RSI_14_30_70,-18.552,-1.0897,23.0762,39.22,51,-0.1847,yahoo_finance,501,2024-01-01 - 2025-12-31
+MRK,healthcare,Merck,RSI_14_35_80,-17.4684,-1.0328,19.1705,36.84,38,-0.2834,yahoo_finance,501,2024-01-01 - 2025-12-31
+MRK,healthcare,Merck,MACD_Standard,1.6463,0.6484,0.1498,100.0,1,1.8498,yahoo_finance,501,2024-01-01 - 2025-12-31
+MRK,healthcare,Merck,Bollinger_20_2,-6.8516,-0.4168,10.573,41.03,39,0.0323,yahoo_finance,501,2024-01-01 - 2025-12-31
+MRK,healthcare,Merck,Combined,-20.4523,-0.8744,28.4433,44.44,63,-0.1351,yahoo_finance,501,2024-01-01 - 2025-12-31
+MRK,healthcare,Merck,ADX_Trend_14_25,-15.8992,-1.2453,18.1127,31.58,19,-0.6941,yahoo_finance,501,2024-01-01 - 2025-12-31
+MRK,healthcare,Merck,VWAP_20,-1.7905,-0.0895,13.0232,43.59,39,0.1631,yahoo_finance,501,2024-01-01 - 2025-12-31
+MRK,healthcare,Merck,Ichimoku_9_26_52,-12.8087,-0.515,21.0388,47.06,34,-0.1543,yahoo_finance,501,2024-01-01 - 2025-12-31
+PFE,healthcare,Pfizer,MA_Crossover_20_50,0.019,0.0603,0.1499,100.0,1,0.2192,yahoo_finance,501,2024-01-01 - 2025-12-31
+PFE,healthcare,Pfizer,MA_Crossover_10_30,-0.8182,-0.8483,0.8182,0.0,1,-0.6197,yahoo_finance,501,2024-01-01 - 2025-12-31
+PFE,healthcare,Pfizer,RSI_14_30_70,-2.1642,-0.0943,17.7214,46.67,45,0.1692,yahoo_finance,501,2024-01-01 - 2025-12-31
+PFE,healthcare,Pfizer,RSI_14_35_80,3.1559,0.1964,12.9026,43.24,37,0.3401,yahoo_finance,501,2024-01-01 - 2025-12-31
+PFE,healthcare,Pfizer,MACD_Standard,-1.6046,-0.779,1.6046,0.0,1,-1.4076,yahoo_finance,501,2024-01-01 - 2025-12-31
+PFE,healthcare,Pfizer,Bollinger_20_2,-7.5392,-0.3651,16.3229,55.56,36,0.0092,yahoo_finance,501,2024-01-01 - 2025-12-31
+PFE,healthcare,Pfizer,Combined,-15.8336,-0.8829,23.8798,44.64,56,-0.0925,yahoo_finance,501,2024-01-01 - 2025-12-31
+PFE,healthcare,Pfizer,ADX_Trend_14_25,-9.6032,-0.8396,9.6032,40.91,22,-0.2481,yahoo_finance,501,2024-01-01 - 2025-12-31
+PFE,healthcare,Pfizer,VWAP_20,-1.4855,-0.1103,11.6832,50.0,34,0.1666,yahoo_finance,501,2024-01-01 - 2025-12-31
+PFE,healthcare,Pfizer,Ichimoku_9_26_52,-12.5062,-0.9296,15.6524,50.0,28,-0.2629,yahoo_finance,501,2024-01-01 - 2025-12-31
+XOM,energy,ExxonMobil,MA_Crossover_20_50,1.4663,0.6414,0.1498,100.0,1,1.6695,yahoo_finance,501,2024-01-01 - 2025-12-31
+XOM,energy,ExxonMobil,MA_Crossover_10_30,-0.7915,-0.853,0.7915,0.0,1,-0.5928,yahoo_finance,501,2024-01-01 - 2025-12-31
+XOM,energy,ExxonMobil,RSI_14_30_70,-14.8898,-0.904,20.0553,38.71,31,-0.2971,yahoo_finance,501,2024-01-01 - 2025-12-31
+XOM,energy,ExxonMobil,RSI_14_35_80,-17.0025,-1.1794,19.1739,37.93,29,-0.4191,yahoo_finance,501,2024-01-01 - 2025-12-31
+XOM,energy,ExxonMobil,MACD_Standard,-1.1689,-0.8058,1.1689,0.0,1,-0.971,yahoo_finance,501,2024-01-01 - 2025-12-31
+XOM,energy,ExxonMobil,Bollinger_20_2,-4.2895,-0.2816,10.0384,50.0,30,0.0658,yahoo_finance,501,2024-01-01 - 2025-12-31
+XOM,energy,ExxonMobil,Combined,-0.7799,0.0051,14.4264,59.32,59,0.2011,yahoo_finance,501,2024-01-01 - 2025-12-31
+XOM,energy,ExxonMobil,ADX_Trend_14_25,2.7348,0.4445,2.5554,66.67,18,0.3555,yahoo_finance,501,2024-01-01 - 2025-12-31
+XOM,energy,ExxonMobil,VWAP_20,-8.3299,-0.9077,10.2574,39.39,33,-0.0562,yahoo_finance,501,2024-01-01 - 2025-12-31
+XOM,energy,ExxonMobil,Ichimoku_9_26_52,-17.4789,-1.3851,22.3576,47.06,34,-0.3518,yahoo_finance,501,2024-01-01 - 2025-12-31
+CVX,energy,Chevron,MA_Crossover_20_50,0.8731,0.5995,0.1498,100.0,1,1.075,yahoo_finance,501,2024-01-01 - 2025-12-31
+CVX,energy,Chevron,MA_Crossover_10_30,-0.0281,-0.1026,0.1498,100.0,1,0.172,yahoo_finance,501,2024-01-01 - 2025-12-31
+CVX,energy,Chevron,RSI_14_30_70,-21.1497,-1.1704,25.0712,33.33,42,-0.3437,yahoo_finance,501,2024-01-01 - 2025-12-31
+CVX,energy,Chevron,RSI_14_35_80,-20.5877,-1.3478,24.7135,29.03,31,-0.5162,yahoo_finance,501,2024-01-01 - 2025-12-31
+CVX,energy,Chevron,MACD_Standard,-1.3926,-0.7899,1.3926,0.0,1,-1.1952,yahoo_finance,501,2024-01-01 - 2025-12-31
+CVX,energy,Chevron,Bollinger_20_2,-5.8907,-0.3573,13.8656,40.74,27,-0.005,yahoo_finance,501,2024-01-01 - 2025-12-31
+CVX,energy,Chevron,Combined,-10.8788,-0.4859,18.3861,46.3,54,0.0078,yahoo_finance,501,2024-01-01 - 2025-12-31
+CVX,energy,Chevron,ADX_Trend_14_25,-11.3971,-1.188,13.0618,30.43,23,-0.3167,yahoo_finance,501,2024-01-01 - 2025-12-31
+CVX,energy,Chevron,VWAP_20,-11.0862,-1.2018,13.311,39.39,33,-0.15,yahoo_finance,501,2024-01-01 - 2025-12-31
+CVX,energy,Chevron,Ichimoku_9_26_52,-3.5377,-0.2325,6.6565,51.61,31,0.099,yahoo_finance,501,2024-01-01 - 2025-12-31
+COP,energy,ConocoPhillips,MA_Crossover_20_50,1.5918,0.6465,0.1498,100.0,1,1.7952,yahoo_finance,501,2024-01-01 - 2025-12-31
+COP,energy,ConocoPhillips,MA_Crossover_10_30,-0.6182,-0.8929,0.6182,0.0,1,-0.4192,yahoo_finance,501,2024-01-01 - 2025-12-31
+COP,energy,ConocoPhillips,RSI_14_30_70,-25.3348,-1.089,25.3348,35.56,45,-0.4173,yahoo_finance,501,2024-01-01 - 2025-12-31
+COP,energy,ConocoPhillips,RSI_14_35_80,-31.1536,-1.2349,34.878,28.21,39,-0.69,yahoo_finance,501,2024-01-01 - 2025-12-31
+COP,energy,ConocoPhillips,MACD_Standard,-3.1676,-0.7443,3.1676,0.0,1,-2.9738,yahoo_finance,501,2024-01-01 - 2025-12-31
+COP,energy,ConocoPhillips,Bollinger_20_2,-3.1937,-0.1317,14.2894,43.75,32,0.1247,yahoo_finance,501,2024-01-01 - 2025-12-31
+COP,energy,ConocoPhillips,Combined,-21.1654,-0.8135,27.623,39.29,56,-0.1935,yahoo_finance,501,2024-01-01 - 2025-12-31
+COP,energy,ConocoPhillips,ADX_Trend_14_25,-14.6766,-1.1115,16.5429,52.17,23,-0.4684,yahoo_finance,501,2024-01-01 - 2025-12-31
+COP,energy,ConocoPhillips,VWAP_20,-9.0812,-0.6077,15.9823,40.54,37,-0.043,yahoo_finance,501,2024-01-01 - 2025-12-31
+COP,energy,ConocoPhillips,Ichimoku_9_26_52,0.1459,0.0513,12.2247,54.55,33,0.2238,yahoo_finance,501,2024-01-01 - 2025-12-31
+SLB,energy,Schlumberger,MA_Crossover_20_50,0.9522,0.6078,0.1498,100.0,1,1.1543,yahoo_finance,501,2024-01-01 - 2025-12-31
+SLB,energy,Schlumberger,MA_Crossover_10_30,-0.6566,-0.8824,0.6566,0.0,1,-0.4577,yahoo_finance,501,2024-01-01 - 2025-12-31
+SLB,energy,Schlumberger,RSI_14_30_70,-25.1678,-0.8461,30.5056,42.55,47,-0.3564,yahoo_finance,501,2024-01-01 - 2025-12-31
+SLB,energy,Schlumberger,RSI_14_35_80,-7.119,-0.3835,13.0735,48.72,39,0.0321,yahoo_finance,501,2024-01-01 - 2025-12-31
+SLB,energy,Schlumberger,MACD_Standard,-2.1175,-0.7618,2.1175,0.0,1,-1.9215,yahoo_finance,501,2024-01-01 - 2025-12-31
+SLB,energy,Schlumberger,Bollinger_20_2,-31.2588,-1.3536,32.1627,35.0,40,-0.6901,yahoo_finance,501,2024-01-01 - 2025-12-31
+SLB,energy,Schlumberger,Combined,20.1035,0.806,9.5978,53.33,60,0.5504,yahoo_finance,501,2024-01-01 - 2025-12-31
+SLB,energy,Schlumberger,ADX_Trend_14_25,6.3526,0.5071,6.1637,60.0,20,0.5318,yahoo_finance,501,2024-01-01 - 2025-12-31
+SLB,energy,Schlumberger,VWAP_20,-27.3353,-1.4316,27.3353,43.59,39,-0.5889,yahoo_finance,501,2024-01-01 - 2025-12-31
+SLB,energy,Schlumberger,Ichimoku_9_26_52,-3.455,-0.1461,12.1316,43.48,23,0.0671,yahoo_finance,501,2024-01-01 - 2025-12-31
+EOG,energy,EOG Resources,MA_Crossover_20_50,0.6928,0.5747,0.1498,100.0,1,0.8944,yahoo_finance,501,2024-01-01 - 2025-12-31
+EOG,energy,EOG Resources,MA_Crossover_10_30,-0.2817,-1.003,0.2817,0.0,1,-0.082,yahoo_finance,501,2024-01-01 - 2025-12-31
+EOG,energy,EOG Resources,RSI_14_30_70,-0.4446,0.0478,13.4737,48.78,41,0.2235,yahoo_finance,501,2024-01-01 - 2025-12-31
+EOG,energy,EOG Resources,RSI_14_35_80,-12.4572,-0.6125,14.7236,45.1,51,-0.0487,yahoo_finance,501,2024-01-01 - 2025-12-31
+EOG,energy,EOG Resources,MACD_Standard,-3.4585,-0.7413,3.4585,0.0,1,-3.2653,yahoo_finance,501,2024-01-01 - 2025-12-31
+EOG,energy,EOG Resources,Bollinger_20_2,-12.583,-0.5978,16.2544,51.52,33,-0.1869,yahoo_finance,501,2024-01-01 - 2025-12-31
+EOG,energy,EOG Resources,Combined,10.1266,0.5023,8.5808,50.0,54,0.4126,yahoo_finance,501,2024-01-01 - 2025-12-31
+EOG,energy,EOG Resources,ADX_Trend_14_25,-8.8106,-0.4395,14.088,47.37,19,-0.2376,yahoo_finance,501,2024-01-01 - 2025-12-31
+EOG,energy,EOG Resources,VWAP_20,-17.7339,-1.1534,23.1145,40.48,42,-0.2488,yahoo_finance,501,2024-01-01 - 2025-12-31
+EOG,energy,EOG Resources,Ichimoku_9_26_52,-2.0672,-0.1755,7.0306,51.61,31,0.1432,yahoo_finance,501,2024-01-01 - 2025-12-31
+NKE,consumer,Nike,MA_Crossover_20_50,0.7845,0.5885,0.1499,100.0,1,0.9863,yahoo_finance,501,2024-01-01 - 2025-12-31
+NKE,consumer,Nike,MA_Crossover_10_30,0.9633,0.6089,0.1498,100.0,1,1.1654,yahoo_finance,501,2024-01-01 - 2025-12-31
+NKE,consumer,Nike,RSI_14_30_70,-5.2106,-0.2132,22.3361,41.46,41,0.0947,yahoo_finance,501,2024-01-01 - 2025-12-31
+NKE,consumer,Nike,RSI_14_35_80,-7.3098,-0.4181,16.2779,40.0,35,0.0035,yahoo_finance,501,2024-01-01 - 2025-12-31
+NKE,consumer,Nike,MACD_Standard,1.3711,0.6369,0.1499,100.0,1,1.5741,yahoo_finance,501,2024-01-01 - 2025-12-31
+NKE,consumer,Nike,Bollinger_20_2,-4.7765,-0.2677,8.5172,43.75,32,0.0661,yahoo_finance,501,2024-01-01 - 2025-12-31
+NKE,consumer,Nike,Combined,-10.4058,-0.5043,18.1014,47.92,48,-0.0063,yahoo_finance,501,2024-01-01 - 2025-12-31
+NKE,consumer,Nike,ADX_Trend_14_25,-7.1969,-1.0859,8.2611,42.11,19,-0.1872,yahoo_finance,501,2024-01-01 - 2025-12-31
+NKE,consumer,Nike,VWAP_20,-22.5324,-1.1734,24.8092,45.95,37,-0.452,yahoo_finance,501,2024-01-01 - 2025-12-31
+NKE,consumer,Nike,Ichimoku_9_26_52,-10.9576,-0.8935,15.3211,39.13,23,-0.2884,yahoo_finance,501,2024-01-01 - 2025-12-31
+SBUX,consumer,Starbucks,MA_Crossover_20_50,-1.9211,-0.7442,1.9211,0.0,1,-1.7248,yahoo_finance,501,2024-01-01 - 2025-12-31
+SBUX,consumer,Starbucks,MA_Crossover_10_30,-0.0871,-0.38,0.1498,100.0,1,0.1129,yahoo_finance,501,2024-01-01 - 2025-12-31
+SBUX,consumer,Starbucks,RSI_14_30_70,-5.252,-0.2073,17.82,45.45,33,0.068,yahoo_finance,501,2024-01-01 - 2025-12-31
+SBUX,consumer,Starbucks,RSI_14_35_80,-27.5137,-1.3351,28.0817,33.33,33,-0.7411,yahoo_finance,501,2024-01-01 - 2025-12-31
+SBUX,consumer,Starbucks,MACD_Standard,-0.6425,-0.8861,0.6425,0.0,1,-0.4436,yahoo_finance,501,2024-01-01 - 2025-12-31
+SBUX,consumer,Starbucks,Bollinger_20_2,-3.4383,-0.0981,11.8759,43.59,39,0.1456,yahoo_finance,501,2024-01-01 - 2025-12-31
+SBUX,consumer,Starbucks,Combined,1.0835,0.1039,13.6788,60.0,45,0.2457,yahoo_finance,501,2024-01-01 - 2025-12-31
+SBUX,consumer,Starbucks,ADX_Trend_14_25,1.1654,0.1246,6.8469,55.56,18,0.285,yahoo_finance,501,2024-01-01 - 2025-12-31
+SBUX,consumer,Starbucks,VWAP_20,13.3888,0.6371,3.814,61.9,42,0.5399,yahoo_finance,501,2024-01-01 - 2025-12-31
+SBUX,consumer,Starbucks,Ichimoku_9_26_52,-8.5021,-0.5386,10.3821,41.94,31,-0.067,yahoo_finance,501,2024-01-01 - 2025-12-31
+MCD,consumer,McDonald's,MA_Crossover_20_50,-0.6978,-0.8723,0.6978,0.0,1,-0.499,yahoo_finance,501,2024-01-01 - 2025-12-31
+MCD,consumer,McDonald's,MA_Crossover_10_30,-0.6685,-0.8794,0.6685,0.0,1,-0.4696,yahoo_finance,501,2024-01-01 - 2025-12-31
+MCD,consumer,McDonald's,RSI_14_30_70,1.7807,0.1714,8.8442,50.0,50,0.2425,yahoo_finance,501,2024-01-01 - 2025-12-31
+MCD,consumer,McDonald's,RSI_14_35_80,-3.7139,-0.5024,8.9095,46.43,28,0.0693,yahoo_finance,501,2024-01-01 - 2025-12-31
+MCD,consumer,McDonald's,MACD_Standard,0.5996,0.557,0.1499,100.0,1,0.801,yahoo_finance,501,2024-01-01 - 2025-12-31
+MCD,consumer,McDonald's,Bollinger_20_2,-18.0227,-1.974,18.979,31.25,32,-0.4132,yahoo_finance,501,2024-01-01 - 2025-12-31
+MCD,consumer,McDonald's,Combined,-14.4877,-1.296,14.8752,42.59,54,-0.0825,yahoo_finance,501,2024-01-01 - 2025-12-31
+MCD,consumer,McDonald's,ADX_Trend_14_25,-18.8299,-2.1055,19.6567,38.1,21,-0.78,yahoo_finance,501,2024-01-01 - 2025-12-31
+MCD,consumer,McDonald's,VWAP_20,-11.1891,-1.3387,11.7625,50.0,34,-0.1435,yahoo_finance,501,2024-01-01 - 2025-12-31
+MCD,consumer,McDonald's,Ichimoku_9_26_52,-11.2388,-1.1125,13.3329,29.17,24,-0.2856,yahoo_finance,501,2024-01-01 - 2025-12-31
+HD,consumer,Home Depot,MA_Crossover_20_50,-1.2782,-0.7973,1.2782,0.0,1,-1.0805,yahoo_finance,501,2024-01-01 - 2025-12-31
+HD,consumer,Home Depot,MA_Crossover_10_30,-0.1211,-0.5631,0.1498,100.0,1,0.0789,yahoo_finance,501,2024-01-01 - 2025-12-31
+HD,consumer,Home Depot,RSI_14_30_70,-20.6332,-1.2173,23.6363,43.86,57,-0.1926,yahoo_finance,501,2024-01-01 - 2025-12-31
+HD,consumer,Home Depot,RSI_14_35_80,-15.0591,-1.3353,15.0591,34.48,29,-0.353,yahoo_finance,501,2024-01-01 - 2025-12-31
+HD,consumer,Home Depot,MACD_Standard,-0.3971,-0.9758,0.3971,0.0,1,-0.1977,yahoo_finance,501,2024-01-01 - 2025-12-31
+HD,consumer,Home Depot,Bollinger_20_2,-13.4474,-0.9299,15.698,48.84,43,-0.1215,yahoo_finance,501,2024-01-01 - 2025-12-31
+HD,consumer,Home Depot,Combined,-20.5605,-1.113,22.2375,46.0,50,-0.2411,yahoo_finance,501,2024-01-01 - 2025-12-31
+HD,consumer,Home Depot,ADX_Trend_14_25,1.8366,0.1941,3.6644,47.37,19,0.3112,yahoo_finance,501,2024-01-01 - 2025-12-31
+HD,consumer,Home Depot,VWAP_20,-22.8256,-2.0782,22.9475,41.3,46,-0.3551,yahoo_finance,501,2024-01-01 - 2025-12-31
+HD,consumer,Home Depot,Ichimoku_9_26_52,-1.9546,-0.1677,7.1741,53.33,30,0.1423,yahoo_finance,501,2024-01-01 - 2025-12-31
+COST,consumer,Costco,MA_Crossover_20_50,-0.6051,-0.8966,0.6051,0.0,1,-0.4061,yahoo_finance,501,2024-01-01 - 2025-12-31
+COST,consumer,Costco,MA_Crossover_10_30,0.8074,0.5916,0.1498,100.0,1,1.0092,yahoo_finance,501,2024-01-01 - 2025-12-31
+COST,consumer,Costco,RSI_14_30_70,-12.7512,-0.8881,20.5958,45.28,53,-0.0454,yahoo_finance,501,2024-01-01 - 2025-12-31
+COST,consumer,Costco,RSI_14_35_80,-16.5925,-1.3838,17.9627,38.64,44,-0.202,yahoo_finance,501,2024-01-01 - 2025-12-31
+COST,consumer,Costco,MACD_Standard,-0.8668,-0.8404,0.8668,0.0,1,-0.6683,yahoo_finance,501,2024-01-01 - 2025-12-31
+COST,consumer,Costco,Bollinger_20_2,-31.5926,-2.6189,31.6694,34.38,32,-0.9671,yahoo_finance,501,2024-01-01 - 2025-12-31
+COST,consumer,Costco,Combined,-30.8162,-2.8948,31.3458,39.06,64,-0.3691,yahoo_finance,501,2024-01-01 - 2025-12-31
+COST,consumer,Costco,ADX_Trend_14_25,-6.7271,-0.9302,8.6024,41.18,17,-0.2018,yahoo_finance,501,2024-01-01 - 2025-12-31
+COST,consumer,Costco,VWAP_20,-16.9564,-1.5095,16.9564,29.73,37,-0.2919,yahoo_finance,501,2024-01-01 - 2025-12-31
+COST,consumer,Costco,Ichimoku_9_26_52,-12.4071,-1.3724,15.1825,42.42,33,-0.1936,yahoo_finance,501,2024-01-01 - 2025-12-31
 GC=F,commodities,Gold,MA_Crossover_20_50,-0.8678,-0.8385,0.8678,0.0,1,-0.6694,yahoo_finance,503,2024-01-01 - 2025-12-31
 GC=F,commodities,Gold,MA_Crossover_10_30,0.1607,0.2363,0.2801,100.0,1,0.3612,yahoo_finance,503,2024-01-01 - 2025-12-31
 GC=F,commodities,Gold,RSI_14_30_70,-15.9825,-1.4969,16.7228,35.29,34,-0.3013,yahoo_finance,503,2024-01-01 - 2025-12-31
@@ -329,6 +609,46 @@ ZC=F,commodities,Corn,Combined,-20.1254,-1.2085,20.1254,51.06,47,-0.263,yahoo_fi
 ZC=F,commodities,Corn,ADX_Trend_14_25,-3.676,-0.522,7.4429,45.0,20,0.0191,yahoo_finance,502,2024-01-01 - 2025-12-31
 ZC=F,commodities,Corn,VWAP_20,-23.3956,-2.09,23.3956,38.78,49,-0.3368,yahoo_finance,502,2024-01-01 - 2025-12-31
 ZC=F,commodities,Corn,Ichimoku_9_26_52,-12.4897,-1.6583,16.615,38.1,21,-0.4298,yahoo_finance,502,2024-01-01 - 2025-12-31
+ZW=F,commodities,Wheat,MA_Crossover_20_50,2.0934,0.6604,0.1499,100.0,1,2.2978,yahoo_finance,502,2024-01-01 - 2025-12-31
+ZW=F,commodities,Wheat,MA_Crossover_10_30,1.7067,0.6498,0.1499,100.0,1,1.9103,yahoo_finance,502,2024-01-01 - 2025-12-31
+ZW=F,commodities,Wheat,RSI_14_30_70,-4.1866,-0.2283,10.4233,48.72,39,0.1081,yahoo_finance,502,2024-01-01 - 2025-12-31
+ZW=F,commodities,Wheat,RSI_14_35_80,-19.3717,-1.1272,22.7015,48.72,39,-0.3278,yahoo_finance,502,2024-01-01 - 2025-12-31
+ZW=F,commodities,Wheat,MACD_Standard,-2.9209,-0.9109,2.9209,0.0,1,-2.7266,yahoo_finance,502,2024-01-01 - 2025-12-31
+ZW=F,commodities,Wheat,Bollinger_20_2,-26.7991,-1.6684,26.7991,28.57,42,-0.5268,yahoo_finance,502,2024-01-01 - 2025-12-31
+ZW=F,commodities,Wheat,Combined,-17.3628,-1.1247,23.8102,48.08,52,-0.1532,yahoo_finance,502,2024-01-01 - 2025-12-31
+ZW=F,commodities,Wheat,ADX_Trend_14_25,6.2112,0.6203,2.5467,68.42,19,0.5291,yahoo_finance,502,2024-01-01 - 2025-12-31
+ZW=F,commodities,Wheat,VWAP_20,-16.0892,-1.1432,17.8768,42.86,42,-0.2058,yahoo_finance,502,2024-01-01 - 2025-12-31
+ZW=F,commodities,Wheat,Ichimoku_9_26_52,3.4506,0.3531,8.3866,63.33,30,0.3238,yahoo_finance,502,2024-01-01 - 2025-12-31
+ZS=F,commodities,Soybeans,MA_Crossover_20_50,-0.2151,-0.9342,0.2151,0.0,1,-0.0153,yahoo_finance,502,2024-01-01 - 2025-12-31
+ZS=F,commodities,Soybeans,MA_Crossover_10_30,0.6763,0.3884,0.3469,50.0,2,0.5408,yahoo_finance,502,2024-01-01 - 2025-12-31
+ZS=F,commodities,Soybeans,RSI_14_30_70,-17.6329,-1.2495,21.2953,41.51,53,-0.155,yahoo_finance,502,2024-01-01 - 2025-12-31
+ZS=F,commodities,Soybeans,RSI_14_35_80,-6.0853,-0.5798,8.2887,41.67,36,0.0333,yahoo_finance,502,2024-01-01 - 2025-12-31
+ZS=F,commodities,Soybeans,MACD_Standard,0.2905,0.4431,0.1499,100.0,1,0.4913,yahoo_finance,502,2024-01-01 - 2025-12-31
+ZS=F,commodities,Soybeans,Bollinger_20_2,-18.5138,-1.6474,18.5138,33.33,33,-0.4099,yahoo_finance,502,2024-01-01 - 2025-12-31
+ZS=F,commodities,Soybeans,Combined,-7.1882,-0.52,11.4344,53.03,66,0.0937,yahoo_finance,502,2024-01-01 - 2025-12-31
+ZS=F,commodities,Soybeans,ADX_Trend_14_25,-3.7947,-0.4108,8.7063,65.22,23,0.0404,yahoo_finance,502,2024-01-01 - 2025-12-31
+ZS=F,commodities,Soybeans,VWAP_20,-21.5469,-2.3303,21.7734,34.88,43,-0.3584,yahoo_finance,502,2024-01-01 - 2025-12-31
+ZS=F,commodities,Soybeans,Ichimoku_9_26_52,-4.8371,-0.4228,6.9163,50.0,22,-0.0114,yahoo_finance,502,2024-01-01 - 2025-12-31
+KC=F,commodities,Coffee,MA_Crossover_20_50,-0.4556,-0.9485,0.4556,0.0,1,-0.2563,yahoo_finance,503,2024-01-01 - 2025-12-31
+KC=F,commodities,Coffee,MA_Crossover_10_30,-3.3732,-0.7407,3.3732,0.0,1,-3.1798,yahoo_finance,503,2024-01-01 - 2025-12-31
+KC=F,commodities,Coffee,RSI_14_30_70,-6.3604,-0.2554,13.8022,60.71,28,0.0033,yahoo_finance,503,2024-01-01 - 2025-12-31
+KC=F,commodities,Coffee,RSI_14_35_80,-26.5188,-1.3844,28.9825,40.74,27,-0.8985,yahoo_finance,503,2024-01-01 - 2025-12-31
+KC=F,commodities,Coffee,MACD_Standard,0.0758,0.1988,0.1499,100.0,1,0.2762,yahoo_finance,503,2024-01-01 - 2025-12-31
+KC=F,commodities,Coffee,Bollinger_20_2,-7.4639,-0.21,23.7583,48.57,35,0.0338,yahoo_finance,503,2024-01-01 - 2025-12-31
+KC=F,commodities,Coffee,Combined,-33.1538,-1.4443,33.2834,39.13,46,-0.6376,yahoo_finance,503,2024-01-01 - 2025-12-31
+KC=F,commodities,Coffee,ADX_Trend_14_25,-9.8933,-0.5601,13.2708,50.0,20,-0.2921,yahoo_finance,503,2024-01-01 - 2025-12-31
+KC=F,commodities,Coffee,VWAP_20,-28.3583,-1.3975,30.6948,46.34,41,-0.5816,yahoo_finance,503,2024-01-01 - 2025-12-31
+KC=F,commodities,Coffee,Ichimoku_9_26_52,-15.119,-0.6437,21.9216,46.94,49,-0.1058,yahoo_finance,503,2024-01-01 - 2025-12-31
+CT=F,commodities,Cotton,MA_Crossover_20_50,-1.7914,-0.77,1.7914,0.0,1,-1.5948,yahoo_finance,503,2024-01-01 - 2025-12-31
+CT=F,commodities,Cotton,MA_Crossover_10_30,0.6448,0.2067,1.1694,50.0,2,0.534,yahoo_finance,503,2024-01-01 - 2025-12-31
+CT=F,commodities,Cotton,RSI_14_30_70,-12.5487,-0.9504,17.217,55.0,40,-0.1234,yahoo_finance,503,2024-01-01 - 2025-12-31
+CT=F,commodities,Cotton,RSI_14_35_80,-5.517,-0.2954,20.1253,51.16,43,0.0849,yahoo_finance,503,2024-01-01 - 2025-12-31
+CT=F,commodities,Cotton,MACD_Standard,-1.2974,-0.7944,1.2974,0.0,1,-1.0998,yahoo_finance,503,2024-01-01 - 2025-12-31
+CT=F,commodities,Cotton,Bollinger_20_2,-14.4078,-0.8693,16.9283,48.57,35,-0.2268,yahoo_finance,503,2024-01-01 - 2025-12-31
+CT=F,commodities,Cotton,Combined,-14.0524,-0.9339,15.4473,51.67,60,-0.0432,yahoo_finance,503,2024-01-01 - 2025-12-31
+CT=F,commodities,Cotton,ADX_Trend_14_25,-2.4414,-0.1622,13.0516,52.0,25,0.1157,yahoo_finance,503,2024-01-01 - 2025-12-31
+CT=F,commodities,Cotton,VWAP_20,-13.2569,-0.9996,14.1676,51.16,43,-0.1211,yahoo_finance,503,2024-01-01 - 2025-12-31
+CT=F,commodities,Cotton,Ichimoku_9_26_52,-18.7009,-1.304,19.9967,45.16,31,-0.4456,yahoo_finance,503,2024-01-01 - 2025-12-31
 ^GSPC,indices,S&P 500,MA_Crossover_20_50,-0.5858,-0.9025,0.5858,0.0,1,-0.3868,yahoo_finance,501,2024-01-01 - 2025-12-31
 ^GSPC,indices,S&P 500,MA_Crossover_10_30,0.6556,0.5681,0.1498,100.0,1,0.8571,yahoo_finance,501,2024-01-01 - 2025-12-31
 ^GSPC,indices,S&P 500,RSI_14_30_70,-9.4623,-0.9916,11.5022,39.13,46,-0.013,yahoo_finance,501,2024-01-01 - 2025-12-31
@@ -399,6 +719,36 @@ ZC=F,commodities,Corn,Ichimoku_9_26_52,-12.4897,-1.6583,16.615,38.1,21,-0.4298,y
 ^N225,indices,Nikkei 225,ADX_Trend_14_25,-12.7232,-1.2715,13.1877,25.0,12,-0.9102,yahoo_finance,488,2024-01-01 - 2025-12-31
 ^N225,indices,Nikkei 225,VWAP_20,-6.0342,-0.6377,8.4643,36.36,33,0.0181,yahoo_finance,488,2024-01-01 - 2025-12-31
 ^N225,indices,Nikkei 225,Ichimoku_9_26_52,6.9221,0.4006,9.6319,37.04,27,0.5015,yahoo_finance,488,2024-01-01 - 2025-12-31
+^RUT,indices,Russell 2000,MA_Crossover_20_50,-2.25,-0.7587,2.25,0.0,1,-2.0543,yahoo_finance,501,2024-01-01 - 2025-12-31
+^RUT,indices,Russell 2000,MA_Crossover_10_30,2.1334,0.6619,0.1498,100.0,1,2.3378,yahoo_finance,501,2024-01-01 - 2025-12-31
+^RUT,indices,Russell 2000,RSI_14_30_70,-6.0917,-0.3844,10.7965,46.81,47,0.0793,yahoo_finance,501,2024-01-01 - 2025-12-31
+^RUT,indices,Russell 2000,RSI_14_35_80,-11.1714,-0.8573,14.3269,47.83,23,-0.2991,yahoo_finance,501,2024-01-01 - 2025-12-31
+^RUT,indices,Russell 2000,MACD_Standard,-0.2247,-0.9532,0.2247,0.0,1,-0.0249,yahoo_finance,501,2024-01-01 - 2025-12-31
+^RUT,indices,Russell 2000,Bollinger_20_2,3.3112,0.2418,10.2567,54.55,33,0.318,yahoo_finance,501,2024-01-01 - 2025-12-31
+^RUT,indices,Russell 2000,Combined,-17.2492,-1.3343,17.3513,42.31,52,-0.1558,yahoo_finance,501,2024-01-01 - 2025-12-31
+^RUT,indices,Russell 2000,ADX_Trend_14_25,-11.3873,-0.9095,13.472,42.86,21,-0.3557,yahoo_finance,501,2024-01-01 - 2025-12-31
+^RUT,indices,Russell 2000,VWAP_20,-12.7526,-0.9988,18.6275,52.94,34,-0.1909,yahoo_finance,501,2024-01-01 - 2025-12-31
+^RUT,indices,Russell 2000,Ichimoku_9_26_52,-19.028,-1.3896,20.3456,40.74,27,-0.5556,yahoo_finance,501,2024-01-01 - 2025-12-31
+^HSI,indices,Hang Seng,MA_Crossover_20_50,-1.0026,-0.8306,1.0026,0.0,1,-0.8044,yahoo_finance,491,2024-01-01 - 2025-12-31
+^HSI,indices,Hang Seng,MA_Crossover_10_30,-0.7101,-0.8784,0.7101,0.0,1,-0.5114,yahoo_finance,491,2024-01-01 - 2025-12-31
+^HSI,indices,Hang Seng,RSI_14_30_70,-8.6479,-0.7354,10.6943,37.14,35,-0.048,yahoo_finance,491,2024-01-01 - 2025-12-31
+^HSI,indices,Hang Seng,RSI_14_35_80,-11.0044,-0.7499,17.3394,43.59,39,-0.0857,yahoo_finance,491,2024-01-01 - 2025-12-31
+^HSI,indices,Hang Seng,MACD_Standard,-0.2971,-1.0152,0.2971,0.0,1,-0.0975,yahoo_finance,491,2024-01-01 - 2025-12-31
+^HSI,indices,Hang Seng,Bollinger_20_2,-11.7831,-0.6178,22.072,45.95,37,-0.1131,yahoo_finance,491,2024-01-01 - 2025-12-31
+^HSI,indices,Hang Seng,Combined,-17.0031,-1.5103,17.9145,43.64,55,-0.1308,yahoo_finance,491,2024-01-01 - 2025-12-31
+^HSI,indices,Hang Seng,ADX_Trend_14_25,-5.9812,-0.6207,6.9997,40.0,25,-0.038,yahoo_finance,491,2024-01-01 - 2025-12-31
+^HSI,indices,Hang Seng,VWAP_20,-7.7912,-0.7142,9.783,39.58,48,0.0373,yahoo_finance,491,2024-01-01 - 2025-12-31
+^HSI,indices,Hang Seng,Ichimoku_9_26_52,-6.521,-0.5034,11.7719,46.15,26,-0.0417,yahoo_finance,491,2024-01-01 - 2025-12-31
+^STOXX50E,indices,Euro Stoxx 50,MA_Crossover_20_50,0.0476,0.1371,0.1498,100.0,1,0.2479,yahoo_finance,499,2024-01-01 - 2025-12-31
+^STOXX50E,indices,Euro Stoxx 50,MA_Crossover_10_30,0.1244,0.2836,0.1498,100.0,1,0.3249,yahoo_finance,499,2024-01-01 - 2025-12-31
+^STOXX50E,indices,Euro Stoxx 50,RSI_14_30_70,-15.1535,-1.6427,15.6652,44.44,36,-0.2498,yahoo_finance,499,2024-01-01 - 2025-12-31
+^STOXX50E,indices,Euro Stoxx 50,RSI_14_35_80,-6.7616,-0.5417,11.5334,50.0,40,0.034,yahoo_finance,499,2024-01-01 - 2025-12-31
+^STOXX50E,indices,Euro Stoxx 50,MACD_Standard,-0.5335,-0.9218,0.5335,0.0,1,-0.3344,yahoo_finance,499,2024-01-01 - 2025-12-31
+^STOXX50E,indices,Euro Stoxx 50,Bollinger_20_2,-11.0461,-1.0753,12.5516,51.35,37,-0.1096,yahoo_finance,499,2024-01-01 - 2025-12-31
+^STOXX50E,indices,Euro Stoxx 50,Combined,-8.499,-0.7309,12.6534,54.17,48,0.0232,yahoo_finance,499,2024-01-01 - 2025-12-31
+^STOXX50E,indices,Euro Stoxx 50,ADX_Trend_14_25,-1.6922,-0.2906,3.2379,52.94,17,0.1042,yahoo_finance,499,2024-01-01 - 2025-12-31
+^STOXX50E,indices,Euro Stoxx 50,VWAP_20,-13.6318,-1.4317,13.7144,48.78,41,-0.1515,yahoo_finance,499,2024-01-01 - 2025-12-31
+^STOXX50E,indices,Euro Stoxx 50,Ichimoku_9_26_52,-14.3415,-2.4002,14.6066,38.71,31,-0.2965,yahoo_finance,499,2024-01-01 - 2025-12-31
 EURUSD=X,forex,EUR/USD,MA_Crossover_20_50,-0.2341,-0.9516,0.2341,0.0,1,-0.0343,yahoo_finance,518,2024-01-01 - 2025-12-31
 EURUSD=X,forex,EUR/USD,MA_Crossover_10_30,-0.4938,-0.9194,0.4938,0.0,1,-0.2946,yahoo_finance,518,2024-01-01 - 2025-12-31
 EURUSD=X,forex,EUR/USD,RSI_14_30_70,-11.3991,-2.4195,11.9237,36.17,47,-0.0563,yahoo_finance,518,2024-01-01 - 2025-12-31
@@ -449,53 +799,203 @@ AUDUSD=X,forex,AUD/USD,Combined,-10.2507,-1.7637,10.3876,57.41,54,0.001,yahoo_fi
 AUDUSD=X,forex,AUD/USD,ADX_Trend_14_25,-1.7035,-0.4863,2.6156,57.89,19,0.1112,yahoo_finance,518,2024-01-01 - 2025-12-31
 AUDUSD=X,forex,AUD/USD,VWAP_20,0.0,0.0,0.0,0.0,0,0.0,yahoo_finance,518,2024-01-01 - 2025-12-31
 AUDUSD=X,forex,AUD/USD,Ichimoku_9_26_52,-8.265,-1.9778,8.7189,51.61,31,-0.0768,yahoo_finance,518,2024-01-01 - 2025-12-31
+NZDUSD=X,forex,NZD/USD,MA_Crossover_20_50,-0.3095,-0.9878,0.3095,0.0,1,-0.1099,yahoo_finance,518,2024-01-01 - 2025-12-31
+NZDUSD=X,forex,NZD/USD,MA_Crossover_10_30,-0.9507,-0.8148,0.9507,0.0,1,-0.7524,yahoo_finance,518,2024-01-01 - 2025-12-31
+NZDUSD=X,forex,NZD/USD,RSI_14_30_70,-15.9711,-2.2737,15.9711,39.13,46,-0.1753,yahoo_finance,518,2024-01-01 - 2025-12-31
+NZDUSD=X,forex,NZD/USD,RSI_14_35_80,-11.921,-1.7447,12.9363,38.24,34,-0.1709,yahoo_finance,518,2024-01-01 - 2025-12-31
+NZDUSD=X,forex,NZD/USD,MACD_Standard,0.7331,0.5715,0.1499,100.0,1,0.9347,yahoo_finance,518,2024-01-01 - 2025-12-31
+NZDUSD=X,forex,NZD/USD,Bollinger_20_2,-11.6436,-2.1237,11.8019,44.44,36,-0.1426,yahoo_finance,518,2024-01-01 - 2025-12-31
+NZDUSD=X,forex,NZD/USD,Combined,-12.7624,-1.7419,13.1121,53.85,52,-0.0598,yahoo_finance,518,2024-01-01 - 2025-12-31
+NZDUSD=X,forex,NZD/USD,ADX_Trend_14_25,-7.3338,-1.821,7.7671,42.31,26,-0.0916,yahoo_finance,518,2024-01-01 - 2025-12-31
+NZDUSD=X,forex,NZD/USD,VWAP_20,0.0,0.0,0.0,0.0,0,0.0,yahoo_finance,518,2024-01-01 - 2025-12-31
+NZDUSD=X,forex,NZD/USD,Ichimoku_9_26_52,-8.8391,-1.2091,9.8537,35.71,28,-0.1273,yahoo_finance,518,2024-01-01 - 2025-12-31
+USDCAD=X,forex,USD/CAD,MA_Crossover_20_50,-0.0587,-0.2327,0.1498,100.0,1,0.1414,yahoo_finance,518,2024-01-01 - 2025-12-31
+USDCAD=X,forex,USD/CAD,MA_Crossover_10_30,-0.3158,-0.987,0.3158,0.0,1,-0.1163,yahoo_finance,518,2024-01-01 - 2025-12-31
+USDCAD=X,forex,USD/CAD,RSI_14_30_70,-7.6132,-1.6639,7.7862,34.38,32,-0.0459,yahoo_finance,518,2024-01-01 - 2025-12-31
+USDCAD=X,forex,USD/CAD,RSI_14_35_80,-6.7409,-2.2847,7.1041,40.0,25,-0.0785,yahoo_finance,518,2024-01-01 - 2025-12-31
+USDCAD=X,forex,USD/CAD,MACD_Standard,0.3028,0.4435,0.1498,100.0,1,0.5036,yahoo_finance,518,2024-01-01 - 2025-12-31
+USDCAD=X,forex,USD/CAD,Bollinger_20_2,-13.5759,-2.6468,14.3075,29.73,37,-0.1926,yahoo_finance,518,2024-01-01 - 2025-12-31
+USDCAD=X,forex,USD/CAD,Combined,-19.0008,-4.284,19.0008,22.64,53,-0.1967,yahoo_finance,518,2024-01-01 - 2025-12-31
+USDCAD=X,forex,USD/CAD,ADX_Trend_14_25,-6.1961,-2.6515,6.3397,33.33,27,-0.0365,yahoo_finance,518,2024-01-01 - 2025-12-31
+USDCAD=X,forex,USD/CAD,VWAP_20,0.0,0.0,0.0,0.0,0,0.0,yahoo_finance,518,2024-01-01 - 2025-12-31
+USDCAD=X,forex,USD/CAD,Ichimoku_9_26_52,-10.5761,-3.0991,10.8751,33.33,36,-0.1099,yahoo_finance,518,2024-01-01 - 2025-12-31
+EURGBP=X,forex,EUR/GBP,MA_Crossover_20_50,0.0768,0.1978,0.1499,100.0,1,0.2772,yahoo_finance,518,2024-01-01 - 2025-12-31
+EURGBP=X,forex,EUR/GBP,MA_Crossover_10_30,-0.364,-0.9731,0.364,0.0,1,-0.1645,yahoo_finance,518,2024-01-01 - 2025-12-31
+EURGBP=X,forex,EUR/GBP,RSI_14_30_70,-12.178,-3.0385,12.178,41.67,48,-0.07,yahoo_finance,518,2024-01-01 - 2025-12-31
+EURGBP=X,forex,EUR/GBP,RSI_14_35_80,-7.754,-2.3547,7.754,42.11,38,-0.0117,yahoo_finance,518,2024-01-01 - 2025-12-31
+EURGBP=X,forex,EUR/GBP,MACD_Standard,-0.334,-0.983,0.334,0.0,1,-0.1345,yahoo_finance,518,2024-01-01 - 2025-12-31
+EURGBP=X,forex,EUR/GBP,Bollinger_20_2,-10.017,-2.2866,10.2201,36.36,33,-0.1186,yahoo_finance,518,2024-01-01 - 2025-12-31
+EURGBP=X,forex,EUR/GBP,Combined,-19.1755,-5.7121,19.1755,22.03,59,-0.1603,yahoo_finance,518,2024-01-01 - 2025-12-31
+EURGBP=X,forex,EUR/GBP,ADX_Trend_14_25,-5.0955,-3.014,5.0955,20.0,15,-0.1484,yahoo_finance,518,2024-01-01 - 2025-12-31
+EURGBP=X,forex,EUR/GBP,VWAP_20,0.0,0.0,0.0,0.0,0,0.0,yahoo_finance,518,2024-01-01 - 2025-12-31
+EURGBP=X,forex,EUR/GBP,Ichimoku_9_26_52,-8.3933,-2.8034,8.6317,38.24,34,-0.0572,yahoo_finance,518,2024-01-01 - 2025-12-31
+EURJPY=X,forex,EUR/JPY,MA_Crossover_20_50,-1.0995,-0.7985,1.0995,0.0,1,-0.9015,yahoo_finance,518,2024-01-01 - 2025-12-31
+EURJPY=X,forex,EUR/JPY,MA_Crossover_10_30,-0.1619,-0.7524,0.1619,100.0,1,0.0379,yahoo_finance,518,2024-01-01 - 2025-12-31
+EURJPY=X,forex,EUR/JPY,RSI_14_30_70,-16.5871,-2.9746,16.4618,28.26,46,-0.1926,yahoo_finance,518,2024-01-01 - 2025-12-31
+EURJPY=X,forex,EUR/JPY,RSI_14_35_80,-8.562,-1.862,9.731,41.67,24,-0.1715,yahoo_finance,518,2024-01-01 - 2025-12-31
+EURJPY=X,forex,EUR/JPY,MACD_Standard,-0.1528,-0.7116,0.1528,100.0,1,0.0471,yahoo_finance,518,2024-01-01 - 2025-12-31
+EURJPY=X,forex,EUR/JPY,Bollinger_20_2,-14.1918,-2.362,14.1918,35.56,45,-0.1379,yahoo_finance,518,2024-01-01 - 2025-12-31
+EURJPY=X,forex,EUR/JPY,Combined,-14.2171,-2.731,14.2171,43.1,58,-0.0632,yahoo_finance,518,2024-01-01 - 2025-12-31
+EURJPY=X,forex,EUR/JPY,ADX_Trend_14_25,-3.818,-1.2431,4.6385,60.61,33,0.0826,yahoo_finance,518,2024-01-01 - 2025-12-31
+EURJPY=X,forex,EUR/JPY,VWAP_20,0.0,0.0,0.0,0.0,0,0.0,yahoo_finance,518,2024-01-01 - 2025-12-31
+EURJPY=X,forex,EUR/JPY,Ichimoku_9_26_52,-9.1162,-1.9533,9.1162,41.67,24,-0.1962,yahoo_finance,518,2024-01-01 - 2025-12-31
+GBPJPY=X,forex,GBP/JPY,MA_Crossover_20_50,-0.7174,-0.8535,0.7174,0.0,1,-0.5186,yahoo_finance,518,2024-01-01 - 2025-12-31
+GBPJPY=X,forex,GBP/JPY,MA_Crossover_10_30,-0.2265,-0.9405,0.2265,0.0,1,-0.0268,yahoo_finance,518,2024-01-01 - 2025-12-31
+GBPJPY=X,forex,GBP/JPY,RSI_14_30_70,-9.2574,-1.4824,9.2574,44.74,38,-0.0546,yahoo_finance,518,2024-01-01 - 2025-12-31
+GBPJPY=X,forex,GBP/JPY,RSI_14_35_80,-5.4134,-0.8191,9.1429,38.71,31,0.024,yahoo_finance,518,2024-01-01 - 2025-12-31
+GBPJPY=X,forex,GBP/JPY,MACD_Standard,-0.4033,-0.9569,0.4033,0.0,1,-0.204,yahoo_finance,518,2024-01-01 - 2025-12-31
+GBPJPY=X,forex,GBP/JPY,Bollinger_20_2,-18.98,-2.8575,19.3056,27.91,43,-0.2862,yahoo_finance,518,2024-01-01 - 2025-12-31
+GBPJPY=X,forex,GBP/JPY,Combined,-17.7249,-2.59,17.9842,36.92,65,-0.099,yahoo_finance,518,2024-01-01 - 2025-12-31
+GBPJPY=X,forex,GBP/JPY,ADX_Trend_14_25,-2.7324,-0.8631,3.3741,45.0,20,0.0627,yahoo_finance,518,2024-01-01 - 2025-12-31
+GBPJPY=X,forex,GBP/JPY,VWAP_20,0.0,0.0,0.0,0.0,0,0.0,yahoo_finance,518,2024-01-01 - 2025-12-31
+GBPJPY=X,forex,GBP/JPY,Ichimoku_9_26_52,-11.3541,-1.6555,12.3785,42.11,38,-0.1152,yahoo_finance,518,2024-01-01 - 2025-12-31
+SPY,etf,SPDR S&P 500 ETF,MA_Crossover_20_50,-0.4966,-0.9337,0.4966,0.0,1,-0.2974,yahoo_finance,501,2024-01-01 - 2025-12-31
+SPY,etf,SPDR S&P 500 ETF,MA_Crossover_10_30,0.6065,0.5585,0.1498,100.0,1,0.8079,yahoo_finance,501,2024-01-01 - 2025-12-31
+SPY,etf,SPDR S&P 500 ETF,RSI_14_30_70,-12.4097,-1.1776,13.2309,35.42,48,-0.0715,yahoo_finance,501,2024-01-01 - 2025-12-31
+SPY,etf,SPDR S&P 500 ETF,RSI_14_35_80,-4.1255,-0.2833,7.588,55.26,38,0.0986,yahoo_finance,501,2024-01-01 - 2025-12-31
+SPY,etf,SPDR S&P 500 ETF,MACD_Standard,0.0221,0.0696,0.1499,100.0,1,0.2224,yahoo_finance,501,2024-01-01 - 2025-12-31
+SPY,etf,SPDR S&P 500 ETF,Bollinger_20_2,-8.4445,-0.5745,11.2404,47.06,34,-0.0444,yahoo_finance,501,2024-01-01 - 2025-12-31
+SPY,etf,SPDR S&P 500 ETF,Combined,-11.5401,-0.7795,16.6841,49.12,57,-0.0055,yahoo_finance,501,2024-01-01 - 2025-12-31
+SPY,etf,SPDR S&P 500 ETF,ADX_Trend_14_25,-8.8971,-0.885,9.9006,39.13,23,-0.1938,yahoo_finance,501,2024-01-01 - 2025-12-31
+SPY,etf,SPDR S&P 500 ETF,VWAP_20,-21.3548,-1.8589,21.2367,41.67,48,-0.2917,yahoo_finance,501,2024-01-01 - 2025-12-31
+SPY,etf,SPDR S&P 500 ETF,Ichimoku_9_26_52,7.8046,0.6232,4.0317,53.57,28,0.493,yahoo_finance,501,2024-01-01 - 2025-12-31
+QQQ,etf,Invesco QQQ (Nasdaq),MA_Crossover_20_50,-0.5509,-0.9139,0.5509,0.0,1,-0.3518,yahoo_finance,501,2024-01-01 - 2025-12-31
+QQQ,etf,Invesco QQQ (Nasdaq),MA_Crossover_10_30,0.7869,0.5889,0.1498,100.0,1,0.9887,yahoo_finance,501,2024-01-01 - 2025-12-31
+QQQ,etf,Invesco QQQ (Nasdaq),RSI_14_30_70,1.7384,0.1516,5.2867,47.92,48,0.2455,yahoo_finance,501,2024-01-01 - 2025-12-31
+QQQ,etf,Invesco QQQ (Nasdaq),RSI_14_35_80,-6.1402,-0.3575,11.7467,46.67,30,0.0115,yahoo_finance,501,2024-01-01 - 2025-12-31
+QQQ,etf,Invesco QQQ (Nasdaq),MACD_Standard,0.2145,0.3867,0.1499,100.0,1,0.4151,yahoo_finance,501,2024-01-01 - 2025-12-31
+QQQ,etf,Invesco QQQ (Nasdaq),Bollinger_20_2,-11.6917,-0.8176,15.9568,37.04,27,-0.2455,yahoo_finance,501,2024-01-01 - 2025-12-31
+QQQ,etf,Invesco QQQ (Nasdaq),Combined,-3.5741,-0.1794,8.4443,48.21,56,0.1465,yahoo_finance,501,2024-01-01 - 2025-12-31
+QQQ,etf,Invesco QQQ (Nasdaq),ADX_Trend_14_25,-2.842,-0.2202,7.163,53.85,26,0.1015,yahoo_finance,501,2024-01-01 - 2025-12-31
+QQQ,etf,Invesco QQQ (Nasdaq),VWAP_20,-22.3193,-2.0794,22.6164,33.33,36,-0.4915,yahoo_finance,501,2024-01-01 - 2025-12-31
+QQQ,etf,Invesco QQQ (Nasdaq),Ichimoku_9_26_52,-16.1627,-1.8728,16.7387,31.03,29,-0.4024,yahoo_finance,501,2024-01-01 - 2025-12-31
+IWM,etf,iShares Russell 2000,MA_Crossover_20_50,-2.0831,-0.7627,2.0831,0.0,1,-1.8871,yahoo_finance,501,2024-01-01 - 2025-12-31
+IWM,etf,iShares Russell 2000,MA_Crossover_10_30,2.0161,0.6592,0.1498,100.0,1,2.2203,yahoo_finance,501,2024-01-01 - 2025-12-31
+IWM,etf,iShares Russell 2000,RSI_14_30_70,-10.585,-0.6991,15.3191,40.43,47,-0.0241,yahoo_finance,501,2024-01-01 - 2025-12-31
+IWM,etf,iShares Russell 2000,RSI_14_35_80,-10.6608,-0.8242,13.3367,50.0,22,-0.2962,yahoo_finance,501,2024-01-01 - 2025-12-31
+IWM,etf,iShares Russell 2000,MACD_Standard,-0.1042,-0.4714,0.1499,100.0,1,0.0958,yahoo_finance,501,2024-01-01 - 2025-12-31
+IWM,etf,iShares Russell 2000,Bollinger_20_2,2.8992,0.2214,10.7961,53.12,32,0.3083,yahoo_finance,501,2024-01-01 - 2025-12-31
+IWM,etf,iShares Russell 2000,Combined,-19.5032,-1.4634,20.0131,38.46,52,-0.2074,yahoo_finance,501,2024-01-01 - 2025-12-31
+IWM,etf,iShares Russell 2000,ADX_Trend_14_25,-4.2041,-0.3984,6.0865,45.45,22,0.016,yahoo_finance,501,2024-01-01 - 2025-12-31
+IWM,etf,iShares Russell 2000,VWAP_20,-16.092,-1.2567,19.4644,52.63,38,-0.2518,yahoo_finance,501,2024-01-01 - 2025-12-31
+IWM,etf,iShares Russell 2000,Ichimoku_9_26_52,-24.3646,-1.819,25.4793,37.93,29,-0.7376,yahoo_finance,501,2024-01-01 - 2025-12-31
+EEM,etf,iShares Emerging Markets,MA_Crossover_20_50,-0.8074,-0.8501,0.8074,0.0,1,-0.6088,yahoo_finance,501,2024-01-01 - 2025-12-31
+EEM,etf,iShares Emerging Markets,MA_Crossover_10_30,1.1269,0.6223,0.1498,100.0,1,1.3294,yahoo_finance,501,2024-01-01 - 2025-12-31
+EEM,etf,iShares Emerging Markets,RSI_14_30_70,-13.1104,-1.1272,18.5949,48.94,47,-0.0925,yahoo_finance,501,2024-01-01 - 2025-12-31
+EEM,etf,iShares Emerging Markets,RSI_14_35_80,-20.0723,-1.7286,21.548,40.0,45,-0.2882,yahoo_finance,501,2024-01-01 - 2025-12-31
+EEM,etf,iShares Emerging Markets,MACD_Standard,0.029,0.0888,0.1499,100.0,1,0.2292,yahoo_finance,501,2024-01-01 - 2025-12-31
+EEM,etf,iShares Emerging Markets,Bollinger_20_2,-9.3635,-0.8144,10.0238,51.52,33,-0.0887,yahoo_finance,501,2024-01-01 - 2025-12-31
+EEM,etf,iShares Emerging Markets,Combined,-14.9688,-1.3199,19.5716,45.45,55,-0.0889,yahoo_finance,501,2024-01-01 - 2025-12-31
+EEM,etf,iShares Emerging Markets,ADX_Trend_14_25,-14.6683,-1.3836,15.423,40.91,22,-0.5058,yahoo_finance,501,2024-01-01 - 2025-12-31
+EEM,etf,iShares Emerging Markets,VWAP_20,-19.3652,-1.9546,19.7838,39.13,46,-0.2617,yahoo_finance,501,2024-01-01 - 2025-12-31
+EEM,etf,iShares Emerging Markets,Ichimoku_9_26_52,-10.7093,-1.5835,12.5302,48.15,27,-0.2163,yahoo_finance,501,2024-01-01 - 2025-12-31
+GLD,etf,SPDR Gold Shares,MA_Crossover_20_50,-0.7158,-0.8682,0.7158,0.0,1,-0.517,yahoo_finance,501,2024-01-01 - 2025-12-31
+GLD,etf,SPDR Gold Shares,MA_Crossover_10_30,-0.2401,-0.9754,0.2401,0.0,1,-0.0404,yahoo_finance,501,2024-01-01 - 2025-12-31
+GLD,etf,SPDR Gold Shares,RSI_14_30_70,-14.8788,-1.3669,16.4782,33.33,36,-0.2404,yahoo_finance,501,2024-01-01 - 2025-12-31
+GLD,etf,SPDR Gold Shares,RSI_14_35_80,-7.4227,-0.4827,15.8406,50.0,34,-0.0167,yahoo_finance,501,2024-01-01 - 2025-12-31
+GLD,etf,SPDR Gold Shares,MACD_Standard,-0.4,-0.9746,0.4,0.0,1,-0.2006,yahoo_finance,501,2024-01-01 - 2025-12-31
+GLD,etf,SPDR Gold Shares,Bollinger_20_2,-23.3966,-1.521,24.2978,32.61,46,-0.371,yahoo_finance,501,2024-01-01 - 2025-12-31
+GLD,etf,SPDR Gold Shares,Combined,-13.5974,-1.3219,15.0094,32.65,49,-0.0927,yahoo_finance,501,2024-01-01 - 2025-12-31
+GLD,etf,SPDR Gold Shares,ADX_Trend_14_25,-5.9204,-1.288,8.0699,30.0,20,-0.1025,yahoo_finance,501,2024-01-01 - 2025-12-31
+GLD,etf,SPDR Gold Shares,VWAP_20,-17.4894,-2.2257,17.4894,35.71,42,-0.2535,yahoo_finance,501,2024-01-01 - 2025-12-31
+GLD,etf,SPDR Gold Shares,Ichimoku_9_26_52,-6.7691,-0.6986,9.7187,46.88,32,-0.0115,yahoo_finance,501,2024-01-01 - 2025-12-31
+SLV,etf,iShares Silver Trust,MA_Crossover_20_50,-0.562,-0.9101,0.562,0.0,1,-0.363,yahoo_finance,501,2024-01-01 - 2025-12-31
+SLV,etf,iShares Silver Trust,MA_Crossover_10_30,-1.4866,-0.7847,1.4866,0.0,1,-1.2894,yahoo_finance,501,2024-01-01 - 2025-12-31
+SLV,etf,iShares Silver Trust,RSI_14_30_70,-21.4257,-1.0234,28.4949,39.22,51,-0.2506,yahoo_finance,501,2024-01-01 - 2025-12-31
+SLV,etf,iShares Silver Trust,RSI_14_35_80,-6.0794,-0.2139,13.2534,66.67,36,0.0591,yahoo_finance,501,2024-01-01 - 2025-12-31
+SLV,etf,iShares Silver Trust,MACD_Standard,-0.3945,-0.9769,0.3945,0.0,1,-0.1951,yahoo_finance,501,2024-01-01 - 2025-12-31
+SLV,etf,iShares Silver Trust,Bollinger_20_2,-22.1608,-1.1824,24.8655,47.22,36,-0.4762,yahoo_finance,501,2024-01-01 - 2025-12-31
+SLV,etf,iShares Silver Trust,Combined,11.9623,0.6417,16.18,52.94,51,0.4383,yahoo_finance,501,2024-01-01 - 2025-12-31
+SLV,etf,iShares Silver Trust,ADX_Trend_14_25,-11.7145,-1.1992,15.0176,38.46,26,-0.2698,yahoo_finance,501,2024-01-01 - 2025-12-31
+SLV,etf,iShares Silver Trust,VWAP_20,-17.5861,-1.212,18.9695,47.06,34,-0.3517,yahoo_finance,501,2024-01-01 - 2025-12-31
+SLV,etf,iShares Silver Trust,Ichimoku_9_26_52,-9.3,-0.5441,15.9287,54.55,33,-0.0759,yahoo_finance,501,2024-01-01 - 2025-12-31
+TLT,etf,iShares 20+ Year Treasury,MA_Crossover_20_50,1.2345,0.6294,0.1499,100.0,1,1.4372,yahoo_finance,501,2024-01-01 - 2025-12-31
+TLT,etf,iShares 20+ Year Treasury,MA_Crossover_10_30,-0.8081,-0.85,0.8081,0.0,1,-0.6095,yahoo_finance,501,2024-01-01 - 2025-12-31
+TLT,etf,iShares 20+ Year Treasury,RSI_14_30_70,-18.8694,-2.7267,19.3499,35.56,45,-0.2619,yahoo_finance,501,2024-01-01 - 2025-12-31
+TLT,etf,iShares 20+ Year Treasury,RSI_14_35_80,-6.4755,-0.8417,9.0641,48.39,31,-0.0111,yahoo_finance,501,2024-01-01 - 2025-12-31
+TLT,etf,iShares 20+ Year Treasury,MACD_Standard,-2.7537,-1.0462,2.7537,0.0,1,-2.559,yahoo_finance,501,2024-01-01 - 2025-12-31
+TLT,etf,iShares 20+ Year Treasury,Bollinger_20_2,-0.4497,-0.0204,7.6212,45.71,35,0.1966,yahoo_finance,501,2024-01-01 - 2025-12-31
+TLT,etf,iShares 20+ Year Treasury,Combined,-5.9967,-0.8389,9.6509,61.22,49,0.0762,yahoo_finance,501,2024-01-01 - 2025-12-31
+TLT,etf,iShares 20+ Year Treasury,ADX_Trend_14_25,-8.9007,-1.3662,10.052,37.93,29,-0.1177,yahoo_finance,501,2024-01-01 - 2025-12-31
+TLT,etf,iShares 20+ Year Treasury,VWAP_20,-17.9507,-2.2532,21.6055,31.25,48,-0.2074,yahoo_finance,501,2024-01-01 - 2025-12-31
+TLT,etf,iShares 20+ Year Treasury,Ichimoku_9_26_52,-6.0931,-0.7637,8.8881,56.25,32,0.0077,yahoo_finance,501,2024-01-01 - 2025-12-31
+XLF,etf,Financial Select SPDR,MA_Crossover_20_50,-1.0989,-0.8121,1.0989,0.0,1,-0.9009,yahoo_finance,501,2024-01-01 - 2025-12-31
+XLF,etf,Financial Select SPDR,MA_Crossover_10_30,0.6529,0.5676,0.1498,100.0,1,0.8544,yahoo_finance,501,2024-01-01 - 2025-12-31
+XLF,etf,Financial Select SPDR,RSI_14_30_70,-5.2906,-0.315,17.7724,39.13,46,0.1,yahoo_finance,501,2024-01-01 - 2025-12-31
+XLF,etf,Financial Select SPDR,RSI_14_35_80,-11.6068,-1.336,11.9694,35.29,34,-0.1568,yahoo_finance,501,2024-01-01 - 2025-12-31
+XLF,etf,Financial Select SPDR,MACD_Standard,-0.6999,-0.8718,0.6999,0.0,1,-0.5011,yahoo_finance,501,2024-01-01 - 2025-12-31
+XLF,etf,Financial Select SPDR,Bollinger_20_2,-3.398,-0.3673,9.8381,44.12,34,0.1046,yahoo_finance,501,2024-01-01 - 2025-12-31
+XLF,etf,Financial Select SPDR,Combined,-7.8177,-0.5828,9.1933,54.0,50,0.0431,yahoo_finance,501,2024-01-01 - 2025-12-31
+XLF,etf,Financial Select SPDR,ADX_Trend_14_25,-2.4193,-0.4426,4.5852,42.11,19,0.0748,yahoo_finance,501,2024-01-01 - 2025-12-31
+XLF,etf,Financial Select SPDR,VWAP_20,1.4288,0.1789,4.137,63.27,49,0.2336,yahoo_finance,501,2024-01-01 - 2025-12-31
+XLF,etf,Financial Select SPDR,Ichimoku_9_26_52,-15.3347,-2.0866,15.5905,35.48,31,-0.3327,yahoo_finance,501,2024-01-01 - 2025-12-31
+XLE,etf,Energy Select SPDR,MA_Crossover_20_50,0.7266,0.5802,0.1498,100.0,1,0.9282,yahoo_finance,501,2024-01-01 - 2025-12-31
+XLE,etf,Energy Select SPDR,MA_Crossover_10_30,-0.3952,-0.9766,0.3952,0.0,1,-0.1958,yahoo_finance,501,2024-01-01 - 2025-12-31
+XLE,etf,Energy Select SPDR,RSI_14_30_70,-19.7263,-1.0847,24.081,37.5,32,-0.4564,yahoo_finance,501,2024-01-01 - 2025-12-31
+XLE,etf,Energy Select SPDR,RSI_14_35_80,-0.8422,0.003,13.8704,38.46,39,0.2169,yahoo_finance,501,2024-01-01 - 2025-12-31
+XLE,etf,Energy Select SPDR,MACD_Standard,-2.0477,-0.7636,2.0477,0.0,1,-1.8516,yahoo_finance,501,2024-01-01 - 2025-12-31
+XLE,etf,Energy Select SPDR,Bollinger_20_2,-19.2778,-1.2883,21.6715,42.5,40,-0.3186,yahoo_finance,501,2024-01-01 - 2025-12-31
+XLE,etf,Energy Select SPDR,Combined,1.7411,0.1331,11.9227,51.72,58,0.2473,yahoo_finance,501,2024-01-01 - 2025-12-31
+XLE,etf,Energy Select SPDR,ADX_Trend_14_25,-6.4235,-0.8778,6.7117,47.62,21,-0.11,yahoo_finance,501,2024-01-01 - 2025-12-31
+XLE,etf,Energy Select SPDR,VWAP_20,-18.215,-1.8787,18.6883,38.46,39,-0.3098,yahoo_finance,501,2024-01-01 - 2025-12-31
+XLE,etf,Energy Select SPDR,Ichimoku_9_26_52,-6.7032,-0.7256,7.7914,51.61,31,-0.0177,yahoo_finance,501,2024-01-01 - 2025-12-31
+VNQ,etf,Vanguard Real Estate,MA_Crossover_20_50,-1.7948,-0.7714,1.7948,0.0,1,-1.5982,yahoo_finance,501,2024-01-01 - 2025-12-31
+VNQ,etf,Vanguard Real Estate,MA_Crossover_10_30,-1.0852,-0.8134,1.0852,0.0,1,-0.8872,yahoo_finance,501,2024-01-01 - 2025-12-31
+VNQ,etf,Vanguard Real Estate,RSI_14_30_70,-13.9108,-1.5691,15.3352,33.33,30,-0.2928,yahoo_finance,501,2024-01-01 - 2025-12-31
+VNQ,etf,Vanguard Real Estate,RSI_14_35_80,-6.1368,-0.5735,9.3207,40.0,35,0.0273,yahoo_finance,501,2024-01-01 - 2025-12-31
+VNQ,etf,Vanguard Real Estate,MACD_Standard,-0.1159,-0.5349,0.1499,100.0,1,0.0841,yahoo_finance,501,2024-01-01 - 2025-12-31
+VNQ,etf,Vanguard Real Estate,Bollinger_20_2,-9.999,-0.883,15.8748,32.26,31,-0.1283,yahoo_finance,501,2024-01-01 - 2025-12-31
+VNQ,etf,Vanguard Real Estate,Combined,-19.8523,-1.4931,22.9854,43.33,60,-0.1607,yahoo_finance,501,2024-01-01 - 2025-12-31
+VNQ,etf,Vanguard Real Estate,ADX_Trend_14_25,-7.6748,-1.165,9.2743,47.83,23,-0.1425,yahoo_finance,501,2024-01-01 - 2025-12-31
+VNQ,etf,Vanguard Real Estate,VWAP_20,-11.7961,-0.9971,13.3976,50.0,42,-0.0901,yahoo_finance,501,2024-01-01 - 2025-12-31
+VNQ,etf,Vanguard Real Estate,Ichimoku_9_26_52,-3.7015,-0.4495,5.7125,41.38,29,0.0753,yahoo_finance,501,2024-01-01 - 2025-12-31
 JNJ,defensive,Johnson & Johnson,MA_Crossover_20_50,-1.4692,-0.7856,1.4692,0.0,1,-1.2719,yahoo_finance,501,2024-01-01 - 2025-12-31
-JNJ,defensive,Johnson & Johnson,MA_Crossover_10_30,0.1664,0.3379,0.1499,100.0,1,0.367,yahoo_finance,501,2024-01-01 - 2025-12-31
-JNJ,defensive,Johnson & Johnson,RSI_14_30_70,13.3196,0.829,5.9875,55.56,54,0.4449,yahoo_finance,501,2024-01-01 - 2025-12-31
-JNJ,defensive,Johnson & Johnson,RSI_14_35_80,-16.2912,-1.5571,16.8537,46.81,47,-0.1714,yahoo_finance,501,2024-01-01 - 2025-12-31
+JNJ,defensive,Johnson & Johnson,MA_Crossover_10_30,0.1664,0.3378,0.1499,100.0,1,0.367,yahoo_finance,501,2024-01-01 - 2025-12-31
+JNJ,defensive,Johnson & Johnson,RSI_14_30_70,13.3197,0.829,5.9875,55.56,54,0.4449,yahoo_finance,501,2024-01-01 - 2025-12-31
+JNJ,defensive,Johnson & Johnson,RSI_14_35_80,-16.2913,-1.5572,16.8537,46.81,47,-0.1714,yahoo_finance,501,2024-01-01 - 2025-12-31
 JNJ,defensive,Johnson & Johnson,MACD_Standard,-0.5101,-0.9285,0.5101,0.0,1,-0.311,yahoo_finance,501,2024-01-01 - 2025-12-31
 JNJ,defensive,Johnson & Johnson,Bollinger_20_2,-4.8099,-0.3099,10.5512,50.0,44,0.0984,yahoo_finance,501,2024-01-01 - 2025-12-31
-JNJ,defensive,Johnson & Johnson,Combined,-6.2,-0.4909,16.2205,51.06,47,0.0745,yahoo_finance,501,2024-01-01 - 2025-12-31
+JNJ,defensive,Johnson & Johnson,Combined,-6.2,-0.4909,16.2206,51.06,47,0.0745,yahoo_finance,501,2024-01-01 - 2025-12-31
 JNJ,defensive,Johnson & Johnson,ADX_Trend_14_25,-10.2835,-1.8153,10.496,42.86,21,-0.3127,yahoo_finance,501,2024-01-01 - 2025-12-31
-JNJ,defensive,Johnson & Johnson,VWAP_20,-6.0992,-0.6603,7.3691,39.53,43,0.0585,yahoo_finance,501,2024-01-01 - 2025-12-31
-JNJ,defensive,Johnson & Johnson,Ichimoku_9_26_52,-2.6239,-0.3167,6.9745,57.69,26,0.1039,yahoo_finance,501,2024-01-01 - 2025-12-31
-PG,defensive,Procter & Gamble,MA_Crossover_20_50,-0.791,-0.8531,0.791,0.0,1,-0.5924,yahoo_finance,501,2024-01-01 - 2025-12-31
+JNJ,defensive,Johnson & Johnson,VWAP_20,-6.0992,-0.6603,7.3692,39.53,43,0.0585,yahoo_finance,501,2024-01-01 - 2025-12-31
+JNJ,defensive,Johnson & Johnson,Ichimoku_9_26_52,-2.6238,-0.3167,6.9745,57.69,26,0.1039,yahoo_finance,501,2024-01-01 - 2025-12-31
+PG,defensive,Procter & Gamble,MA_Crossover_20_50,-0.791,-0.853,0.791,0.0,1,-0.5924,yahoo_finance,501,2024-01-01 - 2025-12-31
 PG,defensive,Procter & Gamble,MA_Crossover_10_30,-0.7079,-0.87,0.7079,0.0,1,-0.5091,yahoo_finance,501,2024-01-01 - 2025-12-31
-PG,defensive,Procter & Gamble,RSI_14_30_70,-18.1569,-1.7314,21.4232,37.78,45,-0.2395,yahoo_finance,501,2024-01-01 - 2025-12-31
-PG,defensive,Procter & Gamble,RSI_14_35_80,-9.1286,-0.9774,12.8911,40.54,37,-0.0526,yahoo_finance,501,2024-01-01 - 2025-12-31
+PG,defensive,Procter & Gamble,RSI_14_30_70,-18.1568,-1.7314,21.4231,37.78,45,-0.2395,yahoo_finance,501,2024-01-01 - 2025-12-31
+PG,defensive,Procter & Gamble,RSI_14_35_80,-9.1286,-0.9775,12.8912,40.54,37,-0.0526,yahoo_finance,501,2024-01-01 - 2025-12-31
 PG,defensive,Procter & Gamble,MACD_Standard,-0.847,-0.8435,0.847,0.0,1,-0.6485,yahoo_finance,501,2024-01-01 - 2025-12-31
 PG,defensive,Procter & Gamble,Bollinger_20_2,-2.6274,-0.1993,10.6224,42.86,28,0.1207,yahoo_finance,501,2024-01-01 - 2025-12-31
 PG,defensive,Procter & Gamble,Combined,-18.6926,-1.8621,20.8264,32.84,67,-0.1045,yahoo_finance,501,2024-01-01 - 2025-12-31
-PG,defensive,Procter & Gamble,ADX_Trend_14_25,-8.622,-1.9148,8.9596,29.17,24,-0.1736,yahoo_finance,501,2024-01-01 - 2025-12-31
+PG,defensive,Procter & Gamble,ADX_Trend_14_25,-8.3475,-1.8614,8.6861,29.17,24,-0.1611,yahoo_finance,501,2024-01-01 - 2025-12-31
 PG,defensive,Procter & Gamble,VWAP_20,-21.5246,-2.371,21.5246,33.33,36,-0.4663,yahoo_finance,501,2024-01-01 - 2025-12-31
-PG,defensive,Procter & Gamble,Ichimoku_9_26_52,-8.1951,-0.8247,8.2664,45.95,37,-0.0256,yahoo_finance,501,2024-01-01 - 2025-12-31
+PG,defensive,Procter & Gamble,Ichimoku_9_26_52,-8.1952,-0.8247,8.2665,45.95,37,-0.0256,yahoo_finance,501,2024-01-01 - 2025-12-31
 KO,defensive,Coca-Cola,MA_Crossover_20_50,-0.5215,-0.9243,0.5215,0.0,1,-0.3224,yahoo_finance,501,2024-01-01 - 2025-12-31
-KO,defensive,Coca-Cola,MA_Crossover_10_30,-1.9933,-1.0456,1.9933,0.0,2,-0.8017,yahoo_finance,501,2024-01-01 - 2025-12-31
-KO,defensive,Coca-Cola,RSI_14_30_70,-4.8024,-0.4406,9.421,41.18,34,0.065,yahoo_finance,501,2024-01-01 - 2025-12-31
+KO,defensive,Coca-Cola,MA_Crossover_10_30,-0.4003,-0.9744,0.4003,0.0,1,-0.2009,yahoo_finance,501,2024-01-01 - 2025-12-31
+KO,defensive,Coca-Cola,RSI_14_30_70,-4.8024,-0.4406,9.4211,41.18,34,0.065,yahoo_finance,501,2024-01-01 - 2025-12-31
 KO,defensive,Coca-Cola,RSI_14_35_80,-10.7471,-1.3114,13.9574,40.0,30,-0.1726,yahoo_finance,501,2024-01-01 - 2025-12-31
 KO,defensive,Coca-Cola,MACD_Standard,-0.6321,-0.8889,0.6321,0.0,1,-0.4332,yahoo_finance,501,2024-01-01 - 2025-12-31
-KO,defensive,Coca-Cola,Bollinger_20_2,-19.9222,-1.595,21.1526,33.33,30,-0.5295,yahoo_finance,501,2024-01-01 - 2025-12-31
-KO,defensive,Coca-Cola,Combined,-9.1897,-0.9318,10.0444,44.68,47,0.0004,yahoo_finance,501,2024-01-01 - 2025-12-31
-KO,defensive,Coca-Cola,ADX_Trend_14_25,-2.7652,-0.3059,6.7378,42.86,21,0.0752,yahoo_finance,501,2024-01-01 - 2025-12-31
-KO,defensive,Coca-Cola,VWAP_20,-15.048,-1.3666,18.1113,41.18,34,-0.2704,yahoo_finance,501,2024-01-01 - 2025-12-31
-KO,defensive,Coca-Cola,Ichimoku_9_26_52,-6.2833,-0.9703,6.5098,48.28,29,-0.0211,yahoo_finance,501,2024-01-01 - 2025-12-31
+KO,defensive,Coca-Cola,Bollinger_20_2,-19.9221,-1.595,21.1525,33.33,30,-0.5295,yahoo_finance,501,2024-01-01 - 2025-12-31
+KO,defensive,Coca-Cola,Combined,-9.1897,-0.9318,10.0445,44.68,47,0.0004,yahoo_finance,501,2024-01-01 - 2025-12-31
+KO,defensive,Coca-Cola,ADX_Trend_14_25,-3.8974,-0.4382,7.8238,38.1,21,0.0195,yahoo_finance,501,2024-01-01 - 2025-12-31
+KO,defensive,Coca-Cola,VWAP_20,-15.048,-1.3666,18.1112,41.18,34,-0.2704,yahoo_finance,501,2024-01-01 - 2025-12-31
+KO,defensive,Coca-Cola,Ichimoku_9_26_52,-6.2832,-0.9703,6.5097,48.28,29,-0.0211,yahoo_finance,501,2024-01-01 - 2025-12-31
 PEP,defensive,PepsiCo,MA_Crossover_20_50,0.0146,0.0474,0.1499,100.0,1,0.2149,yahoo_finance,501,2024-01-01 - 2025-12-31
-PEP,defensive,PepsiCo,MA_Crossover_10_30,-1.1024,-0.8117,1.1024,0.0,1,-0.9044,yahoo_finance,501,2024-01-01 - 2025-12-31
+PEP,defensive,PepsiCo,MA_Crossover_10_30,-1.1025,-0.8117,1.1025,0.0,1,-0.9045,yahoo_finance,501,2024-01-01 - 2025-12-31
 PEP,defensive,PepsiCo,RSI_14_30_70,-5.7242,-0.3092,14.4559,55.81,43,0.0781,yahoo_finance,501,2024-01-01 - 2025-12-31
 PEP,defensive,PepsiCo,RSI_14_35_80,-7.2463,-0.5381,12.3399,40.0,40,0.0216,yahoo_finance,501,2024-01-01 - 2025-12-31
 PEP,defensive,PepsiCo,MACD_Standard,-2.6112,-1.0147,2.6112,0.0,1,-2.4162,yahoo_finance,501,2024-01-01 - 2025-12-31
-PEP,defensive,PepsiCo,Bollinger_20_2,-4.513,-0.2615,9.4412,54.05,37,0.0841,yahoo_finance,501,2024-01-01 - 2025-12-31
+PEP,defensive,PepsiCo,Bollinger_20_2,-4.5129,-0.2615,9.4412,54.05,37,0.0841,yahoo_finance,501,2024-01-01 - 2025-12-31
 PEP,defensive,PepsiCo,Combined,7.8589,0.582,7.5086,55.77,52,0.3549,yahoo_finance,501,2024-01-01 - 2025-12-31
-PEP,defensive,PepsiCo,ADX_Trend_14_25,-18.034,-1.7726,19.7536,27.27,22,-0.6892,yahoo_finance,501,2024-01-01 - 2025-12-31
-PEP,defensive,PepsiCo,VWAP_20,1.1105,0.1106,10.8852,53.49,43,0.2394,yahoo_finance,501,2024-01-01 - 2025-12-31
-PEP,defensive,PepsiCo,Ichimoku_9_26_52,-2.2892,-0.2268,4.7745,54.55,22,0.1039,yahoo_finance,501,2024-01-01 - 2025-12-31
+PEP,defensive,PepsiCo,ADX_Trend_14_25,-18.0341,-1.7726,19.7537,27.27,22,-0.6892,yahoo_finance,501,2024-01-01 - 2025-12-31
+PEP,defensive,PepsiCo,VWAP_20,1.1105,0.1106,10.8851,53.49,43,0.2394,yahoo_finance,501,2024-01-01 - 2025-12-31
+PEP,defensive,PepsiCo,Ichimoku_9_26_52,-2.2891,-0.2268,4.7744,54.55,22,0.1039,yahoo_finance,501,2024-01-01 - 2025-12-31
 WMT,defensive,Walmart,MA_Crossover_20_50,-0.3844,-0.9812,0.3844,0.0,1,-0.185,yahoo_finance,501,2024-01-01 - 2025-12-31
 WMT,defensive,Walmart,MA_Crossover_10_30,-0.6179,-0.8929,0.6179,0.0,1,-0.4189,yahoo_finance,501,2024-01-01 - 2025-12-31
-WMT,defensive,Walmart,RSI_14_30_70,-10.0253,-0.6854,15.9007,45.1,51,0.0018,yahoo_finance,501,2024-01-01 - 2025-12-31
-WMT,defensive,Walmart,RSI_14_35_80,-14.8512,-1.5608,16.6924,41.94,31,-0.311,yahoo_finance,501,2024-01-01 - 2025-12-31
-WMT,defensive,Walmart,MACD_Standard,-1.9206,-1.0784,1.9206,0.0,1,-1.7242,yahoo_finance,501,2024-01-01 - 2025-12-31
-WMT,defensive,Walmart,Bollinger_20_2,-7.848,-0.3683,13.5929,50.0,38,0.011,yahoo_finance,501,2024-01-01 - 2025-12-31
-WMT,defensive,Walmart,Combined,-24.482,-1.4572,26.3774,41.07,56,-0.2833,yahoo_finance,501,2024-01-01 - 2025-12-31
+WMT,defensive,Walmart,RSI_14_30_70,-9.3202,-0.6277,15.9008,45.1,51,0.0172,yahoo_finance,501,2024-01-01 - 2025-12-31
+WMT,defensive,Walmart,RSI_14_35_80,-14.8513,-1.5608,16.6924,41.94,31,-0.311,yahoo_finance,501,2024-01-01 - 2025-12-31
+WMT,defensive,Walmart,MACD_Standard,-1.9205,-1.0784,1.9205,0.0,1,-1.7242,yahoo_finance,501,2024-01-01 - 2025-12-31
+WMT,defensive,Walmart,Bollinger_20_2,-7.8479,-0.3683,13.5929,50.0,38,0.011,yahoo_finance,501,2024-01-01 - 2025-12-31
+WMT,defensive,Walmart,Combined,-24.4821,-1.4572,26.3776,41.07,56,-0.2833,yahoo_finance,501,2024-01-01 - 2025-12-31
 WMT,defensive,Walmart,ADX_Trend_14_25,-6.378,-1.1911,6.7486,33.33,15,-0.2345,yahoo_finance,501,2024-01-01 - 2025-12-31
-WMT,defensive,Walmart,VWAP_20,-9.1367,-0.8449,14.1605,47.37,38,-0.0429,yahoo_finance,501,2024-01-01 - 2025-12-31
-WMT,defensive,Walmart,Ichimoku_9_26_52,-2.0575,-0.2262,5.0057,61.29,31,0.1368,yahoo_finance,501,2024-01-01 - 2025-12-31
+WMT,defensive,Walmart,VWAP_20,-9.1367,-0.8449,14.1604,47.37,38,-0.0429,yahoo_finance,501,2024-01-01 - 2025-12-31
+WMT,defensive,Walmart,Ichimoku_9_26_52,-3.504,-0.4104,6.4086,58.06,31,0.0886,yahoo_finance,501,2024-01-01 - 2025-12-31

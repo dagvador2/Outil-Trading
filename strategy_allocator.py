@@ -73,12 +73,18 @@ class TradingPlan:
 # ============================================================================
 
 RISK_RANGES = {
-    'crypto':      {'sl': (5, 12), 'tp': (10, 25)},
-    'tech_stocks': {'sl': (2, 6),  'tp': (4, 12)},
-    'commodities': {'sl': (3, 8),  'tp': (6, 15)},
-    'indices':     {'sl': (2, 5),  'tp': (3, 8)},
-    'forex':       {'sl': (1, 3),  'tp': (2, 6)},
-    'defensive':   {'sl': (2, 4),  'tp': (3, 7)},
+    'crypto':         {'sl': (5, 12), 'tp': (10, 25)},
+    'tech_stocks':    {'sl': (2, 6),  'tp': (4, 12)},
+    'semiconductors': {'sl': (2, 6),  'tp': (4, 12)},
+    'finance':        {'sl': (2, 5),  'tp': (3, 10)},
+    'healthcare':     {'sl': (2, 5),  'tp': (3, 8)},
+    'energy':         {'sl': (3, 7),  'tp': (5, 12)},
+    'consumer':       {'sl': (2, 5),  'tp': (3, 8)},
+    'commodities':    {'sl': (3, 8),  'tp': (6, 15)},
+    'indices':        {'sl': (2, 5),  'tp': (3, 8)},
+    'forex':          {'sl': (1, 3),  'tp': (2, 6)},
+    'etf':            {'sl': (2, 5),  'tp': (3, 8)},
+    'defensive':      {'sl': (2, 4),  'tp': (3, 7)},
 }
 
 

@@ -876,14 +876,15 @@ def main():
     # Onglets
     # ========================================================================
 
-    tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
+    tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8 = st.tabs([
         "📊 Vue d'ensemble",
         "🎯 Signaux actifs",
         "📈 Analyse détaillée",
         "📜 Historique",
         "📚 Bibliothèque Backtests",
         "💼 Paper Trading",
-        "🧠 Strategy Allocator"
+        "🧠 Strategy Allocator",
+        "🖥️ Multi Paper Trading"
     ])
 
     # ========================================================================
@@ -2128,6 +2129,256 @@ def main():
             st.error(f"Erreur Strategy Allocator: {e}")
             import traceback
             st.code(traceback.format_exc())
+
+    # ========================================================================
+    # TAB 8: Multi Paper Trading Comparison
+    # ========================================================================
+
+    with tab8:
+        st.header("Multi Paper Trading")
+        st.info("Comparaison de 10 portefeuilles en parallele avec differentes configurations. "
+                "Lancez : `python multi_paper_trading.py --single --capital 10000`")
+
+        state_dir = 'paper_trading_state'
+        consolidated_file = os.path.join(state_dir, 'consolidated_state.json')
+
+        if not os.path.exists(consolidated_file):
+            # Fallback: check single-mode state
+            single_state = os.path.join(state_dir, 'auto_state.json')
+            if os.path.exists(single_state):
+                st.warning("Mode multi-portfolio non detecte. Affichage du portfolio standalone.")
+                try:
+                    with open(single_state, 'r') as f:
+                        state = json.load(f)
+                    cash = state.get('cash', 0)
+                    capital = state.get('total_capital', 10000)
+                    cycle = state.get('cycle_count', 0)
+                    positions = state.get('positions', {})
+                    pos_val = sum(p.get('entry_price', 0) * p.get('quantity', 0) for p in positions.values())
+                    total_val = cash + pos_val
+                    pnl = total_val - capital
+                    c1, c2, c3, c4 = st.columns(4)
+                    c1.metric("Valeur", f"{total_val:,.0f} EUR")
+                    c2.metric("P&L", f"{pnl:+,.0f} EUR")
+                    c3.metric("Positions", f"{len(positions)}")
+                    c4.metric("Cycles", f"{cycle}")
+                except Exception as e:
+                    st.error(f"Erreur: {e}")
+            else:
+                st.warning("Aucun etat detecte.\n\n"
+                           "Lancez : `python multi_paper_trading.py --single --capital 10000`\n\n"
+                           "Ou en standalone : `python auto_paper_trading.py --single --capital 10000`")
+        else:
+            try:
+                with open(consolidated_file, 'r') as f:
+                    consolidated = json.load(f)
+
+                last_update = consolidated.get('last_update', 'N/A')
+                total_capital_multi = consolidated.get('total_capital', 10000)
+                capital_per = consolidated.get('capital_per_portfolio', 1000)
+                n_portfolios = consolidated.get('n_portfolios', 0)
+                portfolios = consolidated.get('portfolios', {})
+
+                # --- Global metrics ---
+                total_value_all = sum(p.get('value', capital_per) for p in portfolios.values())
+                total_pnl_all = sum(p.get('pnl', 0) for p in portfolios.values())
+                total_pnl_pct = (total_pnl_all / total_capital_multi * 100) if total_capital_multi > 0 else 0
+                total_positions = sum(p.get('positions', 0) for p in portfolios.values())
+                total_trades = sum(p.get('trades_closed', 0) for p in portfolios.values())
+
+                col_g1, col_g2, col_g3, col_g4, col_g5 = st.columns(5)
+                col_g1.metric("Valeur totale", f"{total_value_all:,.0f} EUR",
+                              f"{total_pnl_all:+,.0f} ({total_pnl_pct:+.1f}%)" if total_pnl_all != 0 else None)
+                col_g2.metric("Capital investi", f"{total_capital_multi:,.0f} EUR",
+                              f"{n_portfolios} portefeuilles")
+                col_g3.metric("Positions ouvertes", f"{total_positions}")
+                col_g4.metric("Trades clos", f"{total_trades}")
+
+                # Best portfolio
+                if portfolios:
+                    best_name = max(portfolios.keys(), key=lambda k: portfolios[k].get('pnl_pct', 0))
+                    best_pnl = portfolios[best_name].get('pnl_pct', 0)
+                    col_g5.metric("Meilleur portefeuille", best_name,
+                                  f"{best_pnl:+.2f}%")
+
+                st.caption(f"Derniere mise a jour: {last_update[:19] if last_update != 'N/A' else 'N/A'}")
+                st.markdown("---")
+
+                # --- Leaderboard ---
+                st.subheader("Leaderboard")
+
+                if portfolios:
+                    lb_rows = []
+                    for rank, (name, p) in enumerate(
+                        sorted(portfolios.items(), key=lambda x: x[1].get('pnl_pct', 0), reverse=True), 1
+                    ):
+                        lb_rows.append({
+                            'Rang': rank,
+                            'Portefeuille': name,
+                            'Valeur (EUR)': round(p.get('value', 0), 2),
+                            'P&L (EUR)': round(p.get('pnl', 0), 2),
+                            'P&L (%)': round(p.get('pnl_pct', 0), 2),
+                            'Realise (EUR)': round(p.get('realized_pnl', 0), 2),
+                            'Positions': f"{p.get('positions', 0)}/{p.get('max_positions', '?')}",
+                            'Trades': p.get('trades_closed', 0),
+                            'Win Rate (%)': round(p.get('win_rate', 0), 1),
+                            'Actifs plan': p.get('n_assets_in_plan', 0),
+                            'Config': p.get('config_summary', ''),
+                        })
+
+                    lb_df = pd.DataFrame(lb_rows)
+                    st.dataframe(lb_df, use_container_width=True, hide_index=True)
+
+                st.markdown("---")
+
+                # --- P&L Bar Chart ---
+                st.subheader("P&L par portefeuille")
+
+                if portfolios:
+                    sorted_names = sorted(portfolios.keys(),
+                                          key=lambda k: portfolios[k].get('pnl', 0), reverse=True)
+                    pnl_values = [portfolios[n].get('pnl', 0) for n in sorted_names]
+                    colors = ['#2ca02c' if v >= 0 else '#d62728' for v in pnl_values]
+
+                    fig_pnl = go.Figure(data=[
+                        go.Bar(
+                            x=sorted_names,
+                            y=pnl_values,
+                            marker_color=colors,
+                            text=[f"{v:+.1f}" for v in pnl_values],
+                            textposition='outside'
+                        )
+                    ])
+                    fig_pnl.update_layout(
+                        yaxis_title="P&L (EUR)",
+                        height=400,
+                        template="plotly_white",
+                    )
+                    fig_pnl.add_hline(y=0, line_dash="dash", line_color="gray")
+                    st.plotly_chart(fig_pnl, use_container_width=True)
+
+                    # P&L % bar chart
+                    pnl_pct_values = [portfolios[n].get('pnl_pct', 0) for n in sorted_names]
+                    colors_pct = ['#2ca02c' if v >= 0 else '#d62728' for v in pnl_pct_values]
+
+                    fig_pnl_pct = go.Figure(data=[
+                        go.Bar(
+                            x=sorted_names,
+                            y=pnl_pct_values,
+                            marker_color=colors_pct,
+                            text=[f"{v:+.2f}%" for v in pnl_pct_values],
+                            textposition='outside'
+                        )
+                    ])
+                    fig_pnl_pct.update_layout(
+                        yaxis_title="P&L (%)",
+                        height=400,
+                        template="plotly_white",
+                    )
+                    fig_pnl_pct.add_hline(y=0, line_dash="dash", line_color="gray")
+                    st.plotly_chart(fig_pnl_pct, use_container_width=True)
+
+                st.markdown("---")
+
+                # --- Detail par portefeuille ---
+                st.subheader("Detail par portefeuille")
+
+                for name, p_info in sorted(portfolios.items(),
+                                           key=lambda x: x[1].get('pnl_pct', 0), reverse=True):
+                    pnl_val = p_info.get('pnl', 0)
+                    icon = "+" if pnl_val >= 0 else ""
+                    label = f"{name} | P&L: {icon}{pnl_val:.2f} EUR ({icon}{p_info.get('pnl_pct', 0):.2f}%)"
+
+                    with st.expander(label):
+                        st.caption(p_info.get('description', ''))
+                        st.caption(f"Config: {p_info.get('config_summary', '')}")
+
+                        dc1, dc2, dc3, dc4 = st.columns(4)
+                        dc1.metric("Valeur", f"{p_info.get('value', 0):,.2f} EUR")
+                        dc2.metric("Realise", f"{p_info.get('realized_pnl', 0):+,.2f} EUR")
+                        dc3.metric("Win Rate", f"{p_info.get('win_rate', 0):.1f}%")
+                        dc4.metric("Cycles", f"{p_info.get('cycle_count', 0)}")
+
+                        # Charger trades du sous-dossier si disponibles
+                        # Trouver le bon dossier
+                        portfolio_dir = None
+                        for dirname in os.listdir(state_dir):
+                            if dirname.startswith('portfolio_') and name.lower() in dirname.lower():
+                                portfolio_dir = os.path.join(state_dir, dirname)
+                                break
+
+                        if portfolio_dir:
+                            # Positions ouvertes
+                            sub_state_file = os.path.join(portfolio_dir, 'auto_state.json')
+                            if os.path.exists(sub_state_file):
+                                try:
+                                    with open(sub_state_file, 'r') as f:
+                                        sub_state = json.load(f)
+                                    sub_positions = sub_state.get('positions', {})
+                                    if sub_positions:
+                                        st.write(f"**Positions ouvertes ({len(sub_positions)})**")
+                                        pos_rows = []
+                                        for sym, pos in sub_positions.items():
+                                            pos_rows.append({
+                                                'Symbole': sym,
+                                                'Side': pos.get('side', ''),
+                                                'Strategie': pos.get('strategy', ''),
+                                                'Prix entree': round(pos.get('entry_price', 0), 4),
+                                                'SL': round(pos.get('stop_loss', 0), 4),
+                                                'TP': round(pos.get('take_profit', 0), 4),
+                                            })
+                                        st.dataframe(pd.DataFrame(pos_rows),
+                                                     use_container_width=True, hide_index=True)
+                                except Exception:
+                                    pass
+
+                            # Trades clos
+                            sub_trades_file = os.path.join(portfolio_dir, 'auto_trades.csv')
+                            if os.path.exists(sub_trades_file):
+                                try:
+                                    sub_trades = pd.read_csv(sub_trades_file)
+                                    if len(sub_trades) > 0:
+                                        st.write(f"**Trades clos ({len(sub_trades)})**")
+                                        display_cols = [c for c in ['symbol', 'side', 'strategy',
+                                                                     'entry_price', 'exit_price',
+                                                                     'pnl', 'pnl_pct', 'exit_reason']
+                                                        if c in sub_trades.columns]
+                                        st.dataframe(
+                                            sub_trades[display_cols].sort_values(
+                                                'exit_time' if 'exit_time' in sub_trades.columns else display_cols[0],
+                                                ascending=False
+                                            ),
+                                            use_container_width=True, hide_index=True
+                                        )
+                                except Exception:
+                                    pass
+
+                            # Plan
+                            sub_plan_file = os.path.join(portfolio_dir, 'auto_plan.json')
+                            if os.path.exists(sub_plan_file):
+                                try:
+                                    with open(sub_plan_file, 'r') as f:
+                                        sub_plan = json.load(f)
+                                    assignments = sub_plan.get('assignments', [])
+                                    if assignments:
+                                        st.write(f"**Plan d'allocation ({len(assignments)} actifs)**")
+                                        plan_rows = []
+                                        for a in assignments:
+                                            plan_rows.append({
+                                                'Actif': a.get('asset', ''),
+                                                'Strategie': a.get('strategy_name', ''),
+                                                'Alloc (%)': round(a.get('allocation_pct', 0), 1),
+                                                'Score': round(a.get('score', 0), 3),
+                                            })
+                                        st.dataframe(pd.DataFrame(plan_rows),
+                                                     use_container_width=True, hide_index=True)
+                                except Exception:
+                                    pass
+
+            except Exception as e:
+                st.error(f"Erreur lecture etat multi-portfolio: {e}")
+                import traceback
+                st.code(traceback.format_exc())
 
     # ========================================================================
     # Auto-refresh

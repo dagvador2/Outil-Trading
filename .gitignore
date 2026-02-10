@@ -47,6 +47,7 @@ discord_webhook.txt
 
 # Runtime data
 paper_trading_portfolio.json
+paper_trading_state/
 signals_history.csv
 trading_plan_*.json
 
