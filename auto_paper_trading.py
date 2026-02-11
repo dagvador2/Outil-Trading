@@ -34,6 +34,13 @@ from assets_config import get_category_from_symbol, get_asset_info
 from yahoo_data_feed import convert_to_yahoo_symbol
 from indicators import TechnicalIndicators
 
+# Import macro integration (with error handling)
+try:
+    from macro_integration import MacroFilter
+    MACRO_AVAILABLE = True
+except ImportError:
+    MACRO_AVAILABLE = False
+
 
 # ============================================================================
 # Default paths (used in standalone mode)
@@ -156,6 +163,9 @@ class AutoPaperTrader:
         # Trading params
         min_confidence: float = 0.55,
         timeframe: str = '1d',
+        # Macro filter params
+        enable_macro_filter: bool = False,
+        macro_threshold: float = 60.0,
         # Multi-portfolio params
         state_dir: Optional[str] = None,
         portfolio_name: Optional[str] = None,
@@ -190,6 +200,24 @@ class AutoPaperTrader:
             allocation_method=allocation_method,
             enable_walk_forward=enable_walk_forward,
         )
+
+        # Macro Filter
+        self.enable_macro_filter = enable_macro_filter and MACRO_AVAILABLE
+        self.macro_filter = None
+        if self.enable_macro_filter:
+            try:
+                self.macro_filter = MacroFilter(
+                    enable=True,
+                    strong_threshold=macro_threshold,
+                    cache_hours=4
+                )
+                self.log.info(f"✅ Macro filter enabled (threshold={macro_threshold})")
+            except Exception as e:
+                self.log.error(f"Failed to init macro filter: {e}")
+                self.enable_macro_filter = False
+        else:
+            if enable_macro_filter and not MACRO_AVAILABLE:
+                self.log.warning("Macro filter requested but macro_integration not available")
 
         # State
         self.cash = total_capital
@@ -378,6 +406,15 @@ class AutoPaperTrader:
             if len(signals_df) == 0:
                 return None
 
+            # Apply macro filter if enabled
+            macro_info = None
+            if self.enable_macro_filter and self.macro_filter:
+                try:
+                    signals_df, macro_info = self.macro_filter.filter_signals(signals_df, symbol)
+                except Exception as e:
+                    self.log.warning(f"Macro filter error for {symbol}: {e}")
+                    # Continue with unfiltered signals
+
             last_signal = signals_df.iloc[-1]
             position = last_signal.get('position', last_signal.get('signal', 0))
             confidence = self._estimate_confidence(data, position)
@@ -389,12 +426,18 @@ class AutoPaperTrader:
             else:
                 signal_type = 'HOLD'
 
-            return {
+            result = {
                 'symbol': symbol,
                 'signal': signal_type,
                 'confidence': confidence,
                 'current_price': current_price,
             }
+
+            # Add macro info if available
+            if macro_info:
+                result['macro'] = macro_info
+
+            return result
         except Exception:
             return None
 

@@ -1,6 +1,7 @@
 """
-Multi Paper Trading - 10 portefeuilles en parallele
+Multi Paper Trading - 20 portefeuilles en parallele
 Compare differentes configurations d'allocation pour trouver la meilleure approche.
+10 portfolios sans filtre macro (baseline) + 10 avec filtre macro (experimental).
 
 Usage:
     python multi_paper_trading.py --capital 100000 --signal-hour 22 --sltp-interval 2
@@ -23,10 +24,11 @@ from backtest_library import BacktestLibrary
 
 
 # ============================================================================
-# 10 Portfolio Configurations
+# 20 Portfolio Configurations (10 sans macro + 10 avec macro)
 # ============================================================================
 
-PORTFOLIO_CONFIGS: List[Dict[str, Any]] = [
+# Base configurations (sans macro filter)
+BASE_CONFIGS: List[Dict[str, Any]] = [
     {
         'name': 'Conservative',
         'allocation_method': 'risk_parity',
@@ -139,6 +141,24 @@ PORTFOLIO_CONFIGS: List[Dict[str, Any]] = [
     },
 ]
 
+# Generate 20 portfolios: 10 without macro + 10 with macro filter
+PORTFOLIO_CONFIGS: List[Dict[str, Any]] = []
+
+# First 10: Without macro filter (baseline)
+for config in BASE_CONFIGS:
+    portfolio = config.copy()
+    portfolio['enable_macro_filter'] = False
+    PORTFOLIO_CONFIGS.append(portfolio)
+
+# Next 10: With macro filter (experimental)
+for config in BASE_CONFIGS:
+    portfolio = config.copy()
+    portfolio['name'] = f"{config['name']}_Macro"
+    portfolio['description'] = f"{config['description']} + Filtre macro"
+    portfolio['enable_macro_filter'] = True
+    portfolio['macro_threshold'] = 60.0  # Seuil conservateur
+    PORTFOLIO_CONFIGS.append(portfolio)
+
 
 # ============================================================================
 # Multi Paper Trader
@@ -146,8 +166,11 @@ PORTFOLIO_CONFIGS: List[Dict[str, Any]] = [
 
 class MultiPaperTrader:
     """
-    Orchestre 10 AutoPaperTrader en parallele,
+    Orchestre 20 AutoPaperTrader en parallele,
     chacun avec sa propre configuration et son propre state_dir.
+
+    - 10 portfolios sans filtre macro (baseline)
+    - 10 portfolios avec filtre macro (experimental)
     """
 
     def __init__(
@@ -186,7 +209,7 @@ class MultiPaperTrader:
         signal.signal(signal.SIGTERM, self._handle_shutdown)
 
     def setup(self) -> bool:
-        """Cree et configure les 10 traders. Charge le BacktestLibrary une seule fois."""
+        """Cree et configure les 20 traders (10 sans macro + 10 avec macro). Charge le BacktestLibrary une seule fois."""
         self.log.info("=" * 70)
         self.log.info(f"MULTI PAPER TRADING - {len(self.configs)} portefeuilles")
         self.log.info(f"Capital total: {self.total_capital:,.0f} EUR "
@@ -219,6 +242,8 @@ class MultiPaperTrader:
                 allocation_method=cfg['allocation_method'],
                 min_confidence=cfg['min_confidence'],
                 timeframe=self.timeframe,
+                enable_macro_filter=cfg.get('enable_macro_filter', False),
+                macro_threshold=cfg.get('macro_threshold', 60.0),
                 state_dir=state_dir,
                 portfolio_name=name,
                 category_filter=cfg.get('category_filter'),

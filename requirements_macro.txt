@@ -1,0 +1,15 @@
+# Dépendances additionnelles pour le module de signaux macro
+# Installation: pip install -r requirements_macro.txt
+
+# Parsing de flux RSS
+feedparser>=6.0.10
+
+# Requêtes HTTP pour APIs
+requests>=2.31.0
+
+# Gestion des variables d'environnement
+python-dotenv>=1.0.0
+
+# Déjà présentes dans requirements.txt (vérifier):
+# pandas>=2.0.0
+# numpy>=1.24.0

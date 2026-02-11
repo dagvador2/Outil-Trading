@@ -876,15 +876,14 @@ def main():
     # Onglets
     # ========================================================================
 
-    tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8 = st.tabs([
+    tab1, tab2, tab3, tab5, tab7, tab8, tab9 = st.tabs([
         "📊 Vue d'ensemble",
         "🎯 Signaux actifs",
         "📈 Analyse détaillée",
-        "📜 Historique",
         "📚 Bibliothèque Backtests",
-        "💼 Paper Trading",
         "🧠 Strategy Allocator",
-        "🖥️ Multi Paper Trading"
+        "🖥️ Multi Paper Trading",
+        "📡 Signaux Macro"
     ])
 
     # ========================================================================
@@ -1229,61 +1228,6 @@ def main():
 
                 else:
                     st.warning("Pas de données historiques disponibles")
-
-    # ========================================================================
-    # TAB 4: Historique
-    # ========================================================================
-
-    with tab4:
-        st.header("📜 Historique des signaux")
-
-        # Charger historique
-        if os.path.exists('signals_history.csv'):
-            history_df = pd.read_csv('signals_history.csv')
-
-            st.info(f"Total signaux enregistrés : {len(history_df)}")
-
-            # Filtres
-            col_f1, col_f2 = st.columns(2)
-
-            with col_f1:
-                symbols_hist = history_df['symbol'].unique().tolist()
-                selected_symbol_hist = st.selectbox("Filtre par actif", ["Tous"] + symbols_hist)
-
-            with col_f2:
-                signals_hist = history_df['signal'].unique().tolist()
-                selected_signal_hist = st.selectbox("Filtre par signal", ["Tous"] + signals_hist)
-
-            # Appliquer filtres
-            filtered_hist = history_df.copy()
-
-            if selected_symbol_hist != "Tous":
-                filtered_hist = filtered_hist[filtered_hist['symbol'] == selected_symbol_hist]
-
-            if selected_signal_hist != "Tous":
-                filtered_hist = filtered_hist[filtered_hist['signal'] == selected_signal_hist]
-
-            # Afficher tableau
-            st.dataframe(
-                filtered_hist[['symbol', 'signal', 'confidence', 'current_price',
-                               'change_24h', 'consensus', 'checked_at']].tail(50),
-                use_container_width=True
-            )
-
-            # Statistiques historiques
-            st.subheader("Statistiques")
-
-            col_s1, col_s2, col_s3 = st.columns(3)
-
-            col_s1.metric("Total BUY",
-                          len(filtered_hist[filtered_hist['signal'] == 'BUY']))
-            col_s2.metric("Total SELL",
-                          len(filtered_hist[filtered_hist['signal'] == 'SELL']))
-            col_s3.metric("Confiance Moyenne",
-                          f"{filtered_hist['confidence'].mean():.1%}")
-
-        else:
-            st.warning("Aucun historique disponible. Lancez monitor_continuous.py pour commencer l'enregistrement.")
 
     # ========================================================================
     # TAB 5: Bibliothèque Backtests
@@ -1677,150 +1621,6 @@ def main():
 
         except Exception as e:
             st.error(f"Erreur chargement bibliothèque: {e}")
-
-    # ========================================================================
-    # TAB 6: Paper Trading
-    # ========================================================================
-
-    with tab6:
-        st.header("💼 Paper Trading Portfolio")
-
-        try:
-            from paper_trading import PaperTradingPortfolio
-
-            # Initialiser portfolio dans session state
-            if 'portfolio' not in st.session_state:
-                st.session_state.portfolio = PaperTradingPortfolio(
-                    initial_capital=10000.0,
-                    min_confidence=0.70,
-                    position_size_pct=20.0,
-                    max_positions=5
-                )
-
-            portfolio = st.session_state.portfolio
-
-            # Configuration sidebar
-            st.sidebar.markdown("---")
-            st.sidebar.header("⚙️ Paper Trading Config")
-
-            # Afficher configuration actuelle
-            st.sidebar.info(f"""
-            **Configuration Active:**
-            - Capital: €{portfolio.initial_capital:,.0f}
-            - Confiance: {portfolio.min_confidence:.0%}
-            - Position: {portfolio.position_size_pct:.0f}%
-            - Max Pos: {portfolio.max_positions}
-            """)
-
-            st.sidebar.write("**Nouvelle Configuration (appliquer avec Reset):**")
-
-            config_capital = st.sidebar.number_input(
-                "Capital Initial (€)",
-                min_value=1000,
-                max_value=100000,
-                value=int(portfolio.initial_capital),
-                step=1000
-            )
-
-            config_confidence = st.sidebar.slider(
-                "Confiance Min",
-                0.5, 0.9, portfolio.min_confidence, 0.05
-            )
-
-            config_position_size = st.sidebar.slider(
-                "Taille Position (%)",
-                10, 50, int(portfolio.position_size_pct), 5
-            )
-
-            config_max_positions = st.sidebar.slider(
-                "Max Positions",
-                1, 10, portfolio.max_positions
-            )
-
-            if st.sidebar.button("🔄 Reset Portfolio", help="Applique la nouvelle configuration et réinitialise le portfolio"):
-                st.session_state.portfolio = PaperTradingPortfolio(
-                    initial_capital=float(config_capital),
-                    min_confidence=config_confidence,
-                    position_size_pct=float(config_position_size),
-                    max_positions=config_max_positions
-                )
-                st.sidebar.success(f"✅ Portfolio réinitialisé avec €{config_capital:,.0f}")
-                st.rerun()
-
-            # Récupérer prix actuels (signaux existants)
-            current_prices = {}
-            if len(all_signals) > 0:
-                for signal in all_signals:
-                    current_prices[signal['symbol']] = signal.get('current_price', 0)
-
-            # Stats portfolio
-            stats_portfolio = portfolio.get_statistics(current_prices)
-
-            col1, col2, col3, col4 = st.columns(4)
-
-            col1.metric("Valeur Portfolio", f"€{stats_portfolio['portfolio_value']:,.2f}")
-            col2.metric("Cash Disponible", f"€{stats_portfolio['cash']:,.2f}")
-            col3.metric("P&L Total", f"€{stats_portfolio['total_pnl']:,.2f}",
-                        f"{stats_portfolio['total_pnl_pct']:+.2f}%")
-            col4.metric("Positions Ouvertes", f"{stats_portfolio['open_positions']}/{portfolio.max_positions}")
-
-            # Positions ouvertes
-            st.subheader("🔓 Positions Ouvertes")
-
-            if len(portfolio.positions) > 0:
-                positions_data = []
-
-                for symbol, pos in portfolio.positions.items():
-                    current_price = current_prices.get(symbol, pos.entry_price)
-                    pnl = pos.current_pnl(current_price)
-                    pnl_pct = pos.current_pnl_pct(current_price)
-
-                    positions_data.append({
-                        'Symbol': symbol,
-                        'Side': pos.side,
-                        'Entry Price': f"€{pos.entry_price:,.2f}",
-                        'Current Price': f"€{current_price:,.2f}",
-                        'Quantity': f"{pos.quantity:.4f}",
-                        'P&L': f"€{pnl:,.2f}",
-                        'P&L %': f"{pnl_pct:+.2f}%",
-                        'SL': f"€{pos.stop_loss:,.2f}",
-                        'TP': f"€{pos.take_profit:,.2f}"
-                    })
-
-                positions_df = pd.DataFrame(positions_data)
-                st.dataframe(positions_df, use_container_width=True)
-
-            else:
-                st.info("Aucune position ouverte")
-
-            # Stats trades fermés
-            if stats_portfolio['closed_trades'] > 0:
-                st.subheader("📊 Performance")
-
-                col_p1, col_p2, col_p3, col_p4 = st.columns(4)
-
-                col_p1.metric("Trades Fermés", stats_portfolio['closed_trades'])
-                col_p2.metric("Win Rate", f"{stats_portfolio['win_rate']:.1f}%")
-                col_p3.metric("Gain Moyen", f"€{stats_portfolio['avg_win']:,.2f}")
-                col_p4.metric("Profit Factor", f"{stats_portfolio['profit_factor']:.2f}")
-
-                # Historique trades
-                st.subheader("📜 Historique Trades")
-
-                if os.path.exists('paper_trading_trades.csv'):
-                    trades_df = pd.read_csv('paper_trading_trades.csv')
-
-                    st.dataframe(
-                        trades_df[['symbol', 'side', 'entry_price', 'exit_price',
-                                   'pnl', 'pnl_pct', 'exit_reason']].tail(20),
-                        use_container_width=True
-                    )
-
-            else:
-                st.info("Aucun trade fermé pour le moment")
-
-        except Exception as e:
-            st.error(f"Erreur Paper Trading: {e}")
 
     # ========================================================================
     # TAB 7: Strategy Allocator
@@ -2378,6 +2178,302 @@ def main():
             except Exception as e:
                 st.error(f"Erreur lecture etat multi-portfolio: {e}")
                 import traceback
+                st.code(traceback.format_exc())
+
+    # ========================================================================
+    # TAB 9: Signaux Macro
+    # ========================================================================
+
+    with tab9:
+        st.header("📡 Signaux Macroéconomiques")
+
+        st.markdown("""
+        Cet onglet affiche les signaux macro qui influencent les décisions de trading.
+        Les portfolios avec filtre macro utilisent ces signaux pour annuler les trades contre-tendance.
+        """)
+
+        try:
+            # Import avec gestion d'erreur
+            try:
+                from macro_integration import MacroFilter
+                from macro_signal_scorer import MacroSignalScorer
+                macro_available = True
+            except ImportError:
+                macro_available = False
+                st.warning("⚠️ Module macro non disponible. Installez les dépendances: `pip install -r requirements_macro.txt`")
+
+            if macro_available:
+                # Créer le scorer
+                if 'macro_scorer' not in st.session_state:
+                    with st.spinner("Initialisation du scoring macro..."):
+                        st.session_state.macro_scorer = MacroSignalScorer()
+
+                scorer = st.session_state.macro_scorer
+
+                # Bouton refresh
+                col1, col2, col3 = st.columns([1, 1, 2])
+                with col1:
+                    if st.button("🔄 Rafraîchir signaux macro"):
+                        if hasattr(scorer, 'scorer') and hasattr(scorer.scorer, 'cache'):
+                            scorer.scorer.cache.clear()
+                        st.success("Cache vidé, signaux seront mis à jour")
+                        st.rerun()
+
+                with col2:
+                    lookback_hours = st.selectbox("Fenêtre temporelle", [24, 48, 72, 96], index=1)
+
+                # Score général du marché
+                st.subheader("🌍 Score Général du Marché")
+
+                with st.spinner("Calcul du score marché..."):
+                    try:
+                        market_score = scorer.compute_market_score(lookback_hours=lookback_hours)
+
+                        # Métriques
+                        col1, col2, col3, col4, col5 = st.columns(5)
+
+                        # Emoji selon score
+                        if market_score.score > 60:
+                            emoji = "🚀"
+                            color = "green"
+                        elif market_score.score > 30:
+                            emoji = "📈"
+                            color = "lightgreen"
+                        elif market_score.score > -10:
+                            emoji = "➡️"
+                            color = "gray"
+                        elif market_score.score > -30:
+                            emoji = "📉"
+                            color = "orange"
+                        else:
+                            emoji = "⚠️"
+                            color = "red"
+
+                        col1.metric(f"{emoji} Score Composite", f"{market_score.score:+.1f}/100")
+                        col2.metric("📊 Confiance", f"{market_score.confidence:.1%}")
+                        col3.metric("💡 Recommandation", market_score.recommendation.replace('_', ' ').upper())
+
+                        if market_score.fear_greed_index:
+                            fg_value = market_score.fear_greed_index
+                            if fg_value > 75:
+                                fg_emoji = "🤑"
+                            elif fg_value > 55:
+                                fg_emoji = "😊"
+                            elif fg_value > 45:
+                                fg_emoji = "😐"
+                            elif fg_value > 25:
+                                fg_emoji = "😰"
+                            else:
+                                fg_emoji = "😱"
+                            col4.metric(f"{fg_emoji} Fear & Greed", f"{fg_value:.0f}/100")
+                        else:
+                            col4.metric("Fear & Greed", "N/A")
+
+                        if market_score.vix:
+                            col5.metric("📊 VIX", f"{market_score.vix:.1f}")
+                        else:
+                            col5.metric("VIX", "N/A")
+
+                        # Détails
+                        st.markdown("**Décomposition du score:**")
+                        col1, col2, col3 = st.columns(3)
+                        col1.metric("📰 News", f"{market_score.news_score:+.1f}")
+                        col2.metric("🎭 Sentiment", f"{market_score.sentiment_score:+.1f}")
+                        col3.metric("📈 Économie", f"{market_score.economic_score:+.1f}")
+
+                        # Signaux analysés
+                        st.markdown(f"**{market_score.num_signals} signaux analysés** - "
+                                   f"🟢 {market_score.positive_signals} positifs, "
+                                   f"🔴 {market_score.negative_signals} négatifs, "
+                                   f"⚪ {market_score.neutral_signals} neutres")
+
+                        if market_score.market_sentiment:
+                            st.info(f"**Sentiment général:** {market_score.market_sentiment.replace('_', ' ').title()}")
+
+                    except Exception as e:
+                        st.error(f"Erreur calcul score marché: {e}")
+                        import traceback
+                        with st.expander("Voir détails erreur"):
+                            st.code(traceback.format_exc())
+
+                # Scores par actif
+                st.subheader("📊 Scores par Actif")
+
+                # Liste des actifs à analyser (depuis les signaux actifs)
+                if all_signals and len(all_signals) > 0:
+                    available_assets = [s['symbol'] for s in all_signals]
+
+                    selected_assets = st.multiselect(
+                        "Sélectionner actifs à analyser",
+                        available_assets,
+                        default=available_assets[:5] if len(available_assets) >= 5 else available_assets
+                    )
+
+                    if selected_assets:
+                        with st.spinner(f"Calcul des scores pour {len(selected_assets)} actifs..."):
+                            try:
+                                asset_scores = {}
+                                for asset in selected_assets:
+                                    try:
+                                        score = scorer.compute_asset_score(asset, lookback_hours=lookback_hours)
+                                        asset_scores[asset] = score
+                                    except Exception as e:
+                                        st.warning(f"Erreur scoring {asset}: {e}")
+
+                                if asset_scores:
+                                    # Tableau comparatif
+                                    rows = []
+                                    for asset, score in asset_scores.items():
+                                        # Emoji selon score
+                                        if score.score > 60:
+                                            emoji = "🚀"
+                                        elif score.score > 30:
+                                            emoji = "📈"
+                                        elif score.score > -10:
+                                            emoji = "➡️"
+                                        elif score.score > -30:
+                                            emoji = "📉"
+                                        else:
+                                            emoji = "⚠️"
+
+                                        rows.append({
+                                            '': emoji,
+                                            'Actif': asset,
+                                            'Score': f"{score.score:+.1f}",
+                                            'Confiance': f"{score.confidence:.1%}",
+                                            'Recommandation': score.recommendation.replace('_', ' ').upper(),
+                                            'Signaux': score.num_signals,
+                                            '🟢': score.positive_signals,
+                                            '🔴': score.negative_signals,
+                                        })
+
+                                    df_scores = pd.DataFrame(rows)
+
+                                    # Colorier selon score
+                                    def color_score(val):
+                                        try:
+                                            num = float(val)
+                                            if num > 60:
+                                                return 'background-color: #90EE90'
+                                            elif num > 30:
+                                                return 'background-color: #FFFACD'
+                                            elif num > -30:
+                                                return 'background-color: #FFE4B5'
+                                            else:
+                                                return 'background-color: #FFB6C1'
+                                        except:
+                                            return ''
+
+                                    st.dataframe(
+                                        df_scores.style.applymap(color_score, subset=['Score']),
+                                        use_container_width=True,
+                                        hide_index=True
+                                    )
+
+                                    # Détails par actif
+                                    st.markdown("---")
+                                    st.subheader("Détails par actif")
+
+                                    for asset, score in asset_scores.items():
+                                        with st.expander(f"📊 {asset} - Score: {score.score:+.1f}"):
+                                            col1, col2, col3 = st.columns(3)
+                                            col1.metric("Score News", f"{score.news_score:+.1f}")
+                                            col2.metric("Score Sentiment", f"{score.sentiment_score:+.1f}")
+                                            col3.metric("Score Économie", f"{score.economic_score:+.1f}")
+
+                                            st.markdown(f"**Recommandation:** {score.recommendation.replace('_', ' ').upper()}")
+                                            st.markdown(f"**Confiance:** {score.confidence:.1%}")
+                                            st.markdown(f"**Signaux analysés:** {score.num_signals} "
+                                                       f"(🟢 {score.positive_signals}, "
+                                                       f"🔴 {score.negative_signals}, "
+                                                       f"⚪ {score.neutral_signals})")
+
+                            except Exception as e:
+                                st.error(f"Erreur calcul scores actifs: {e}")
+                                import traceback
+                                with st.expander("Voir détails erreur"):
+                                    st.code(traceback.format_exc())
+
+                    else:
+                        st.info("Sélectionnez des actifs pour voir leurs scores macro")
+                else:
+                    st.warning("Aucun signal actif disponible. Chargez d'abord des signaux dans l'onglet Vue d'ensemble.")
+
+                # Informations sur le filtre macro
+                st.markdown("---")
+                st.subheader("ℹ️ À propos du Filtre Macro")
+
+                st.markdown("""
+                **Comment fonctionne le filtre macro ?**
+
+                Les portfolios avec filtre macro (suffixe `_Macro`) utilisent ces scores pour filtrer les signaux techniques :
+
+                - **Score < -60 (Très Bearish)** → Annule les signaux LONG
+                - **Score > +60 (Très Bullish)** → Annule les signaux SHORT
+                - **Score entre -60 et +60** → Laisse passer les signaux techniques
+
+                **Avantages:**
+                - Évite de trader contre la tendance macro dominante
+                - Réduit les pertes lors d'événements majeurs (Fed hawkish, guerres, etc.)
+                - Améliore le ratio Sharpe en filtrant les mauvais trades
+
+                **Configuration:**
+                - Seuil de filtrage: 60 (conservateur)
+                - Fenêtre d'analyse: 48h par défaut
+                - Cache: 4h (évite trop de requêtes API)
+
+                **Sources de données:**
+                - 📰 RSS Feeds (Bloomberg, Reuters, CNBC, Fed)
+                - 🎭 Fear & Greed Index (sentiment crypto)
+                - 📈 FRED (indicateurs macro officiels: CPI, VIX, taux Fed)
+                - Optionnel: NewsAPI, Finnhub, AlphaVantage (si configurés)
+                """)
+
+                # Statistiques des portfolios avec macro
+                if os.path.exists('paper_trading_state/consolidated_state.json'):
+                    st.markdown("---")
+                    st.subheader("📊 Comparaison Portfolios Sans/Avec Macro")
+
+                    try:
+                        with open('paper_trading_state/consolidated_state.json', 'r') as f:
+                            consolidated = json.load(f)
+
+                        portfolios = consolidated.get('portfolios', [])
+
+                        # Séparer portfolios avec/sans macro
+                        without_macro = [p for p in portfolios if not p['name'].endswith('_Macro')]
+                        with_macro = [p for p in portfolios if p['name'].endswith('_Macro')]
+
+                        if without_macro and with_macro:
+                            col1, col2 = st.columns(2)
+
+                            with col1:
+                                st.markdown("**Sans Filtre Macro (Baseline)**")
+                                avg_pnl_no_macro = sum(p.get('total_pnl_pct', 0) for p in without_macro) / len(without_macro)
+                                avg_cash_no_macro = sum(p.get('cash', 0) for p in without_macro) / len(without_macro)
+                                st.metric("PnL moyen", f"{avg_pnl_no_macro:+.2f}%")
+                                st.metric("Cash moyen", f"{avg_cash_no_macro:,.0f} EUR")
+
+                            with col2:
+                                st.markdown("**Avec Filtre Macro**")
+                                avg_pnl_macro = sum(p.get('total_pnl_pct', 0) for p in with_macro) / len(with_macro)
+                                avg_cash_macro = sum(p.get('cash', 0) for p in with_macro) / len(with_macro)
+                                delta_pnl = avg_pnl_macro - avg_pnl_no_macro
+                                st.metric("PnL moyen", f"{avg_pnl_macro:+.2f}%", delta=f"{delta_pnl:+.2f}%")
+                                st.metric("Cash moyen", f"{avg_cash_macro:,.0f} EUR")
+
+                            if delta_pnl > 0:
+                                st.success(f"✅ Le filtre macro améliore la performance de {delta_pnl:+.2f}% en moyenne")
+                            else:
+                                st.warning(f"⚠️ Le filtre macro réduit la performance de {delta_pnl:.2f}% en moyenne")
+
+                    except Exception as e:
+                        st.error(f"Erreur lecture consolidated state: {e}")
+
+        except Exception as e:
+            st.error(f"Erreur onglet Macro: {e}")
+            import traceback
+            with st.expander("Voir détails erreur"):
                 st.code(traceback.format_exc())
 
     # ========================================================================
