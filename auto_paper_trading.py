@@ -399,7 +399,7 @@ class AutoPaperTrader:
             return None
         data = data[available]
 
-        current_price = float(data['close'].iloc[-1])
+        current_price = float(data['Close'].iloc[-1])
 
         try:
             signals_df = strategy.generate_signals(data)
@@ -445,9 +445,9 @@ class AutoPaperTrader:
         """Estime la confiance basee sur les indicateurs techniques."""
         try:
             confidence = 0.5
-            rsi = TechnicalIndicators.rsi(data['close'], 14).iloc[-1]
-            bb = TechnicalIndicators.bollinger_bands(data['close'], 20, 2)
-            price = data['close'].iloc[-1]
+            rsi = TechnicalIndicators.rsi(data['Close'], 14).iloc[-1]
+            bb = TechnicalIndicators.bollinger_bands(data['Close'], 20, 2)
+            price = data['Close'].iloc[-1]
             bb_upper = bb['upper'].iloc[-1]
             bb_lower = bb['lower'].iloc[-1]
 
@@ -582,7 +582,7 @@ class AutoPaperTrader:
                 data = yf.Ticker(yahoo_sym).history(period='1d', interval='1d')
                 if len(data) == 0:
                     continue
-                current_price = float(data['close'].iloc[-1])
+                current_price = float(data['Close'].iloc[-1])
                 reason = pos.should_close(current_price)
                 if reason:
                     symbols_to_close.append((symbol, current_price, reason))
@@ -604,7 +604,7 @@ class AutoPaperTrader:
             try:
                 data = yf.Ticker(yahoo_sym).history(period='1d', interval='1d')
                 if len(data) > 0:
-                    positions_value += float(data['close'].iloc[-1]) * pos.quantity
+                    positions_value += float(data['Close'].iloc[-1]) * pos.quantity
                 else:
                     positions_value += pos.entry_price * pos.quantity
             except Exception:
