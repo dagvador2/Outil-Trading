@@ -665,11 +665,26 @@ class AutoPaperTrader:
             with open(self.state_file, 'r') as f:
                 state = json.load(f)
 
+            saved_capital = state.get('total_capital', self.total_capital)
             self.cash = state.get('cash', self.total_capital)
             self.cycle_count = state.get('cycle_count', 0)
 
             for sym, pos_dict in state.get('positions', {}).items():
                 self.positions[sym] = PaperPosition(**pos_dict)
+
+            # Si le capital a change (ex: passage de 10 a 20 portefeuilles),
+            # ajuster cash et positions proportionnellement
+            if saved_capital > 0 and abs(saved_capital - self.total_capital) > 0.01:
+                ratio = self.total_capital / saved_capital
+                self.log.info(
+                    f"  Capital change: {saved_capital:,.0f} -> {self.total_capital:,.0f} "
+                    f"(ratio {ratio:.4f}), ajustement proportionnel"
+                )
+                self.cash *= ratio
+                for pos in self.positions.values():
+                    pos.quantity *= ratio
+                # Sauvegarder immediatement pour ne pas re-ajuster au prochain chargement
+                self._save_state()
 
             if os.path.exists(self.trades_file):
                 df = pd.read_csv(self.trades_file)
