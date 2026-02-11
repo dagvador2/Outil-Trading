@@ -1936,8 +1936,8 @@ def main():
 
     with tab8:
         st.header("Multi Paper Trading")
-        st.info("Comparaison de 10 portefeuilles en parallele avec differentes configurations. "
-                "Lancez : `python multi_paper_trading.py --single --capital 10000`")
+        st.info("Comparaison de 20 portefeuilles en parallele (10 sans + 10 avec filtre macro). "
+                "Lancez : `python multi_paper_trading.py --capital 100000`")
 
         state_dir = 'paper_trading_state'
         consolidated_file = os.path.join(state_dir, 'consolidated_state.json')
@@ -2087,7 +2087,9 @@ def main():
                                            key=lambda x: x[1].get('pnl_pct', 0), reverse=True):
                     pnl_val = p_info.get('pnl', 0)
                     icon = "+" if pnl_val >= 0 else ""
-                    label = f"{name} | P&L: {icon}{pnl_val:.2f} EUR ({icon}{p_info.get('pnl_pct', 0):.2f}%)"
+                    n_pos = p_info.get('positions', 0)
+                    pos_str = f" | {n_pos} position{'s' if n_pos != 1 else ''}" if n_pos > 0 else ""
+                    label = f"{name} | P&L: {icon}{pnl_val:.2f} EUR ({icon}{p_info.get('pnl_pct', 0):.2f}%){pos_str}"
 
                     with st.expander(label):
                         st.caption(p_info.get('description', ''))
@@ -2119,14 +2121,56 @@ def main():
                                         st.write(f"**Positions ouvertes ({len(sub_positions)})**")
                                         pos_rows = []
                                         for sym, pos in sub_positions.items():
-                                            pos_rows.append({
+                                            entry_price = pos.get('entry_price', 0)
+                                            qty = pos.get('quantity', 0)
+                                            side = pos.get('side', '')
+
+                                            # Date d'entree
+                                            entry_time_str = pos.get('entry_time', '')
+                                            if entry_time_str:
+                                                try:
+                                                    et = datetime.fromisoformat(entry_time_str)
+                                                    date_display = et.strftime('%d/%m/%Y %H:%M')
+                                                except Exception:
+                                                    date_display = entry_time_str[:16]
+                                            else:
+                                                date_display = 'N/A'
+
+                                            # Prix actuel via yfinance
+                                            current_price = None
+                                            try:
+                                                yahoo_sym = convert_to_yahoo_symbol(sym)
+                                                data = yf.Ticker(yahoo_sym).history(period='1d', interval='1d')
+                                                if len(data) > 0:
+                                                    current_price = float(data['Close'].iloc[-1])
+                                            except Exception:
+                                                pass
+
+                                            # Calcul P&L non realise
+                                            if current_price is not None and qty > 0:
+                                                if side == 'LONG':
+                                                    unrealized_pnl = (current_price - entry_price) * qty
+                                                    unrealized_pct = (current_price / entry_price - 1) * 100
+                                                else:
+                                                    unrealized_pnl = (entry_price - current_price) * qty
+                                                    unrealized_pct = (1 - current_price / entry_price) * 100
+                                            else:
+                                                unrealized_pnl = None
+                                                unrealized_pct = None
+
+                                            row = {
                                                 'Symbole': sym,
-                                                'Side': pos.get('side', ''),
+                                                'Side': side,
                                                 'Strategie': pos.get('strategy', ''),
-                                                'Prix entree': round(pos.get('entry_price', 0), 4),
+                                                'Date entree': date_display,
+                                                'Prix entree': round(entry_price, 4),
+                                                'Prix actuel': round(current_price, 4) if current_price else 'N/A',
+                                                'P&L': f"{unrealized_pnl:+.2f} EUR" if unrealized_pnl is not None else 'N/A',
+                                                'P&L %': f"{unrealized_pct:+.2f}%" if unrealized_pct is not None else 'N/A',
                                                 'SL': round(pos.get('stop_loss', 0), 4),
                                                 'TP': round(pos.get('take_profit', 0), 4),
-                                            })
+                                            }
+                                            pos_rows.append(row)
                                         st.dataframe(pd.DataFrame(pos_rows),
                                                      use_container_width=True, hide_index=True)
                                 except Exception:
