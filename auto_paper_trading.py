@@ -665,32 +665,35 @@ class AutoPaperTrader:
             with open(self.state_file, 'r') as f:
                 state = json.load(f)
 
-            saved_capital = state.get('total_capital', self.total_capital)
             self.cash = state.get('cash', self.total_capital)
             self.cycle_count = state.get('cycle_count', 0)
 
             for sym, pos_dict in state.get('positions', {}).items():
                 self.positions[sym] = PaperPosition(**pos_dict)
 
-            # Si le capital a change (ex: passage de 10 a 20 portefeuilles),
-            # ajuster cash et positions proportionnellement
-            if saved_capital > 0 and abs(saved_capital - self.total_capital) > 0.01:
-                ratio = self.total_capital / saved_capital
-                self.log.info(
-                    f"  Capital change: {saved_capital:,.0f} -> {self.total_capital:,.0f} "
-                    f"(ratio {ratio:.4f}), ajustement proportionnel"
-                )
-                self.cash *= ratio
-                for pos in self.positions.values():
-                    pos.quantity *= ratio
-                # Sauvegarder immediatement pour ne pas re-ajuster au prochain chargement
-                self._save_state()
-
             if os.path.exists(self.trades_file):
                 df = pd.read_csv(self.trades_file)
                 self.closed_trades = [
                     ClosedTrade(**row) for _, row in df.iterrows()
                 ]
+
+            # Verification de coherence comptable:
+            # cash + cout_positions_ouvertes = total_capital + realized_pnl
+            realized_pnl = sum(t.pnl for t in self.closed_trades) if self.closed_trades else 0
+            positions_cost = sum(p.entry_price * p.quantity for p in self.positions.values())
+            actual_total = self.cash + positions_cost
+            expected_total = self.total_capital + realized_pnl
+
+            if actual_total > 0 and abs(actual_total - expected_total) > 1.0:
+                ratio = expected_total / actual_total
+                self.log.warning(
+                    f"  Incoherence: cash+positions ({actual_total:,.2f}) != "
+                    f"capital+realized ({expected_total:,.2f}). Ajustement (ratio={ratio:.4f})"
+                )
+                self.cash *= ratio
+                for pos in self.positions.values():
+                    pos.quantity *= ratio
+                self._save_state()
 
             self.log.info(f"  Etat charge: {self.cycle_count} cycles, "
                           f"{len(self.positions)} positions, "
