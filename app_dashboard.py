@@ -2182,18 +2182,82 @@ def main():
                                 try:
                                     sub_trades = pd.read_csv(sub_trades_file)
                                     if len(sub_trades) > 0:
-                                        st.write(f"**Trades clos ({len(sub_trades)})**")
-                                        display_cols = [c for c in ['symbol', 'side', 'strategy',
-                                                                     'entry_price', 'exit_price',
-                                                                     'pnl', 'pnl_pct', 'exit_reason']
-                                                        if c in sub_trades.columns]
-                                        st.dataframe(
-                                            sub_trades[display_cols].sort_values(
-                                                'exit_time' if 'exit_time' in sub_trades.columns else display_cols[0],
-                                                ascending=False
-                                            ),
-                                            use_container_width=True, hide_index=True
+                                        # Trier par date de sortie (plus recent d'abord)
+                                        if 'exit_time' in sub_trades.columns:
+                                            sub_trades = sub_trades.sort_values('exit_time', ascending=False)
+
+                                        # Resume global
+                                        total_pnl_trades = sub_trades['pnl'].sum() if 'pnl' in sub_trades.columns else 0
+                                        wins = len(sub_trades[sub_trades['pnl'] > 0]) if 'pnl' in sub_trades.columns else 0
+                                        losses = len(sub_trades) - wins
+                                        pnl_icon = "+" if total_pnl_trades >= 0 else ""
+                                        st.write(
+                                            f"**Trades clos ({len(sub_trades)})** - "
+                                            f"P&L total: {pnl_icon}{total_pnl_trades:.2f} EUR | "
+                                            f"{wins}W / {losses}L"
                                         )
+
+                                        for _, trade in sub_trades.iterrows():
+                                            t_pnl = trade.get('pnl', 0)
+                                            t_pnl_pct = trade.get('pnl_pct', 0)
+                                            t_icon = "+" if t_pnl >= 0 else ""
+                                            t_emoji = "🟢" if t_pnl >= 0 else "🔴"
+                                            t_symbol = trade.get('symbol', '?')
+                                            t_side = trade.get('side', '?')
+                                            t_reason = trade.get('exit_reason', '?')
+
+                                            header = (
+                                                f"{t_emoji} {t_symbol} {t_side} | "
+                                                f"{t_icon}{t_pnl:.2f} EUR ({t_icon}{t_pnl_pct:.2f}%) | "
+                                                f"{t_reason}"
+                                            )
+
+                                            with st.expander(header):
+                                                # Dates
+                                                entry_time_raw = trade.get('entry_time', '')
+                                                exit_time_raw = trade.get('exit_time', '')
+                                                try:
+                                                    et = datetime.fromisoformat(str(entry_time_raw))
+                                                    entry_fmt = et.strftime('%d/%m/%Y %H:%M')
+                                                except Exception:
+                                                    et = None
+                                                    entry_fmt = str(entry_time_raw)[:16]
+                                                try:
+                                                    xt = datetime.fromisoformat(str(exit_time_raw))
+                                                    exit_fmt = xt.strftime('%d/%m/%Y %H:%M')
+                                                except Exception:
+                                                    xt = None
+                                                    exit_fmt = str(exit_time_raw)[:16]
+
+                                                # Duree
+                                                if et and xt:
+                                                    duration = xt - et
+                                                    days = duration.days
+                                                    hours, remainder = divmod(duration.seconds, 3600)
+                                                    minutes = remainder // 60
+                                                    if days > 0:
+                                                        duration_str = f"{days}j {hours}h {minutes}m"
+                                                    else:
+                                                        duration_str = f"{hours}h {minutes}m"
+                                                else:
+                                                    duration_str = "N/A"
+
+                                                tc1, tc2, tc3 = st.columns(3)
+                                                tc1.metric("Strategie", trade.get('strategy', 'N/A'))
+                                                tc2.metric("Side", t_side)
+                                                tc3.metric("Raison sortie", t_reason)
+
+                                                tc4, tc5, tc6 = st.columns(3)
+                                                tc4.metric("Date entree", entry_fmt)
+                                                tc5.metric("Date sortie", exit_fmt)
+                                                tc6.metric("Duree", duration_str)
+
+                                                tc7, tc8, tc9, tc10 = st.columns(4)
+                                                tc7.metric("Prix entree", f"{trade.get('entry_price', 0):.4f}")
+                                                tc8.metric("Prix sortie", f"{trade.get('exit_price', 0):.4f}")
+                                                tc9.metric("P&L", f"{t_icon}{t_pnl:.2f} EUR")
+                                                tc10.metric("P&L %", f"{t_icon}{t_pnl_pct:.2f}%")
+
                                 except Exception:
                                     pass
 
