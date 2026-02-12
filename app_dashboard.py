@@ -802,26 +802,26 @@ def main():
     timeframe_options = {
         "5min": "5 minutes (Scalping - Très volatil)",
         "15min": "15 minutes (Day trading)",
-        "1h": "1 heure (Swing - Recommandé)",
-        "4h": "4 heures (Position - Très stable)",
-        "1d": "1 jour (Long terme)"
+        "1h": "1 heure (Swing trading)",
+        "4h": "4 heures (Position trading)",
+        "1d": "1 jour (Paper trading - Recommandé)"
     }
 
     selected_timeframe = st.sidebar.selectbox(
         "Intervalle de temps",
         options=list(timeframe_options.keys()),
-        index=2,  # Default: 1h
+        index=4,  # Default: 1d (cohérent avec le paper trading)
         format_func=lambda x: timeframe_options[x],
-        help="Plus le timeframe est long, moins les signaux changent fréquemment"
+        help="Le paper trading utilise des signaux journaliers (1d). Les autres timeframes sont disponibles pour exploration."
     )
 
     # Info sur le timeframe
     if selected_timeframe == "5min":
         st.sidebar.warning("⚠️ Timeframe très court - Signaux volatils")
-    elif selected_timeframe in ["1h", "4h"]:
-        st.sidebar.success("✅ Timeframe recommandé pour trading manuel")
+    elif selected_timeframe == "1d":
+        st.sidebar.success("✅ Timeframe utilisé par le paper trading")
     else:
-        st.sidebar.info("ℹ️ Timeframe adapté à votre style de trading")
+        st.sidebar.info("ℹ️ Timeframe différent du paper trading (1d)")
 
     st.sidebar.markdown("---")
 
