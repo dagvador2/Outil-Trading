@@ -414,15 +414,18 @@ class AutoPaperTrader:
             else:
                 data = ticker.history(period='5d', interval=self.timeframe)
         except Exception as e:
+            self.log.warning(f"  {symbol}: pas de donnees Yahoo ({e})")
             return None
 
         if len(data) < 50:
+            self.log.warning(f"  {symbol}: donnees insuffisantes ({len(data)} barres < 50)")
             return None
 
         data.columns = [c.lower() for c in data.columns]
         required = ['open', 'high', 'low', 'close', 'volume']
         available = [c for c in required if c in data.columns]
         if len(available) < 4:
+            self.log.warning(f"  {symbol}: colonnes manquantes (seulement {available})")
             return None
         data = data[available]
 
@@ -431,6 +434,7 @@ class AutoPaperTrader:
         try:
             signals_df = strategy.generate_signals(data)
             if len(signals_df) == 0:
+                self.log.warning(f"  {symbol}: strategie n'a genere aucun signal")
                 return None
 
             # Apply macro filter if enabled
@@ -465,7 +469,8 @@ class AutoPaperTrader:
                 result['macro'] = macro_info
 
             return result
-        except Exception:
+        except Exception as e:
+            self.log.warning(f"  {symbol}: erreur generation signal - {e}")
             return None
 
     def _estimate_confidence(self, data: pd.DataFrame, position: int) -> float:
@@ -515,17 +520,30 @@ class AutoPaperTrader:
         confidence = sig['confidence']
         price = sig['current_price']
 
+        self.log.info(f"  {symbol}: signal={signal_type}, confidence={confidence:.2f}, price={_fmt_price(price)}")
+
         if symbol in self.positions:
             pos = self.positions[symbol]
             if (pos.side == 'LONG' and signal_type == 'SELL') or \
                (pos.side == 'SHORT' and signal_type == 'BUY'):
                 self._close_position(symbol, price, 'SIGNAL_EXIT')
+            else:
+                self.log.info(f"  {symbol}: SKIP - position {pos.side} deja ouverte (signal={signal_type})")
             return
 
-        if signal_type in ('BUY', 'SELL') and confidence >= self.min_confidence:
-            if len(self.positions) >= self.max_positions:
-                return
-            self._open_position(symbol, signal_type, price, assignment)
+        if signal_type == 'HOLD':
+            self.log.info(f"  {symbol}: SKIP - signal HOLD")
+            return
+
+        if confidence < self.min_confidence:
+            self.log.info(f"  {symbol}: SKIP - confiance trop basse ({confidence:.2f} < {self.min_confidence})")
+            return
+
+        if len(self.positions) >= self.max_positions:
+            self.log.info(f"  {symbol}: SKIP - max positions atteint ({len(self.positions)}/{self.max_positions})")
+            return
+
+        self._open_position(symbol, signal_type, price, assignment)
 
     def _open_position(self, symbol: str, signal_type: str, price: float, assignment):
         alloc_pct = assignment.allocation_pct
