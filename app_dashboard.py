@@ -2575,10 +2575,13 @@ def main():
                         pass
 
                 if rss_headlines:
-                    # Trier par date si possible
+                    # Trier par date (forcer tz-naive pour eviter erreur de comparaison)
                     for h in rss_headlines:
                         try:
-                            h['_parsed_date'] = pd.to_datetime(h.get('published', ''))
+                            parsed = pd.to_datetime(h.get('published', ''))
+                            if parsed.tzinfo is not None:
+                                parsed = parsed.tz_localize(None)
+                            h['_parsed_date'] = parsed
                         except Exception:
                             h['_parsed_date'] = pd.Timestamp.now()
                     rss_headlines.sort(key=lambda x: x['_parsed_date'], reverse=True)
