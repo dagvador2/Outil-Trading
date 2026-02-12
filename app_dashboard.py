@@ -25,6 +25,18 @@ from backtest_library import instantiate_strategy, BacktestLibrary
 from strategy_allocator import StrategyAllocator, TradingPlan
 import yfinance as yf
 import pytz
+import math
+
+
+def _fmt_price(value: float) -> str:
+    """Format a price with enough decimals to be readable (small crypto prices)."""
+    if value == 0:
+        return "0"
+    if abs(value) >= 1:
+        return f"{value:,.4f}"
+    sig_decimals = -int(math.floor(math.log10(abs(value)))) + 3
+    decimals = max(4, sig_decimals)
+    return f"{value:.{decimals}f}"
 
 
 # ============================================================================
@@ -703,7 +715,7 @@ def create_backtest_chart(data: pd.DataFrame, trades: List[Dict],
             name=f"Entrée {trade['type']}",
             showlegend=False,
             hovertemplate=f"<b>Entrée {trade['type']}</b><br>" +
-                         f"Prix: ${trade['entry_price']:.2f}<br>" +
+                         f"Prix: ${_fmt_price(trade['entry_price'])}<br>" +
                          f"Date: {trade['entry_date']}<extra></extra>"
         ))
 
@@ -718,7 +730,7 @@ def create_backtest_chart(data: pd.DataFrame, trades: List[Dict],
             name='Sortie',
             showlegend=False,
             hovertemplate=f"<b>Sortie</b><br>" +
-                         f"Prix: ${trade['exit_price']:.2f}<br>" +
+                         f"Prix: ${_fmt_price(trade['exit_price'])}<br>" +
                          f"Profit: ${trade['profit']:.2f} ({trade['profit_pct']:.2f}%)<br>" +
                          f"Durée: {trade['duration_days']} jours<extra></extra>"
         ))
@@ -1527,8 +1539,8 @@ def main():
                             # Formater les colonnes
                             trades_df['entry_date'] = pd.to_datetime(trades_df['entry_date']).dt.strftime('%Y-%m-%d')
                             trades_df['exit_date'] = pd.to_datetime(trades_df['exit_date']).dt.strftime('%Y-%m-%d')
-                            trades_df['entry_price'] = trades_df['entry_price'].apply(lambda x: f"${x:.2f}")
-                            trades_df['exit_price'] = trades_df['exit_price'].apply(lambda x: f"${x:.2f}")
+                            trades_df['entry_price'] = trades_df['entry_price'].apply(lambda x: f"${_fmt_price(x)}")
+                            trades_df['exit_price'] = trades_df['exit_price'].apply(lambda x: f"${_fmt_price(x)}")
                             trades_df['profit'] = trades_df['profit'].apply(lambda x: f"${x:.2f}")
                             trades_df['profit_pct'] = trades_df['profit_pct'].apply(lambda x: f"{x:.2f}%")
 
@@ -2253,8 +2265,8 @@ def main():
                                                 tc6.metric("Duree", duration_str)
 
                                                 tc7, tc8, tc9, tc10 = st.columns(4)
-                                                tc7.metric("Prix entree", f"{trade.get('entry_price', 0):.4f}")
-                                                tc8.metric("Prix sortie", f"{trade.get('exit_price', 0):.4f}")
+                                                tc7.metric("Prix entree", _fmt_price(trade.get('entry_price', 0)))
+                                                tc8.metric("Prix sortie", _fmt_price(trade.get('exit_price', 0)))
                                                 tc9.metric("P&L", f"{t_icon}{t_pnl:.2f} EUR")
                                                 tc10.metric("P&L %", f"{t_icon}{t_pnl_pct:.2f}%")
 

@@ -25,8 +25,35 @@ from datetime import datetime, timedelta
 from dataclasses import dataclass, asdict
 from typing import Dict, List, Optional, Any
 from logging.handlers import RotatingFileHandler
+import math
 
 import yfinance as yf
+
+
+def _smart_round(value: float, min_decimals: int = 6) -> float:
+    """Round a price preserving enough significant digits.
+
+    For prices like 0.00000637, round(x, 6) = 0.000006 which loses
+    precision. This function ensures at least 4 significant digits
+    are preserved regardless of how small the price is.
+    """
+    if value == 0:
+        return 0.0
+    # Number of decimals needed to keep 4 significant digits
+    sig_decimals = -int(math.floor(math.log10(abs(value)))) + 3
+    decimals = max(min_decimals, sig_decimals)
+    return round(value, decimals)
+
+
+def _fmt_price(value: float) -> str:
+    """Format a price with enough decimals to be readable."""
+    if value == 0:
+        return "0"
+    if abs(value) >= 1:
+        return f"{value:,.4f}"
+    sig_decimals = -int(math.floor(math.log10(abs(value)))) + 3
+    decimals = max(4, sig_decimals)
+    return f"{value:.{decimals}f}"
 
 from backtest_library import BacktestLibrary, STRATEGY_MAP, instantiate_strategy
 from strategy_allocator import StrategyAllocator, TradingPlan, RiskParams
@@ -528,7 +555,7 @@ class AutoPaperTrader:
         pos = PaperPosition(
             symbol=symbol, side=side, entry_price=price, quantity=quantity,
             entry_time=datetime.now().isoformat(),
-            stop_loss=round(stop_loss, 6), take_profit=round(take_profit, 6),
+            stop_loss=_smart_round(stop_loss), take_profit=_smart_round(take_profit),
             strategy=assignment.strategy_name, allocation_pct=alloc_pct,
         )
 
@@ -536,9 +563,9 @@ class AutoPaperTrader:
         self.cash -= position_value
 
         self.log.info(
-            f"  >> OPEN {side} {symbol} @ {price:,.4f} "
+            f"  >> OPEN {side} {symbol} @ {_fmt_price(price)} "
             f"(qty: {quantity:.6f}, val: {position_value:,.2f} EUR, "
-            f"SL: {stop_loss:,.4f}, TP: {take_profit:,.4f})"
+            f"SL: {_fmt_price(stop_loss)}, TP: {_fmt_price(take_profit)})"
         )
 
     def _close_position(self, symbol: str, exit_price: float, reason: str):
@@ -561,7 +588,7 @@ class AutoPaperTrader:
 
         icon = '+' if pnl >= 0 else ''
         self.log.info(
-            f"  << CLOSE {pos.side} {symbol} @ {exit_price:,.4f} | "
+            f"  << CLOSE {pos.side} {symbol} @ {_fmt_price(exit_price)} | "
             f"P&L: {icon}{pnl:,.2f} EUR ({icon}{pnl_pct:.2f}%) | {reason}"
         )
 
