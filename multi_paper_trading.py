@@ -16,7 +16,7 @@ import time
 import signal
 import argparse
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Dict, List, Any, Optional
 
 from auto_paper_trading import AutoPaperTrader, DEFAULT_STATE_DIR
@@ -277,7 +277,14 @@ class MultiPaperTrader:
 
         # Premier cycle complet immediat
         self.run_cycle()
-        last_signal_date = datetime.utcnow().strftime('%Y-%m-%d')
+        now_utc = datetime.utcnow()
+        if now_utc.hour < self.signal_hour_utc:
+            # Demarrage avant l'heure de signal: ne pas compter comme cycle du jour
+            # pour que le cycle de 22h se declenche quand meme
+            last_signal_date = (now_utc - timedelta(days=1)).strftime('%Y-%m-%d')
+        else:
+            # Demarrage apres l'heure de signal: compte comme cycle du jour
+            last_signal_date = now_utc.strftime('%Y-%m-%d')
 
         while self._running:
             try:
