@@ -627,7 +627,8 @@ class AutoPaperTrader:
                 data = yf.Ticker(yahoo_sym).history(period='1d', interval='1d')
                 if len(data) == 0:
                     continue
-                current_price = float(data['Close'].iloc[-1])
+                data.columns = [c.lower() for c in data.columns]
+                current_price = float(data['close'].iloc[-1])
                 reason = pos.should_close(current_price)
                 if reason:
                     symbols_to_close.append((symbol, current_price, reason))
@@ -648,8 +649,9 @@ class AutoPaperTrader:
             yahoo_sym = convert_to_yahoo_symbol(symbol)
             try:
                 data = yf.Ticker(yahoo_sym).history(period='1d', interval='1d')
+                data.columns = [c.lower() for c in data.columns]
                 if len(data) > 0:
-                    positions_value += float(data['Close'].iloc[-1]) * pos.quantity
+                    positions_value += float(data['close'].iloc[-1]) * pos.quantity
                 else:
                     positions_value += pos.entry_price * pos.quantity
             except Exception:

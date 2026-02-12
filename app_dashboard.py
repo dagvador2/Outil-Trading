@@ -2153,8 +2153,9 @@ def main():
                                             try:
                                                 yahoo_sym = convert_to_yahoo_symbol(sym)
                                                 data = yf.Ticker(yahoo_sym).history(period='1d', interval='1d')
+                                                data.columns = [c.lower() for c in data.columns]
                                                 if len(data) > 0:
-                                                    current_price = float(data['Close'].iloc[-1])
+                                                    current_price = float(data['close'].iloc[-1])
                                             except Exception:
                                                 pass
 
