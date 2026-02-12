@@ -2308,293 +2308,545 @@ def main():
     with tab9:
         st.header("📡 Signaux Macroéconomiques")
 
-        st.markdown("""
-        Cet onglet affiche les signaux macro qui influencent les décisions de trading.
-        Les portfolios avec filtre macro utilisent ces signaux pour annuler les trades contre-tendance.
-        """)
-
         try:
-            # Import avec gestion d'erreur
-            try:
-                from macro_integration import MacroFilter
-                from macro_signal_scorer import MacroSignalScorer
-                macro_available = True
-            except ImportError:
-                macro_available = False
-                st.warning("⚠️ Module macro non disponible. Installez les dépendances: `pip install -r requirements_macro.txt`")
+            from macro_events import MacroEventsDatabase
+            macro_db = MacroEventsDatabase()
+            events_df = macro_db.get_events_df()
 
-            if macro_available:
-                # Créer le scorer
-                if 'macro_scorer' not in st.session_state:
-                    with st.spinner("Initialisation du scoring macro..."):
-                        st.session_state.macro_scorer = MacroSignalScorer()
+            # ==============================================================
+            # Section 1 : Contexte macro actuel
+            # ==============================================================
+            st.subheader("🌍 Contexte Macro Actuel")
 
-                scorer = st.session_state.macro_scorer
+            # Sentiment sur les 90 derniers jours
+            now = datetime.now()
+            d90_ago = (now - timedelta(days=90)).strftime('%Y-%m-%d')
+            d30_ago = (now - timedelta(days=30)).strftime('%Y-%m-%d')
+            now_str = now.strftime('%Y-%m-%d')
 
-                # Bouton refresh
-                col1, col2, col3 = st.columns([1, 1, 2])
-                with col1:
-                    if st.button("🔄 Rafraîchir signaux macro"):
-                        if hasattr(scorer, 'scorer') and hasattr(scorer.scorer, 'cache'):
-                            scorer.scorer.cache.clear()
-                        st.success("Cache vidé, signaux seront mis à jour")
-                        st.rerun()
+            sentiment_90d = macro_db.get_sentiment_score(d90_ago, now_str, asset='all')
+            sentiment_30d = macro_db.get_sentiment_score(d30_ago, now_str, asset='all')
 
-                with col2:
-                    lookback_hours = st.selectbox("Fenêtre temporelle", [24, 48, 72, 96], index=1)
+            # Déterminer couleur et label du sentiment
+            def _sentiment_display(sentiment_info):
+                s = sentiment_info['sentiment']
+                avg = sentiment_info['avg_impact']
+                labels = {
+                    'very_bullish': ('Tres Haussier', '#00C853'),
+                    'bullish': ('Haussier', '#66BB6A'),
+                    'neutral': ('Neutre', '#9E9E9E'),
+                    'bearish': ('Baissier', '#FF7043'),
+                    'very_bearish': ('Tres Baissier', '#D32F2F'),
+                }
+                label, color = labels.get(s, ('Neutre', '#9E9E9E'))
+                return label, color, avg
 
-                # Score général du marché
-                st.subheader("🌍 Score Général du Marché")
+            label_30, color_30, avg_30 = _sentiment_display(sentiment_30d)
+            label_90, color_90, avg_90 = _sentiment_display(sentiment_90d)
 
-                with st.spinner("Calcul du score marché..."):
-                    try:
-                        market_score = scorer.compute_market_score(lookback_hours=lookback_hours)
+            col1, col2, col3, col4 = st.columns(4)
+            col1.metric("Sentiment 30j", label_30, f"{avg_30:+.1f}")
+            col2.metric("Evenements 30j", sentiment_30d['num_events'])
+            col3.metric("Sentiment 90j", label_90, f"{avg_90:+.1f}")
+            col4.metric("Evenements 90j", sentiment_90d['num_events'])
 
-                        # Métriques
-                        col1, col2, col3, col4, col5 = st.columns(5)
-
-                        # Emoji selon score
-                        if market_score.score > 60:
-                            emoji = "🚀"
-                            color = "green"
-                        elif market_score.score > 30:
-                            emoji = "📈"
-                            color = "lightgreen"
-                        elif market_score.score > -10:
-                            emoji = "➡️"
-                            color = "gray"
-                        elif market_score.score > -30:
-                            emoji = "📉"
-                            color = "orange"
-                        else:
-                            emoji = "⚠️"
-                            color = "red"
-
-                        col1.metric(f"{emoji} Score Composite", f"{market_score.score:+.1f}/100")
-                        col2.metric("📊 Confiance", f"{market_score.confidence:.1%}")
-                        col3.metric("💡 Recommandation", market_score.recommendation.replace('_', ' ').upper())
-
-                        if market_score.fear_greed_index:
-                            fg_value = market_score.fear_greed_index
-                            if fg_value > 75:
-                                fg_emoji = "🤑"
-                            elif fg_value > 55:
-                                fg_emoji = "😊"
-                            elif fg_value > 45:
-                                fg_emoji = "😐"
-                            elif fg_value > 25:
-                                fg_emoji = "😰"
-                            else:
-                                fg_emoji = "😱"
-                            col4.metric(f"{fg_emoji} Fear & Greed", f"{fg_value:.0f}/100")
-                        else:
-                            col4.metric("Fear & Greed", "N/A")
-
-                        if market_score.vix:
-                            col5.metric("📊 VIX", f"{market_score.vix:.1f}")
-                        else:
-                            col5.metric("VIX", "N/A")
-
-                        # Détails
-                        st.markdown("**Décomposition du score:**")
-                        col1, col2, col3 = st.columns(3)
-                        col1.metric("📰 News", f"{market_score.news_score:+.1f}")
-                        col2.metric("🎭 Sentiment", f"{market_score.sentiment_score:+.1f}")
-                        col3.metric("📈 Économie", f"{market_score.economic_score:+.1f}")
-
-                        # Signaux analysés
-                        st.markdown(f"**{market_score.num_signals} signaux analysés** - "
-                                   f"🟢 {market_score.positive_signals} positifs, "
-                                   f"🔴 {market_score.negative_signals} négatifs, "
-                                   f"⚪ {market_score.neutral_signals} neutres")
-
-                        if market_score.market_sentiment:
-                            st.info(f"**Sentiment général:** {market_score.market_sentiment.replace('_', ' ').title()}")
-
-                    except Exception as e:
-                        st.error(f"Erreur calcul score marché: {e}")
-                        import traceback
-                        with st.expander("Voir détails erreur"):
-                            st.code(traceback.format_exc())
-
-                # Scores par actif
-                st.subheader("📊 Scores par Actif")
-
-                # Liste des actifs à analyser (depuis les signaux actifs)
-                if all_signals and len(all_signals) > 0:
-                    available_assets = [s['symbol'] for s in all_signals]
-
-                    selected_assets = st.multiselect(
-                        "Sélectionner actifs à analyser",
-                        available_assets,
-                        default=available_assets[:5] if len(available_assets) >= 5 else available_assets
-                    )
-
-                    if selected_assets:
-                        with st.spinner(f"Calcul des scores pour {len(selected_assets)} actifs..."):
-                            try:
-                                asset_scores = {}
-                                for asset in selected_assets:
-                                    try:
-                                        score = scorer.compute_asset_score(asset, lookback_hours=lookback_hours)
-                                        asset_scores[asset] = score
-                                    except Exception as e:
-                                        st.warning(f"Erreur scoring {asset}: {e}")
-
-                                if asset_scores:
-                                    # Tableau comparatif
-                                    rows = []
-                                    for asset, score in asset_scores.items():
-                                        # Emoji selon score
-                                        if score.score > 60:
-                                            emoji = "🚀"
-                                        elif score.score > 30:
-                                            emoji = "📈"
-                                        elif score.score > -10:
-                                            emoji = "➡️"
-                                        elif score.score > -30:
-                                            emoji = "📉"
-                                        else:
-                                            emoji = "⚠️"
-
-                                        rows.append({
-                                            '': emoji,
-                                            'Actif': asset,
-                                            'Score': f"{score.score:+.1f}",
-                                            'Confiance': f"{score.confidence:.1%}",
-                                            'Recommandation': score.recommendation.replace('_', ' ').upper(),
-                                            'Signaux': score.num_signals,
-                                            '🟢': score.positive_signals,
-                                            '🔴': score.negative_signals,
-                                        })
-
-                                    df_scores = pd.DataFrame(rows)
-
-                                    # Colorier selon score
-                                    def color_score(val):
-                                        try:
-                                            num = float(val)
-                                            if num > 60:
-                                                return 'background-color: #90EE90'
-                                            elif num > 30:
-                                                return 'background-color: #FFFACD'
-                                            elif num > -30:
-                                                return 'background-color: #FFE4B5'
-                                            else:
-                                                return 'background-color: #FFB6C1'
-                                        except:
-                                            return ''
-
-                                    st.dataframe(
-                                        df_scores.style.applymap(color_score, subset=['Score']),
-                                        use_container_width=True,
-                                        hide_index=True
-                                    )
-
-                                    # Détails par actif
-                                    st.markdown("---")
-                                    st.subheader("Détails par actif")
-
-                                    for asset, score in asset_scores.items():
-                                        with st.expander(f"📊 {asset} - Score: {score.score:+.1f}"):
-                                            col1, col2, col3 = st.columns(3)
-                                            col1.metric("Score News", f"{score.news_score:+.1f}")
-                                            col2.metric("Score Sentiment", f"{score.sentiment_score:+.1f}")
-                                            col3.metric("Score Économie", f"{score.economic_score:+.1f}")
-
-                                            st.markdown(f"**Recommandation:** {score.recommendation.replace('_', ' ').upper()}")
-                                            st.markdown(f"**Confiance:** {score.confidence:.1%}")
-                                            st.markdown(f"**Signaux analysés:** {score.num_signals} "
-                                                       f"(🟢 {score.positive_signals}, "
-                                                       f"🔴 {score.negative_signals}, "
-                                                       f"⚪ {score.neutral_signals})")
-
-                            except Exception as e:
-                                st.error(f"Erreur calcul scores actifs: {e}")
-                                import traceback
-                                with st.expander("Voir détails erreur"):
-                                    st.code(traceback.format_exc())
-
+            # Derniers evenements
+            recent_events = events_df[events_df['date'] >= d30_ago].sort_values('date', ascending=False)
+            if len(recent_events) > 0:
+                st.markdown("**Derniers evenements :**")
+                for _, ev in recent_events.head(5).iterrows():
+                    score = ev['impact_score']
+                    if score >= 5:
+                        icon = "🟢"
+                    elif score >= 1:
+                        icon = "🔵"
+                    elif score >= -1:
+                        icon = "⚪"
+                    elif score >= -5:
+                        icon = "🟠"
                     else:
-                        st.info("Sélectionnez des actifs pour voir leurs scores macro")
+                        icon = "🔴"
+                    date_str = ev['date'].strftime('%d/%m/%Y') if hasattr(ev['date'], 'strftime') else str(ev['date'])[:10]
+                    st.markdown(f"{icon} **{date_str}** - {ev['title']} ({ev['category']}) &nbsp; Impact: **{score:+.0f}**/10")
+            else:
+                st.info("Aucun evenement macro dans les 30 derniers jours.")
+
+            # ==============================================================
+            # Section 2 : Signaux Live (RSS + Fear&Greed + FRED)
+            # ==============================================================
+            st.markdown("---")
+            st.subheader("📡 Signaux Live")
+
+            live_col1, live_col2 = st.columns(2)
+
+            # --- Fear & Greed Index (gratuit, pas de cle) ---
+            with live_col1:
+                st.markdown("**Fear & Greed Index (Crypto)**")
+                try:
+                    from news_fetcher import FearGreedIndexFetcher
+                    fg_fetcher = FearGreedIndexFetcher()
+                    fg_data = fg_fetcher.fetch_crypto_fear_greed(limit=30)
+
+                    if fg_data:
+                        current_fg = fg_data[0]
+                        fg_val = int(current_fg.get('value', 50))
+                        fg_label = current_fg.get('value_classification', 'N/A')
+
+                        # Gauge chart
+                        fig_gauge = go.Figure(go.Indicator(
+                            mode="gauge+number+delta",
+                            value=fg_val,
+                            title={'text': fg_label, 'font': {'size': 16}},
+                            gauge={
+                                'axis': {'range': [0, 100], 'tickwidth': 1},
+                                'bar': {'color': '#1E88E5'},
+                                'steps': [
+                                    {'range': [0, 25], 'color': '#D32F2F'},
+                                    {'range': [25, 45], 'color': '#FF7043'},
+                                    {'range': [45, 55], 'color': '#9E9E9E'},
+                                    {'range': [55, 75], 'color': '#66BB6A'},
+                                    {'range': [75, 100], 'color': '#00C853'},
+                                ],
+                            },
+                        ))
+                        fig_gauge.update_layout(height=220, margin=dict(l=20, r=20, t=40, b=10), template="plotly_dark")
+                        st.plotly_chart(fig_gauge, use_container_width=True)
+
+                        # Historique 30j
+                        if len(fg_data) > 1:
+                            fg_hist = pd.DataFrame([{
+                                'date': datetime.fromtimestamp(int(d['timestamp'])),
+                                'value': int(d['value']),
+                            } for d in fg_data])
+                            fg_hist = fg_hist.sort_values('date')
+
+                            fig_fg_hist = go.Figure()
+                            fig_fg_hist.add_trace(go.Scatter(
+                                x=fg_hist['date'], y=fg_hist['value'],
+                                mode='lines+markers', line=dict(color='#42A5F5', width=2),
+                                fill='tozeroy', fillcolor='rgba(66,165,245,0.15)',
+                            ))
+                            fig_fg_hist.add_hline(y=25, line_dash="dash", line_color="#D32F2F", annotation_text="Extreme Fear")
+                            fig_fg_hist.add_hline(y=75, line_dash="dash", line_color="#00C853", annotation_text="Extreme Greed")
+                            fig_fg_hist.update_layout(
+                                title="Historique Fear & Greed (30j)",
+                                height=250, template="plotly_dark",
+                                yaxis=dict(range=[0, 100]),
+                                showlegend=False,
+                            )
+                            st.plotly_chart(fig_fg_hist, use_container_width=True)
+                    else:
+                        st.warning("Fear & Greed Index indisponible")
+                except Exception as e:
+                    st.warning(f"Fear & Greed non disponible : {e}")
+
+            # --- FRED Indicateurs economiques ---
+            with live_col2:
+                st.markdown("**Indicateurs Economiques (FRED)**")
+                try:
+                    from news_fetcher import FredAPIFetcher
+                    fred = FredAPIFetcher()
+
+                    # Utiliser la cle de macro_data_fetcher si pas d'env var
+                    if not fred.api_key:
+                        fred.api_key = "480a473e9a5a6e99838252204df3cd1b"
+
+                    if fred.api_key:
+                        indicators = fred.get_latest_indicators()
+                        if indicators:
+                            ind_col1, ind_col2 = st.columns(2)
+                            if 'fed_funds' in indicators:
+                                ind_col1.metric("Taux Fed", f"{indicators['fed_funds']:.2f}%")
+                            if 'cpi' in indicators:
+                                ind_col2.metric("CPI (Inflation)", f"{indicators['cpi']:.1f}")
+                            if 'unemployment' in indicators:
+                                ind_col1.metric("Chomage", f"{indicators['unemployment']:.1f}%")
+                            if 'vix' in indicators:
+                                vix_val = indicators['vix']
+                                ind_col2.metric("VIX", f"{vix_val:.1f}", delta=f"{'Eleve' if vix_val > 25 else 'Normal'}", delta_color=("inverse" if vix_val > 25 else "off"))
+                            if 'yields_10y' in indicators:
+                                ind_col1.metric("Treasury 10Y", f"{indicators['yields_10y']:.2f}%")
+                        else:
+                            st.info("Indicateurs FRED temporairement indisponibles")
+                    else:
+                        st.info("Cle API FRED non configuree")
+                except Exception as e:
+                    st.warning(f"FRED non disponible : {e}")
+
+            # --- RSS News Headlines ---
+            st.markdown("**Dernieres News (RSS - Bloomberg, Reuters, Fed, CoinDesk)**")
+            try:
+                from news_fetcher import RSSFeedFetcher
+                rss = RSSFeedFetcher()
+
+                # Recuperer les news de 2-3 feeds principaux (pas tous pour eviter la lenteur)
+                rss_headlines = []
+                for feed_name in ['fed_news', 'coindesk', 'cnbc_markets']:
+                    try:
+                        entries = rss.fetch_feed(feed_name, max_entries=5)
+                        rss_headlines.extend(entries)
+                    except Exception:
+                        pass
+
+                if rss_headlines:
+                    # Trier par date si possible
+                    for h in rss_headlines:
+                        try:
+                            h['_parsed_date'] = pd.to_datetime(h.get('published', ''))
+                        except Exception:
+                            h['_parsed_date'] = pd.Timestamp.now()
+                    rss_headlines.sort(key=lambda x: x['_parsed_date'], reverse=True)
+
+                    with st.expander(f"📰 {len(rss_headlines)} headlines recentes", expanded=False):
+                        for h in rss_headlines[:15]:
+                            source_tag = h.get('source', 'rss').replace('_', ' ').title()
+                            date_display = h['_parsed_date'].strftime('%d/%m %H:%M') if hasattr(h['_parsed_date'], 'strftime') else ''
+                            st.markdown(f"- **[{source_tag}]** {h.get('title', 'N/A')} _{date_display}_")
                 else:
-                    st.warning("Aucun signal actif disponible. Chargez d'abord des signaux dans l'onglet Vue d'ensemble.")
+                    st.info("Aucune headline RSS recuperee (connexion internet requise)")
+            except Exception as e:
+                st.warning(f"RSS non disponible : {e}")
 
-                # Informations sur le filtre macro
-                st.markdown("---")
-                st.subheader("ℹ️ À propos du Filtre Macro")
+            # ==============================================================
+            # Section 3 : Timeline des evenements macro (historiques)
+            # ==============================================================
+            st.markdown("---")
+            st.subheader("📅 Timeline des Evenements Macro (Historique)")
 
+            # Filtres
+            col_f1, col_f2, col_f3 = st.columns([1, 1, 2])
+            with col_f1:
+                categories = sorted(events_df['category'].unique().tolist())
+                selected_cats = st.multiselect("Categorie", categories, default=categories, key="macro_cat_filter")
+            with col_f2:
+                period_choice = st.selectbox("Periode", ["6 derniers mois", "12 derniers mois", "Tout (2024-2025)"], index=1, key="macro_period")
+
+            # Filtrer
+            if period_choice == "6 derniers mois":
+                cutoff = now - timedelta(days=180)
+            elif period_choice == "12 derniers mois":
+                cutoff = now - timedelta(days=365)
+            else:
+                cutoff = pd.to_datetime('2024-01-01')
+
+            filtered_events = events_df[
+                (events_df['date'] >= cutoff) &
+                (events_df['category'].isin(selected_cats))
+            ].copy()
+
+            if len(filtered_events) > 0:
+                # Couleur par impact
+                colors = []
+                for score in filtered_events['impact_score']:
+                    if score >= 5:
+                        colors.append('#00C853')
+                    elif score >= 1:
+                        colors.append('#66BB6A')
+                    elif score >= -1:
+                        colors.append('#9E9E9E')
+                    elif score >= -5:
+                        colors.append('#FF7043')
+                    else:
+                        colors.append('#D32F2F')
+
+                fig_timeline = go.Figure()
+                fig_timeline.add_trace(go.Bar(
+                    x=filtered_events['date'],
+                    y=filtered_events['impact_score'],
+                    text=filtered_events['title'],
+                    hovertemplate="<b>%{text}</b><br>Date: %{x|%d/%m/%Y}<br>Impact: %{y:+.0f}/10<extra></extra>",
+                    marker_color=colors,
+                ))
+                fig_timeline.update_layout(
+                    title="Impact des evenements macro sur les marches",
+                    xaxis_title="Date",
+                    yaxis_title="Impact (-10 bearish / +10 bullish)",
+                    yaxis=dict(range=[-11, 11], zeroline=True, zerolinewidth=2, zerolinecolor='white'),
+                    height=400,
+                    template="plotly_dark",
+                    showlegend=False,
+                )
+                # Ajouter zones de reference
+                fig_timeline.add_hrect(y0=6, y1=11, fillcolor="green", opacity=0.07, line_width=0,
+                                       annotation_text="Zone Bullish", annotation_position="top left")
+                fig_timeline.add_hrect(y0=-11, y1=-6, fillcolor="red", opacity=0.07, line_width=0,
+                                       annotation_text="Zone Bearish", annotation_position="bottom left")
+                st.plotly_chart(fig_timeline, use_container_width=True)
+
+                # Tableau des evenements
+                with st.expander(f"Voir les {len(filtered_events)} evenements en detail"):
+                    display_df = filtered_events[['date', 'title', 'category', 'impact_score', 'affected_assets', 'description']].copy()
+                    display_df['date'] = display_df['date'].dt.strftime('%d/%m/%Y')
+                    display_df.columns = ['Date', 'Evenement', 'Categorie', 'Impact', 'Actifs concernes', 'Description']
+                    display_df = display_df.sort_values('Date', ascending=False)
+                    st.dataframe(display_df, use_container_width=True, hide_index=True)
+            else:
+                st.info("Aucun evenement dans la periode selectionnee.")
+
+            # ==============================================================
+            # Section 3 : Impact par classe d'actif
+            # ==============================================================
+            st.markdown("---")
+            st.subheader("📊 Sentiment Macro par Classe d'Actif")
+
+            asset_classes = {
+                'Crypto': ['crypto', 'BTC/USDT', 'ETH/USDT'],
+                'Actions US': ['stocks', 'indices', 'tech', 'NVDA', 'AAPL'],
+                'Commodities': ['commodities', 'gold', 'oil'],
+                'Forex': ['forex'],
+            }
+
+            rows_asset = []
+            for cls_name, cls_tags in asset_classes.items():
+                # Calculer sentiment 90j pour chaque classe
+                cls_events = []
+                for _, ev in events_df.iterrows():
+                    if ev['date'] < cutoff:
+                        continue
+                    affected = str(ev['affected_assets']).split(',')
+                    if 'all' in affected or any(tag in affected for tag in cls_tags):
+                        cls_events.append(ev)
+
+                if cls_events:
+                    cls_df = pd.DataFrame(cls_events)
+                    total = cls_df['impact_score'].sum()
+                    avg = cls_df['impact_score'].mean()
+                    pos = (cls_df['impact_score'] > 0).sum()
+                    neg = (cls_df['impact_score'] < 0).sum()
+
+                    if avg > 3:
+                        sentiment_label = "Tres Haussier"
+                    elif avg > 1:
+                        sentiment_label = "Haussier"
+                    elif avg > -1:
+                        sentiment_label = "Neutre"
+                    elif avg > -3:
+                        sentiment_label = "Baissier"
+                    else:
+                        sentiment_label = "Tres Baissier"
+
+                    rows_asset.append({
+                        'Classe': cls_name,
+                        'Nb evenements': len(cls_events),
+                        'Impact moyen': f"{avg:+.1f}",
+                        'Impact total': f"{total:+.0f}",
+                        'Positifs': int(pos),
+                        'Negatifs': int(neg),
+                        'Sentiment': sentiment_label,
+                    })
+
+            if rows_asset:
+                df_asset_cls = pd.DataFrame(rows_asset)
+
+                def _color_sentiment(val):
+                    mapping = {
+                        'Tres Haussier': 'background-color: #1B5E20; color: white',
+                        'Haussier': 'background-color: #388E3C; color: white',
+                        'Neutre': 'background-color: #616161; color: white',
+                        'Baissier': 'background-color: #E64A19; color: white',
+                        'Tres Baissier': 'background-color: #B71C1C; color: white',
+                    }
+                    return mapping.get(val, '')
+
+                st.dataframe(
+                    df_asset_cls.style.map(_color_sentiment, subset=['Sentiment']),
+                    use_container_width=True,
+                    hide_index=True
+                )
+
+            # ==============================================================
+            # Section 4 : Fonctionnement du filtre macro
+            # ==============================================================
+            st.markdown("---")
+            st.subheader("🔧 Comment le Filtre Macro Impacte les Positions")
+
+            st.markdown("""
+Le filtre macro analyse le contexte macroeconomique pour **bloquer les trades qui vont contre la tendance dominante**.
+Il agit comme un garde-fou entre les signaux techniques et l'execution des ordres.
+            """)
+
+            # Schema visuel avec Plotly
+            fig_flow = go.Figure()
+
+            # Boites du flow
+            boxes = [
+                (0.1, 0.7, "Signaux\nTechniques", "#1E88E5", "Strategies MA, RSI,\nMACD, Bollinger..."),
+                (0.4, 0.7, "Filtre\nMacro", "#FF8F00", "Analyse news,\nsentiment, eco"),
+                (0.7, 0.85, "LONG\nautorise", "#43A047", "Score > -60"),
+                (0.7, 0.55, "TRADE\nbloque", "#E53935", "Score < -60 pour LONG\nScore > +60 pour SHORT"),
+            ]
+
+            for x, y, text, color, hover in boxes:
+                fig_flow.add_trace(go.Scatter(
+                    x=[x], y=[y], mode='markers+text',
+                    marker=dict(size=60, color=color, symbol='square', opacity=0.85),
+                    text=[text], textposition='middle center',
+                    textfont=dict(size=11, color='white'),
+                    hovertext=hover, hoverinfo='text',
+                    showlegend=False,
+                ))
+
+            # Fleches
+            annotations = [
+                dict(x=0.3, y=0.7, ax=0.2, ay=0.7, arrowhead=2, arrowcolor='white', arrowwidth=2),
+                dict(x=0.6, y=0.85, ax=0.5, ay=0.75, arrowhead=2, arrowcolor='#43A047', arrowwidth=2),
+                dict(x=0.6, y=0.55, ax=0.5, ay=0.65, arrowhead=2, arrowcolor='#E53935', arrowwidth=2),
+            ]
+            fig_flow.update_layout(
+                annotations=annotations,
+                xaxis=dict(range=[0, 1], showgrid=False, showticklabels=False, zeroline=False),
+                yaxis=dict(range=[0.3, 1.0], showgrid=False, showticklabels=False, zeroline=False),
+                height=250,
+                template="plotly_dark",
+                margin=dict(l=20, r=20, t=20, b=20),
+            )
+            st.plotly_chart(fig_flow, use_container_width=True)
+
+            # Regles du filtre
+            col_r1, col_r2, col_r3 = st.columns(3)
+            with col_r1:
                 st.markdown("""
-                **Comment fonctionne le filtre macro ?**
-
-                Les portfolios avec filtre macro (suffixe `_Macro`) utilisent ces scores pour filtrer les signaux techniques :
-
-                - **Score < -60 (Très Bearish)** → Annule les signaux LONG
-                - **Score > +60 (Très Bullish)** → Annule les signaux SHORT
-                - **Score entre -60 et +60** → Laisse passer les signaux techniques
-
-                **Avantages:**
-                - Évite de trader contre la tendance macro dominante
-                - Réduit les pertes lors d'événements majeurs (Fed hawkish, guerres, etc.)
-                - Améliore le ratio Sharpe en filtrant les mauvais trades
-
-                **Configuration:**
-                - Seuil de filtrage: 60 (conservateur)
-                - Fenêtre d'analyse: 48h par défaut
-                - Cache: 4h (évite trop de requêtes API)
-
-                **Sources de données:**
-                - 📰 RSS Feeds (Bloomberg, Reuters, CNBC, Fed)
-                - 🎭 Fear & Greed Index (sentiment crypto)
-                - 📈 FRED (indicateurs macro officiels: CPI, VIX, taux Fed)
-                - Optionnel: NewsAPI, Finnhub, AlphaVantage (si configurés)
+**Score < -60 (Bearish)**
+- Signal LONG -> **BLOQUE**
+- Signal SHORT -> Autorise
+- *Evite d'acheter pendant un krach*
+                """)
+            with col_r2:
+                st.markdown("""
+**Score entre -60 et +60**
+- Signal LONG -> Autorise
+- Signal SHORT -> Autorise
+- *Les signaux techniques passent*
+                """)
+            with col_r3:
+                st.markdown("""
+**Score > +60 (Bullish)**
+- Signal LONG -> Autorise
+- Signal SHORT -> **BLOQUE**
+- *Evite de shorter un rally*
                 """)
 
-                # Statistiques des portfolios avec macro
-                if os.path.exists('paper_trading_state/consolidated_state.json'):
-                    st.markdown("---")
-                    st.subheader("📊 Comparaison Portfolios Sans/Avec Macro")
+            # Exemples concrets
+            st.markdown("---")
+            st.markdown("**Exemples concrets d'impact :**")
 
-                    try:
-                        with open('paper_trading_state/consolidated_state.json', 'r') as f:
-                            consolidated = json.load(f)
+            example_data = [
+                {"Evenement": "Fed coupe 50bps (Sept 2024)", "Impact": "+8", "Effet": "Rally haussier -> signaux SHORT bloques", "Resultat": "Evite des pertes sur shorts contre-tendance"},
+                {"Evenement": "Black Monday (Aout 2024)", "Impact": "-8", "Effet": "Krach violent -> signaux LONG bloques", "Resultat": "Evite d'acheter pendant la chute"},
+                {"Evenement": "Trump Tariffs (Fev 2025)", "Impact": "-6", "Effet": "Tensions commerciales -> prudence sur longs", "Resultat": "Reduit l'exposition pendant l'incertitude"},
+                {"Evenement": "Bitcoin ETF Approval (Jan 2024)", "Impact": "+9", "Effet": "Euphorie crypto -> shorts crypto bloques", "Resultat": "Evite de shorter le rally crypto"},
+            ]
+            st.dataframe(pd.DataFrame(example_data), use_container_width=True, hide_index=True)
 
-                        portfolios = consolidated.get('portfolios', [])
+            # ==============================================================
+            # Section 5 : Repartition par categorie
+            # ==============================================================
+            st.markdown("---")
+            st.subheader("📈 Repartition des Evenements par Categorie")
 
-                        # Séparer portfolios avec/sans macro
-                        without_macro = [p for p in portfolios if not p['name'].endswith('_Macro')]
-                        with_macro = [p for p in portfolios if p['name'].endswith('_Macro')]
+            cat_stats = events_df.groupby('category').agg(
+                count=('impact_score', 'count'),
+                avg_impact=('impact_score', 'mean'),
+                total_impact=('impact_score', 'sum'),
+            ).sort_values('count', ascending=False)
 
-                        if without_macro and with_macro:
-                            col1, col2 = st.columns(2)
+            col_c1, col_c2 = st.columns(2)
 
-                            with col1:
-                                st.markdown("**Sans Filtre Macro (Baseline)**")
-                                avg_pnl_no_macro = sum(p.get('total_pnl_pct', 0) for p in without_macro) / len(without_macro)
-                                avg_cash_no_macro = sum(p.get('cash', 0) for p in without_macro) / len(without_macro)
-                                st.metric("PnL moyen", f"{avg_pnl_no_macro:+.2f}%")
-                                st.metric("Cash moyen", f"{avg_cash_no_macro:,.0f} EUR")
+            with col_c1:
+                fig_cat_count = go.Figure(go.Bar(
+                    x=cat_stats.index,
+                    y=cat_stats['count'],
+                    marker_color='#42A5F5',
+                    text=cat_stats['count'],
+                    textposition='auto',
+                ))
+                fig_cat_count.update_layout(
+                    title="Nombre d'evenements par categorie",
+                    height=350, template="plotly_dark",
+                    xaxis_title="", yaxis_title="Nombre",
+                )
+                st.plotly_chart(fig_cat_count, use_container_width=True)
 
-                            with col2:
-                                st.markdown("**Avec Filtre Macro**")
-                                avg_pnl_macro = sum(p.get('total_pnl_pct', 0) for p in with_macro) / len(with_macro)
-                                avg_cash_macro = sum(p.get('cash', 0) for p in with_macro) / len(with_macro)
-                                delta_pnl = avg_pnl_macro - avg_pnl_no_macro
-                                st.metric("PnL moyen", f"{avg_pnl_macro:+.2f}%", delta=f"{delta_pnl:+.2f}%")
-                                st.metric("Cash moyen", f"{avg_cash_macro:,.0f} EUR")
+            with col_c2:
+                cat_colors = ['#43A047' if v > 0 else '#E53935' for v in cat_stats['avg_impact']]
+                fig_cat_impact = go.Figure(go.Bar(
+                    x=cat_stats.index,
+                    y=cat_stats['avg_impact'],
+                    marker_color=cat_colors,
+                    text=[f"{v:+.1f}" for v in cat_stats['avg_impact']],
+                    textposition='auto',
+                ))
+                fig_cat_impact.update_layout(
+                    title="Impact moyen par categorie",
+                    height=350, template="plotly_dark",
+                    xaxis_title="", yaxis_title="Impact moyen",
+                    yaxis=dict(zeroline=True, zerolinewidth=2, zerolinecolor='white'),
+                )
+                st.plotly_chart(fig_cat_impact, use_container_width=True)
 
-                            if delta_pnl > 0:
-                                st.success(f"✅ Le filtre macro améliore la performance de {delta_pnl:+.2f}% en moyenne")
-                            else:
-                                st.warning(f"⚠️ Le filtre macro réduit la performance de {delta_pnl:.2f}% en moyenne")
+            # ==============================================================
+            # Section 6 : Sentiment par trimestre
+            # ==============================================================
+            st.markdown("---")
+            st.subheader("📆 Evolution du Sentiment par Trimestre")
 
-                    except Exception as e:
-                        st.error(f"Erreur lecture consolidated state: {e}")
+            quarters = [
+                ('2024-01-01', '2024-03-31', 'Q1 2024'),
+                ('2024-04-01', '2024-06-30', 'Q2 2024'),
+                ('2024-07-01', '2024-09-30', 'Q3 2024'),
+                ('2024-10-01', '2024-12-31', 'Q4 2024'),
+                ('2025-01-01', '2025-03-31', 'Q1 2025'),
+                ('2025-04-01', '2025-06-30', 'Q2 2025'),
+                ('2025-07-01', '2025-09-30', 'Q3 2025'),
+                ('2025-10-01', '2025-12-31', 'Q4 2025'),
+            ]
+
+            q_labels = []
+            q_impacts = []
+            q_counts = []
+            for start, end, label in quarters:
+                s = macro_db.get_sentiment_score(start, end, asset='all')
+                q_labels.append(label)
+                q_impacts.append(s['avg_impact'])
+                q_counts.append(s['num_events'])
+
+            q_colors = ['#43A047' if v > 0 else '#E53935' for v in q_impacts]
+
+            fig_quarters = go.Figure()
+            fig_quarters.add_trace(go.Bar(
+                x=q_labels, y=q_impacts,
+                marker_color=q_colors,
+                text=[f"{v:+.1f}" for v in q_impacts],
+                textposition='auto',
+                name="Impact moyen",
+            ))
+            fig_quarters.update_layout(
+                title="Sentiment macro moyen par trimestre",
+                yaxis_title="Impact moyen",
+                yaxis=dict(zeroline=True, zerolinewidth=2, zerolinecolor='white'),
+                height=350, template="plotly_dark",
+            )
+            st.plotly_chart(fig_quarters, use_container_width=True)
+
+            # Detail par trimestre
+            q_rows = []
+            for i, (start, end, label) in enumerate(quarters):
+                s = macro_db.get_sentiment_score(start, end, asset='all')
+                if s['num_events'] > 0:
+                    q_rows.append({
+                        'Trimestre': label,
+                        'Evenements': s['num_events'],
+                        'Impact moyen': f"{s['avg_impact']:+.1f}",
+                        'Impact total': f"{s['total_impact']:+.0f}",
+                        'Sentiment': s['sentiment'].replace('_', ' ').title(),
+                    })
+            if q_rows:
+                st.dataframe(pd.DataFrame(q_rows), use_container_width=True, hide_index=True)
 
         except Exception as e:
             st.error(f"Erreur onglet Macro: {e}")
             import traceback
-            with st.expander("Voir détails erreur"):
+            with st.expander("Voir details erreur"):
                 st.code(traceback.format_exc())
 
     # ========================================================================

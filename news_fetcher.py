@@ -16,6 +16,7 @@ Sources disponibles:
 7. Twitter/X API - sentiment social (payant)
 """
 
+import os
 import requests
 import feedparser
 import pandas as pd
