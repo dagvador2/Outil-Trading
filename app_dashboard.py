@@ -116,23 +116,101 @@ def init_generator(_feed):
 # Fonctions de récupération de données
 # ============================================================================
 
+# Cache TTL par timeframe (en secondes)
+SIGNAL_CACHE_TTL = {
+    '1d': 4 * 3600,     # 4h pour daily (donnees changent 1x/jour)
+    '4h': 2 * 3600,     # 2h
+    '1h': 30 * 60,      # 30min
+    '15min': 10 * 60,   # 10min
+    '5min': 3 * 60,     # 3min
+}
+
+SIGNAL_CACHE_DIR = 'signals_cache'
+
+
+def _get_cache_path(asset_filter: str, timeframe: str) -> str:
+    """Retourne le chemin du fichier cache pour ces parametres"""
+    os.makedirs(SIGNAL_CACHE_DIR, exist_ok=True)
+    safe_name = asset_filter.replace(' ', '_').lower()
+    return os.path.join(SIGNAL_CACHE_DIR, f'signals_{safe_name}_{timeframe}.json')
+
+
+def _load_signals_cache(asset_filter: str, timeframe: str) -> List[Dict]:
+    """Charge les signaux depuis le cache disque si frais"""
+    cache_path = _get_cache_path(asset_filter, timeframe)
+    if not os.path.exists(cache_path):
+        return []
+
+    try:
+        mtime = os.path.getmtime(cache_path)
+        age = time.time() - mtime
+        ttl = SIGNAL_CACHE_TTL.get(timeframe, 1800)
+
+        if age > ttl:
+            return []  # Cache expire
+
+        with open(cache_path, 'r') as f:
+            cached = json.load(f)
+
+        # Reconvertir les timestamps
+        for sig in cached:
+            if 'timestamp' in sig and isinstance(sig['timestamp'], str):
+                try:
+                    sig['timestamp'] = datetime.fromisoformat(sig['timestamp'])
+                except Exception:
+                    sig['timestamp'] = datetime.now()
+
+        return cached
+    except Exception:
+        return []
+
+
+def _save_signals_cache(signals: List[Dict], asset_filter: str, timeframe: str):
+    """Sauvegarde les signaux en cache disque"""
+    cache_path = _get_cache_path(asset_filter, timeframe)
+    try:
+        serializable = []
+        for sig in signals:
+            s = dict(sig)
+            if 'timestamp' in s and isinstance(s['timestamp'], datetime):
+                s['timestamp'] = s['timestamp'].isoformat()
+            serializable.append(s)
+
+        with open(cache_path, 'w') as f:
+            json.dump(serializable, f, default=str)
+    except Exception:
+        pass  # Cache write failure is not critical
+
+
 def get_all_current_signals(generator: LiveSignalGenerator,
                              asset_filter: str = "Tous",
-                             timeframe: str = "1h") -> List[Dict]:
+                             timeframe: str = "1h",
+                             force_refresh: bool = False) -> List[Dict]:
     """
-    Récupère tous les signaux actuels
+    Recupere tous les signaux actuels, avec cache disque.
 
     Args:
         generator: Instance LiveSignalGenerator
-        asset_filter: Filtre par catégorie ('Tous', 'Crypto', 'Stocks', etc.)
+        asset_filter: Filtre par categorie ('Tous', 'Crypto', 'Stocks', etc.)
         timeframe: Intervalle de temps (5min, 15min, 1h, 4h, 1d)
+        force_refresh: Forcer le recalcul (ignorer le cache)
 
     Returns:
         Liste de signaux
     """
+    # Tenter le cache disque si pas de force refresh
+    if not force_refresh:
+        cached = _load_signals_cache(asset_filter, timeframe)
+        if cached:
+            ttl = SIGNAL_CACHE_TTL.get(timeframe, 1800)
+            cache_path = _get_cache_path(asset_filter, timeframe)
+            age_min = (time.time() - os.path.getmtime(cache_path)) / 60
+            st.sidebar.info(f"Signaux depuis cache ({age_min:.0f}min, TTL {ttl//60}min)")
+            return cached
+
     signals = []
 
-    # Filtrer symboles selon catégorie
+    # Filtrer symboles selon categorie
     if asset_filter == "Tous":
         symbols = get_all_symbols()
     else:
@@ -150,7 +228,7 @@ def get_all_current_signals(generator: LiveSignalGenerator,
         else:
             symbols = []
 
-    # Récupérer signaux
+    # Recuperer signaux
     progress_bar = st.progress(0)
     status_text = st.empty()
 
@@ -172,6 +250,10 @@ def get_all_current_signals(generator: LiveSignalGenerator,
 
     progress_bar.empty()
     status_text.empty()
+
+    # Sauvegarder en cache
+    if signals:
+        _save_signals_cache(signals, asset_filter, timeframe)
 
     return signals
 
@@ -855,31 +937,35 @@ def main():
         st.sidebar.info("Dashboard se rafraîchit automatiquement")
 
     # Bouton refresh manuel
-    refresh_signals = st.sidebar.button("🔄 Rafraîchir Signaux", type="primary")
+    refresh_signals = st.sidebar.button("🔄 Rafraichir Signaux (forcer)", type="primary")
 
-    # Détecter si la catégorie ou le timeframe a changé (invalider le cache si oui)
-    if (st.session_state.last_category != selected_category or
-        st.session_state.last_timeframe != selected_timeframe):
+    # Detecter si la categorie ou le timeframe a change
+    category_changed = (st.session_state.last_category != selected_category or
+                        st.session_state.last_timeframe != selected_timeframe)
+    if category_changed:
         st.session_state.signals_loaded = False
         st.session_state.last_category = selected_category
         st.session_state.last_timeframe = selected_timeframe
 
-    # Charger les signaux seulement si demandé ou si catégorie/timeframe a changé
-    if refresh_signals or not st.session_state.signals_loaded:
+    # Charger les signaux: cache disque en priorite, recalcul si necessaire
+    if refresh_signals or not st.session_state.signals_loaded or category_changed:
+        # Sauvegarder les signaux precedents pour detecter les changements
+        previous_signals = {}
+        for sig in st.session_state.all_signals:
+            previous_signals[sig.get('symbol')] = sig.get('signal')
+        st.session_state.previous_signals = previous_signals
+
+        # force_refresh = True seulement si bouton clique
+        force = bool(refresh_signals)
+
         with st.spinner(f"Chargement des signaux ({selected_timeframe})..."):
-            # Sauvegarder les signaux précédents pour détecter les changements
-            previous_signals = {}
-            for sig in st.session_state.all_signals:
-                previous_signals[sig.get('symbol')] = sig.get('signal')
-
-            st.session_state.previous_signals = previous_signals
-
-            # Charger les nouveaux signaux avec le timeframe sélectionné
             st.session_state.all_signals = get_all_current_signals(
-                generator, selected_category, selected_timeframe
+                generator, selected_category, selected_timeframe,
+                force_refresh=force
             )
             st.session_state.signals_loaded = True
-            st.sidebar.success(f"✅ Signaux chargés ({selected_timeframe})!")
+            if force:
+                st.sidebar.success(f"Signaux recalcules ({selected_timeframe})!")
 
     # Utiliser les signaux en cache
     all_signals = st.session_state.all_signals
