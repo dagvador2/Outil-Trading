@@ -2188,7 +2188,8 @@ def main():
                     sorted_by_pnl = sorted(portfolios.items(), key=lambda x: x[1].get('pnl_pct', 0), reverse=True)
                     best_name, best_data = sorted_by_pnl[0]
                     worst_name, worst_data = sorted_by_pnl[-1]
-                    avg_win_rate = np.mean([p.get('win_rate', 0) for p in portfolios.values()])
+                    wr_active = [p.get('win_rate', 0) for p in portfolios.values() if p.get('trades_closed', 0) > 0]
+                    avg_win_rate = np.mean(wr_active) if wr_active else 0
                     portfolios_with_trades = sum(1 for p in portfolios.values() if p.get('trades_closed', 0) > 0)
                 else:
                     best_name = worst_name = "N/A"
