@@ -2381,7 +2381,255 @@ def main():
                 st.markdown("")
 
                 # ============================================================
-                # SECTION 4 : Analyse comparative des allocations
+                # SECTION 4 : Derniers trades clos + analyse
+                # ============================================================
+                st.subheader("Derniers Trades Clos")
+                st.markdown('<p class="mpt-section-help">'
+                            'Historique des trades fermes a travers tous les portefeuilles, '
+                            'regroupes par operation unique (meme actif, meme direction, meme moment). '
+                            'Chaque trade est accompagne d\'une analyse.</p>',
+                            unsafe_allow_html=True)
+
+                # Collect all trades from all portfolio directories
+                all_closed_trades = []
+                for dirname in sorted(os.listdir(state_dir)):
+                    if not dirname.startswith('portfolio_'):
+                        continue
+                    trades_file = os.path.join(state_dir, dirname, 'auto_trades.csv')
+                    if not os.path.exists(trades_file):
+                        continue
+                    try:
+                        df_trades = pd.read_csv(trades_file)
+                        if len(df_trades) == 0:
+                            continue
+                        # Extract portfolio name from dirname
+                        parts = dirname.split('_', 2)
+                        pf_name = parts[2].replace('_', ' ').title() if len(parts) > 2 else dirname
+                        # Match to actual portfolio key
+                        for pk in portfolios.keys():
+                            if pk.lower().replace('_', '') == pf_name.lower().replace(' ', '').replace('_', ''):
+                                pf_name = pk
+                                break
+                        df_trades['portfolio'] = pf_name
+                        all_closed_trades.append(df_trades)
+                    except Exception:
+                        continue
+
+                if all_closed_trades:
+                    all_trades_df = pd.concat(all_closed_trades, ignore_index=True)
+
+                    # Parse exit_time as datetime for sorting
+                    all_trades_df['exit_dt'] = pd.to_datetime(all_trades_df['exit_time'], errors='coerce')
+                    all_trades_df['entry_dt'] = pd.to_datetime(all_trades_df['entry_time'], errors='coerce')
+
+                    # Group trades by unique operation: same symbol + side + strategy + close exit_time (within 5 min)
+                    all_trades_df = all_trades_df.sort_values('exit_dt', ascending=False)
+                    grouped_trades = []
+                    used_indices = set()
+
+                    for idx, trade in all_trades_df.iterrows():
+                        if idx in used_indices:
+                            continue
+                        # Find all trades with same symbol, side, strategy and exit_time within 5 min
+                        mask = (
+                            (all_trades_df['symbol'] == trade['symbol']) &
+                            (all_trades_df['side'] == trade['side']) &
+                            (all_trades_df['strategy'] == trade['strategy']) &
+                            (~all_trades_df.index.isin(used_indices))
+                        )
+                        if pd.notna(trade['exit_dt']):
+                            mask = mask & (
+                                (all_trades_df['exit_dt'] - trade['exit_dt']).abs() < pd.Timedelta(minutes=5)
+                            )
+                        group = all_trades_df[mask]
+                        used_indices.update(group.index)
+                        grouped_trades.append(group)
+
+                    # Global trade stats
+                    total_trade_pnl = all_trades_df['pnl'].sum()
+                    total_wins = len(all_trades_df[all_trades_df['pnl'] > 0])
+                    total_losses = len(all_trades_df[all_trades_df['pnl'] <= 0])
+                    unique_ops = len(grouped_trades)
+
+                    ts1, ts2, ts3, ts4 = st.columns(4)
+                    ts1.metric("Trades totaux", f"{len(all_trades_df)}",
+                               f"{unique_ops} operations uniques")
+                    ts2.metric("P&L cumule", f"{'+'if total_trade_pnl>=0 else ''}{total_trade_pnl:.0f} EUR")
+                    ts3.metric("Gagnants / Perdants", f"{total_wins}W / {total_losses}L")
+                    ts4.metric("Taux de reussite",
+                               f"{total_wins / len(all_trades_df) * 100:.0f}%" if len(all_trades_df) > 0 else "N/A")
+
+                    st.markdown("")
+
+                    # Display each unique operation
+                    for group in grouped_trades:
+                        ref = group.iloc[0]  # reference trade
+                        symbol = ref['symbol']
+                        side = ref['side']
+                        strategy = ref['strategy']
+                        exit_reason = ref.get('exit_reason', '?')
+                        entry_price = ref['entry_price']
+                        exit_price = ref['exit_price']
+                        pnl_pct = ref.get('pnl_pct', 0)
+                        n_portfolios_in = len(group)
+                        portfolio_list = ', '.join(sorted(group['portfolio'].unique()))
+                        total_group_pnl = group['pnl'].sum()
+
+                        # Duration
+                        entry_dt = ref.get('entry_dt')
+                        exit_dt = ref.get('exit_dt')
+                        if pd.notna(entry_dt) and pd.notna(exit_dt):
+                            duration = exit_dt - entry_dt
+                            days = duration.days
+                            hours, remainder = divmod(duration.seconds, 3600)
+                            minutes = remainder // 60
+                            if days > 0:
+                                duration_str = f"{days}j {hours}h {minutes}m"
+                            elif hours > 0:
+                                duration_str = f"{hours}h {minutes}m"
+                            else:
+                                duration_str = f"{minutes}m"
+                            entry_str = entry_dt.strftime('%d/%m %H:%M')
+                            exit_str = exit_dt.strftime('%d/%m %H:%M')
+                        else:
+                            duration_str = "N/A"
+                            entry_str = str(ref.get('entry_time', ''))[:16]
+                            exit_str = str(ref.get('exit_time', ''))[:16]
+
+                        is_win = total_group_pnl > 0
+                        icon = "W" if is_win else "L"
+                        color = "#2ca02c" if is_win else "#d62728"
+
+                        header = (
+                            f"{'WIN' if is_win else 'LOSS'} | {symbol} {side} | "
+                            f"{'+'if pnl_pct>=0 else ''}{pnl_pct:.2f}% | "
+                            f"{strategy} | "
+                            f"{'+'if total_group_pnl>=0 else ''}{total_group_pnl:.0f} EUR sur {n_portfolios_in} portefeuille{'s' if n_portfolios_in > 1 else ''} | "
+                            f"{exit_str}"
+                        )
+
+                        with st.expander(header):
+                            # Key metrics row
+                            m1, m2, m3, m4, m5 = st.columns(5)
+                            m1.metric("Symbole", f"{symbol} ({side})")
+                            m2.metric("Strategie", strategy)
+                            m3.metric("Duree", duration_str)
+                            m4.metric("Resultat", f"{'+'if pnl_pct>=0 else ''}{pnl_pct:.2f}%")
+                            m5.metric("Sortie", exit_reason)
+
+                            m6, m7, m8, m9 = st.columns(4)
+                            m6.metric("Prix entree", _fmt_price(entry_price))
+                            m7.metric("Prix sortie", _fmt_price(exit_price))
+                            m8.metric("Entree", entry_str)
+                            m9.metric("Sortie", exit_str)
+
+                            # Impact across portfolios
+                            if n_portfolios_in > 1:
+                                st.markdown(f"**Impact sur {n_portfolios_in} portefeuilles** : {portfolio_list}")
+                                impact_rows = []
+                                for _, t in group.iterrows():
+                                    impact_rows.append({
+                                        'Portefeuille': t['portfolio'],
+                                        'Quantite': round(t['quantity'], 6),
+                                        'P&L': round(t['pnl'], 2),
+                                    })
+                                st.dataframe(pd.DataFrame(impact_rows),
+                                             use_container_width=True, hide_index=True,
+                                             column_config={
+                                                 'P&L': st.column_config.NumberColumn('P&L (EUR)', format="%+.2f"),
+                                             })
+
+                            # Analysis
+                            st.markdown("---")
+                            st.markdown("**Analyse**")
+
+                            analysis_parts = []
+
+                            # Duration analysis
+                            if pd.notna(entry_dt) and pd.notna(exit_dt):
+                                hold_hours = (exit_dt - entry_dt).total_seconds() / 3600
+                                if hold_hours < 1:
+                                    analysis_parts.append(
+                                        f"Trade tres court ({duration_str}). "
+                                        f"Le {'TP' if exit_reason == 'TAKE_PROFIT' else 'SL'} a ete touche rapidement "
+                                        f"apres l'entree, ce qui indique un mouvement de prix fort et immediat.")
+                                elif hold_hours < 24:
+                                    analysis_parts.append(
+                                        f"Trade intraday ({duration_str}). "
+                                        f"La position a ete {'securisee par le TP' if exit_reason == 'TAKE_PROFIT' else 'coupee par le SL'} "
+                                        f"dans la meme journee.")
+                                else:
+                                    analysis_parts.append(
+                                        f"Position tenue {duration_str}. "
+                                        f"Un maintien de {'plus de 2 jours' if hold_hours > 48 else 'plus de 24h'} "
+                                        f"{'a permis de capturer le mouvement complet' if is_win else 'n a pas suffi a inverser la tendance'}.")
+
+                            # Price movement
+                            if entry_price > 0:
+                                price_move = (exit_price - entry_price) / entry_price * 100
+                                if side == 'SHORT':
+                                    price_move = -price_move
+                                abs_move = abs(exit_price - entry_price) / entry_price * 100
+
+                                if exit_reason == 'STOP_LOSS':
+                                    analysis_parts.append(
+                                        f"Sortie par Stop Loss a {_fmt_price(exit_price)} "
+                                        f"(mouvement adverse de {abs_move:.2f}%). "
+                                        f"Le SL a correctement limite la perte a {abs(pnl_pct):.2f}% du capital investi.")
+                                elif exit_reason == 'TAKE_PROFIT':
+                                    analysis_parts.append(
+                                        f"Sortie par Take Profit a {_fmt_price(exit_price)} "
+                                        f"(mouvement favorable de {abs_move:.2f}%). "
+                                        f"Le TP a securise un gain de {pnl_pct:.2f}% du capital investi.")
+                                else:
+                                    analysis_parts.append(
+                                        f"Sortie par {exit_reason} a {_fmt_price(exit_price)} "
+                                        f"(variation de {price_move:+.2f}%).")
+
+                            # Strategy context
+                            strat_descriptions = {
+                                'RSI_14_30_70': "RSI(14) avec seuils 30/70 - detecte les zones de survente/surachat",
+                                'RSI_14_35_80': "RSI(14) avec seuils 35/80 - variante asymetrique favorisant les entrees longues",
+                                'ADX_Trend_14_25': "ADX(14) seuil 25 - entre en position quand la tendance est forte",
+                                'Ichimoku_9_26_52': "Ichimoku classique - suit la tendance avec nuage, Tenkan et Kijun",
+                                'Combined': "Strategie combinee (multi-indicateurs) - consensus de plusieurs signaux",
+                                'MACD_12_26_9': "MACD classique - croisement de moyennes mobiles exponentielles",
+                            }
+                            strat_desc = strat_descriptions.get(strategy, f"Strategie {strategy}")
+                            analysis_parts.append(f"Strategie utilisee : **{strategy}** ({strat_desc}).")
+
+                            # Cross-portfolio insight
+                            if n_portfolios_in >= 5:
+                                analysis_parts.append(
+                                    f"Ce trade a ete pris par **{n_portfolios_in} portefeuilles** sur {n_portfolios}, "
+                                    f"ce qui montre un fort consensus entre les differents profils d'allocation. "
+                                    f"Impact total : {'+'if total_group_pnl>=0 else ''}{total_group_pnl:.2f} EUR.")
+                            elif n_portfolios_in > 1:
+                                analysis_parts.append(
+                                    f"Trade present dans {n_portfolios_in} portefeuilles ({portfolio_list}). "
+                                    f"Impact total : {'+'if total_group_pnl>=0 else ''}{total_group_pnl:.2f} EUR.")
+
+                            # Final verdict
+                            if is_win:
+                                analysis_parts.append(
+                                    f"**Verdict** : Trade gagnant. La strategie {strategy} a correctement identifie "
+                                    f"l'opportunite sur {symbol} et le TP a permis de securiser les gains.")
+                            else:
+                                analysis_parts.append(
+                                    f"**Verdict** : Trade perdant. Le mouvement de {symbol} est alle a l'encontre "
+                                    f"du signal {side}. Le SL a limite la casse a {abs(pnl_pct):.2f}% par position.")
+
+                            for part in analysis_parts:
+                                st.markdown(f"- {part}")
+
+                else:
+                    st.info("Aucun trade clos pour le moment. Les premiers trades apparaitront ici "
+                            "des qu'un Stop Loss ou Take Profit sera touche.")
+
+                st.markdown("")
+
+                # ============================================================
+                # SECTION 5 : Analyse comparative des allocations
                 # ============================================================
                 st.subheader("Analyse des Allocations")
                 st.markdown('<p class="mpt-section-help">'
