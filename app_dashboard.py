@@ -90,6 +90,76 @@ st.markdown("""
         border-radius: 5px;
         font-weight: bold;
     }
+    /* Multi Paper Trading tab styles */
+    .mpt-status-badge {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+    .mpt-status-active {
+        background-color: #d4edda;
+        color: #155724;
+    }
+    .mpt-status-stale {
+        background-color: #fff3cd;
+        color: #856404;
+    }
+    .mpt-kpi-row {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+    .mpt-kpi-card {
+        flex: 1;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-radius: 12px;
+        padding: 1.2rem;
+        text-align: center;
+        border-left: 4px solid #1f77b4;
+    }
+    .mpt-kpi-card.positive { border-left-color: #2ca02c; }
+    .mpt-kpi-card.negative { border-left-color: #d62728; }
+    .mpt-kpi-card.neutral { border-left-color: #6c757d; }
+    .mpt-kpi-card .kpi-value {
+        font-size: 1.6rem;
+        font-weight: 700;
+        margin: 0.3rem 0;
+    }
+    .mpt-kpi-card .kpi-label {
+        font-size: 0.8rem;
+        color: #6c757d;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+    .mpt-kpi-card .kpi-sub {
+        font-size: 0.85rem;
+        color: #495057;
+    }
+    .mpt-glossary {
+        background-color: #f8f9fa;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-top: 1rem;
+    }
+    .mpt-glossary dt {
+        font-weight: 600;
+        color: #1f77b4;
+        margin-top: 0.5rem;
+    }
+    .mpt-glossary dd {
+        margin-left: 1rem;
+        margin-bottom: 0.5rem;
+        color: #495057;
+        font-size: 0.9rem;
+    }
+    .mpt-section-help {
+        font-size: 0.85rem;
+        color: #6c757d;
+        font-style: italic;
+        margin-bottom: 0.5rem;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -2033,15 +2103,12 @@ def main():
     # ========================================================================
 
     with tab8:
-        st.header("Multi Paper Trading")
-        st.info("Comparaison de 20 portefeuilles en parallele (10 sans + 10 avec filtre macro). "
-                "Lancez : `python multi_paper_trading.py --capital 100000`")
+        st.header("Multi Paper Trading - Tableau de Bord")
 
         state_dir = 'paper_trading_state'
         consolidated_file = os.path.join(state_dir, 'consolidated_state.json')
 
         if not os.path.exists(consolidated_file):
-            # Fallback: check single-mode state
             single_state = os.path.join(state_dir, 'auto_state.json')
             if os.path.exists(single_state):
                 st.warning("Mode multi-portfolio non detecte. Affichage du portfolio standalone.")
@@ -2077,130 +2144,498 @@ def main():
                 n_portfolios = consolidated.get('n_portfolios', 0)
                 portfolios = consolidated.get('portfolios', {})
 
-                # --- Global metrics ---
+                # --- Status banner ---
+                if last_update != 'N/A':
+                    try:
+                        update_dt = datetime.fromisoformat(last_update)
+                        age_hours = (datetime.now() - update_dt).total_seconds() / 3600
+                        if age_hours < 2:
+                            status_cls = "mpt-status-active"
+                            status_txt = "Actif"
+                        else:
+                            status_cls = "mpt-status-stale"
+                            status_txt = f"Derniere MAJ il y a {int(age_hours)}h"
+                        update_display = update_dt.strftime('%d/%m/%Y %H:%M:%S')
+                    except Exception:
+                        status_cls = "mpt-status-stale"
+                        status_txt = "?"
+                        update_display = last_update[:19]
+                else:
+                    status_cls = "mpt-status-stale"
+                    status_txt = "N/A"
+                    update_display = "N/A"
+
+                st.markdown(
+                    f'<span class="mpt-status-badge {status_cls}">{status_txt}</span> '
+                    f'&nbsp; Derniere mise a jour : **{update_display}** &mdash; '
+                    f'{n_portfolios} portefeuilles, {capital_per:,.0f} EUR chacun',
+                    unsafe_allow_html=True)
+                st.markdown("")
+
+                # ============================================================
+                # SECTION 1 : KPIs globaux
+                # ============================================================
                 total_value_all = sum(p.get('value', capital_per) for p in portfolios.values())
                 total_pnl_all = sum(p.get('pnl', 0) for p in portfolios.values())
                 total_pnl_pct = (total_pnl_all / total_capital_multi * 100) if total_capital_multi > 0 else 0
+                total_realized = sum(p.get('realized_pnl', 0) for p in portfolios.values())
+                total_unrealized = total_pnl_all - total_realized
                 total_positions = sum(p.get('positions', 0) for p in portfolios.values())
                 total_trades = sum(p.get('trades_closed', 0) for p in portfolios.values())
 
-                col_g1, col_g2, col_g3, col_g4, col_g5 = st.columns(5)
-                col_g1.metric("Valeur totale", f"{total_value_all:,.0f} EUR",
-                              f"{total_pnl_all:+,.0f} ({total_pnl_pct:+.1f}%)" if total_pnl_all != 0 else None)
-                col_g2.metric("Capital investi", f"{total_capital_multi:,.0f} EUR",
-                              f"{n_portfolios} portefeuilles")
-                col_g3.metric("Positions ouvertes", f"{total_positions}")
-                col_g4.metric("Trades clos", f"{total_trades}")
-
-                # Best portfolio
+                # Best and worst
                 if portfolios:
-                    best_name = max(portfolios.keys(), key=lambda k: portfolios[k].get('pnl_pct', 0))
-                    best_pnl = portfolios[best_name].get('pnl_pct', 0)
-                    col_g5.metric("Meilleur portefeuille", best_name,
-                                  f"{best_pnl:+.2f}%")
+                    sorted_by_pnl = sorted(portfolios.items(), key=lambda x: x[1].get('pnl_pct', 0), reverse=True)
+                    best_name, best_data = sorted_by_pnl[0]
+                    worst_name, worst_data = sorted_by_pnl[-1]
+                    avg_win_rate = np.mean([p.get('win_rate', 0) for p in portfolios.values()])
+                    portfolios_with_trades = sum(1 for p in portfolios.values() if p.get('trades_closed', 0) > 0)
+                else:
+                    best_name = worst_name = "N/A"
+                    best_data = worst_data = {}
+                    avg_win_rate = 0
+                    portfolios_with_trades = 0
 
-                st.caption(f"Derniere mise a jour: {last_update[:19] if last_update != 'N/A' else 'N/A'}")
-                st.markdown("---")
+                pnl_cls = "positive" if total_pnl_all >= 0 else "negative"
+                pnl_sign = "+" if total_pnl_all >= 0 else ""
 
-                # --- Leaderboard ---
-                st.subheader("Leaderboard")
+                # Row 1: Value, P&L total, Realized, Unrealized
+                st.markdown(f"""<div class="mpt-kpi-row">
+                    <div class="mpt-kpi-card neutral">
+                        <div class="kpi-label">Capital Investi</div>
+                        <div class="kpi-value">{total_capital_multi:,.0f} EUR</div>
+                        <div class="kpi-sub">{n_portfolios} portefeuilles</div>
+                    </div>
+                    <div class="mpt-kpi-card {pnl_cls}">
+                        <div class="kpi-label">Valeur Totale</div>
+                        <div class="kpi-value">{total_value_all:,.0f} EUR</div>
+                        <div class="kpi-sub">{pnl_sign}{total_pnl_pct:.2f}%</div>
+                    </div>
+                    <div class="mpt-kpi-card {'positive' if total_realized >= 0 else 'negative'}">
+                        <div class="kpi-label">P&L Realise</div>
+                        <div class="kpi-value">{"+" if total_realized >= 0 else ""}{total_realized:,.0f} EUR</div>
+                        <div class="kpi-sub">Gains/pertes encaisses</div>
+                    </div>
+                    <div class="mpt-kpi-card {'positive' if total_unrealized >= 0 else 'negative'}">
+                        <div class="kpi-label">P&L Latent</div>
+                        <div class="kpi-value">{"+" if total_unrealized >= 0 else ""}{total_unrealized:,.0f} EUR</div>
+                        <div class="kpi-sub">Positions encore ouvertes</div>
+                    </div>
+                </div>""", unsafe_allow_html=True)
+
+                # Row 2: Positions, Trades, Best, Worst
+                best_pnl = best_data.get('pnl_pct', 0)
+                worst_pnl = worst_data.get('pnl_pct', 0)
+                st.markdown(f"""<div class="mpt-kpi-row">
+                    <div class="mpt-kpi-card neutral">
+                        <div class="kpi-label">Positions Ouvertes</div>
+                        <div class="kpi-value">{total_positions}</div>
+                        <div class="kpi-sub">{total_trades} trades clos</div>
+                    </div>
+                    <div class="mpt-kpi-card neutral">
+                        <div class="kpi-label">Win Rate Moyen</div>
+                        <div class="kpi-value">{avg_win_rate:.1f}%</div>
+                        <div class="kpi-sub">{portfolios_with_trades}/{n_portfolios} ont trade</div>
+                    </div>
+                    <div class="mpt-kpi-card positive">
+                        <div class="kpi-label">Meilleur Portefeuille</div>
+                        <div class="kpi-value">{best_name}</div>
+                        <div class="kpi-sub">{"+" if best_pnl >= 0 else ""}{best_pnl:.2f}%</div>
+                    </div>
+                    <div class="mpt-kpi-card negative">
+                        <div class="kpi-label">Plus Faible</div>
+                        <div class="kpi-value">{worst_name}</div>
+                        <div class="kpi-sub">{"+" if worst_pnl >= 0 else ""}{worst_pnl:.2f}%</div>
+                    </div>
+                </div>""", unsafe_allow_html=True)
+
+                st.markdown("")
+
+                # ============================================================
+                # SECTION 2 : Leaderboard
+                # ============================================================
+                st.subheader("Classement des Portefeuilles")
+                st.markdown('<p class="mpt-section-help">Classe par performance (P&L %). '
+                            'Chaque portefeuille utilise une strategie d\'allocation differente '
+                            'pour tester quel profil de risque performe le mieux.</p>',
+                            unsafe_allow_html=True)
 
                 if portfolios:
                     lb_rows = []
-                    for rank, (name, p) in enumerate(
-                        sorted(portfolios.items(), key=lambda x: x[1].get('pnl_pct', 0), reverse=True), 1
-                    ):
+                    medals = {1: '1', 2: '2', 3: '3'}
+                    for rank, (name, p) in enumerate(sorted_by_pnl, 1):
+                        rank_display = medals.get(rank, str(rank))
+                        pnl_value = p.get('pnl', 0)
+                        pnl_pct_value = p.get('pnl_pct', 0)
+                        realized = p.get('realized_pnl', 0)
+
+                        # Parse config summary for cleaner display
+                        config = p.get('config_summary', '')
+                        alloc_method = config.split('|')[0].strip() if '|' in config else config
+
                         lb_rows.append({
-                            'Rang': rank,
+                            '#': rank_display,
                             'Portefeuille': name,
-                            'Valeur (EUR)': round(p.get('value', 0), 2),
-                            'P&L (EUR)': round(p.get('pnl', 0), 2),
-                            'P&L (%)': round(p.get('pnl_pct', 0), 2),
-                            'Realise (EUR)': round(p.get('realized_pnl', 0), 2),
+                            'Methode': alloc_method,
+                            'Description': p.get('description', ''),
+                            'Valeur': round(p.get('value', 0), 0),
+                            'P&L': round(pnl_value, 0),
+                            'Rendement': round(pnl_pct_value, 2),
+                            'Realise': round(realized, 0),
                             'Positions': f"{p.get('positions', 0)}/{p.get('max_positions', '?')}",
                             'Trades': p.get('trades_closed', 0),
-                            'Win Rate (%)': round(p.get('win_rate', 0), 1),
-                            'Actifs plan': p.get('n_assets_in_plan', 0),
-                            'Config': p.get('config_summary', ''),
+                            'Win Rate': round(p.get('win_rate', 0), 1),
                         })
 
                     lb_df = pd.DataFrame(lb_rows)
-                    st.dataframe(lb_df, use_container_width=True, hide_index=True)
+                    st.dataframe(
+                        lb_df,
+                        use_container_width=True,
+                        hide_index=True,
+                        column_config={
+                            '#': st.column_config.TextColumn('#', width='small'),
+                            'Portefeuille': st.column_config.TextColumn('Portefeuille', width='medium'),
+                            'Methode': st.column_config.TextColumn('Methode', width='small',
+                                help="Methode d'allocation : risk_parity, score_weighted, ou equal"),
+                            'Description': st.column_config.TextColumn('Description', width='medium'),
+                            'Valeur': st.column_config.NumberColumn('Valeur (EUR)', format="%.0f"),
+                            'P&L': st.column_config.NumberColumn('P&L (EUR)', format="%+.0f"),
+                            'Rendement': st.column_config.NumberColumn('Rendement (%)', format="%+.2f%%",
+                                help="Performance totale depuis le lancement"),
+                            'Realise': st.column_config.NumberColumn('Realise (EUR)', format="%+.0f",
+                                help="Gains/pertes encaisses (trades fermes)"),
+                            'Positions': st.column_config.TextColumn('Positions', width='small',
+                                help="Nombre de positions ouvertes / maximum autorise"),
+                            'Trades': st.column_config.NumberColumn('Trades', format="%d",
+                                help="Nombre total de trades clotures"),
+                            'Win Rate': st.column_config.ProgressColumn('Win Rate (%)',
+                                format="%.1f%%", min_value=0, max_value=100,
+                                help="Pourcentage de trades gagnants"),
+                        },
+                    )
 
-                st.markdown("---")
+                st.markdown("")
 
-                # --- P&L Bar Chart ---
-                st.subheader("P&L par portefeuille")
+                # ============================================================
+                # SECTION 3 : Graphiques de performance
+                # ============================================================
+                st.subheader("Performance Comparee")
+                st.markdown('<p class="mpt-section-help">'
+                            'Vue visuelle de la performance de chaque portefeuille. '
+                            'Vert = gain, Rouge = perte.</p>',
+                            unsafe_allow_html=True)
 
                 if portfolios:
-                    sorted_names = sorted(portfolios.keys(),
-                                          key=lambda k: portfolios[k].get('pnl', 0), reverse=True)
-                    pnl_values = [portfolios[n].get('pnl', 0) for n in sorted_names]
-                    colors = ['#2ca02c' if v >= 0 else '#d62728' for v in pnl_values]
+                    sorted_names = [n for n, _ in sorted_by_pnl]
+                    chart_col1, chart_col2 = st.columns(2)
 
-                    fig_pnl = go.Figure(data=[
-                        go.Bar(
-                            x=sorted_names,
-                            y=pnl_values,
-                            marker_color=colors,
-                            text=[f"{v:+.1f}" for v in pnl_values],
-                            textposition='outside'
+                    with chart_col1:
+                        pnl_values = [portfolios[n].get('pnl', 0) for n in sorted_names]
+                        colors = ['#2ca02c' if v >= 0 else '#d62728' for v in pnl_values]
+                        fig_pnl = go.Figure(data=[
+                            go.Bar(
+                                y=sorted_names, x=pnl_values,
+                                orientation='h',
+                                marker_color=colors,
+                                text=[f"{v:+,.0f}" for v in pnl_values],
+                                textposition='outside',
+                                textfont=dict(size=11),
+                            )
+                        ])
+                        fig_pnl.update_layout(
+                            title=dict(text="P&L Absolu (EUR)", font=dict(size=14)),
+                            xaxis_title="EUR",
+                            height=max(300, len(sorted_names) * 40),
+                            template="plotly_white",
+                            margin=dict(l=10, r=80, t=40, b=30),
+                            yaxis=dict(autorange="reversed"),
                         )
-                    ])
-                    fig_pnl.update_layout(
-                        yaxis_title="P&L (EUR)",
-                        height=400,
-                        template="plotly_white",
-                    )
-                    fig_pnl.add_hline(y=0, line_dash="dash", line_color="gray")
-                    st.plotly_chart(fig_pnl, use_container_width=True)
+                        fig_pnl.add_vline(x=0, line_dash="dash", line_color="gray", opacity=0.5)
+                        st.plotly_chart(fig_pnl, use_container_width=True)
 
-                    # P&L % bar chart
-                    pnl_pct_values = [portfolios[n].get('pnl_pct', 0) for n in sorted_names]
-                    colors_pct = ['#2ca02c' if v >= 0 else '#d62728' for v in pnl_pct_values]
-
-                    fig_pnl_pct = go.Figure(data=[
-                        go.Bar(
-                            x=sorted_names,
-                            y=pnl_pct_values,
-                            marker_color=colors_pct,
-                            text=[f"{v:+.2f}%" for v in pnl_pct_values],
-                            textposition='outside'
+                    with chart_col2:
+                        pnl_pct_values = [portfolios[n].get('pnl_pct', 0) for n in sorted_names]
+                        colors_pct = ['#2ca02c' if v >= 0 else '#d62728' for v in pnl_pct_values]
+                        fig_pct = go.Figure(data=[
+                            go.Bar(
+                                y=sorted_names, x=pnl_pct_values,
+                                orientation='h',
+                                marker_color=colors_pct,
+                                text=[f"{v:+.2f}%" for v in pnl_pct_values],
+                                textposition='outside',
+                                textfont=dict(size=11),
+                            )
+                        ])
+                        fig_pct.update_layout(
+                            title=dict(text="Rendement (%)", font=dict(size=14)),
+                            xaxis_title="%",
+                            height=max(300, len(sorted_names) * 40),
+                            template="plotly_white",
+                            margin=dict(l=10, r=80, t=40, b=30),
+                            yaxis=dict(autorange="reversed"),
                         )
-                    ])
-                    fig_pnl_pct.update_layout(
-                        yaxis_title="P&L (%)",
-                        height=400,
-                        template="plotly_white",
-                    )
-                    fig_pnl_pct.add_hline(y=0, line_dash="dash", line_color="gray")
-                    st.plotly_chart(fig_pnl_pct, use_container_width=True)
+                        fig_pct.add_vline(x=0, line_dash="dash", line_color="gray", opacity=0.5)
+                        st.plotly_chart(fig_pct, use_container_width=True)
 
-                st.markdown("---")
+                st.markdown("")
 
-                # --- Detail par portefeuille ---
-                st.subheader("Detail par portefeuille")
+                # ============================================================
+                # SECTION 4 : Analyse comparative des allocations
+                # ============================================================
+                st.subheader("Analyse des Allocations")
+                st.markdown('<p class="mpt-section-help">'
+                            'Quels actifs sont selectionnes par chaque portefeuille ? '
+                            'Cette matrice montre le chevauchement entre portefeuilles et '
+                            'les categories d\'actifs representees.</p>',
+                            unsafe_allow_html=True)
 
-                for name, p_info in sorted(portfolios.items(),
-                                           key=lambda x: x[1].get('pnl_pct', 0), reverse=True):
+                # Load all plans
+                all_plans = {}
+                all_assets_set = set()
+                category_counts = {}
+                for dirname in sorted(os.listdir(state_dir)):
+                    if not dirname.startswith('portfolio_'):
+                        continue
+                    plan_file = os.path.join(state_dir, dirname, 'auto_plan.json')
+                    if not os.path.exists(plan_file):
+                        continue
+                    try:
+                        with open(plan_file, 'r') as f:
+                            plan = json.load(f)
+                        # Extract portfolio name from dirname
+                        parts = dirname.split('_', 2)
+                        pname = parts[2].replace('_', ' ').title() if len(parts) > 2 else dirname
+                        # Match to portfolio key
+                        matched_name = None
+                        for pk in portfolios.keys():
+                            if pk.lower().replace('_', '') == pname.lower().replace(' ', '').replace('_', ''):
+                                matched_name = pk
+                                break
+                        if not matched_name:
+                            matched_name = pname
+                        all_plans[matched_name] = plan
+                        for a in plan.get('assignments', []):
+                            asset = a.get('asset', '')
+                            atype = a.get('asset_type', 'other')
+                            all_assets_set.add(asset)
+                            category_counts[atype] = category_counts.get(atype, 0) + 1
+                    except Exception:
+                        continue
+
+                if all_plans:
+                    alloc_col1, alloc_col2 = st.columns([3, 2])
+
+                    with alloc_col1:
+                        # Asset overlap heatmap
+                        all_assets_sorted = sorted(all_assets_set)
+                        plan_names = [n for n, _ in sorted_by_pnl if n in all_plans]
+                        heatmap_data = []
+                        for pname in plan_names:
+                            row = []
+                            assignments = {a['asset']: a for a in all_plans[pname].get('assignments', [])}
+                            for asset in all_assets_sorted:
+                                if asset in assignments:
+                                    row.append(round(assignments[asset].get('allocation_pct', 0), 1))
+                                else:
+                                    row.append(0)
+                            heatmap_data.append(row)
+
+                        if heatmap_data:
+                            fig_heatmap = go.Figure(data=go.Heatmap(
+                                z=heatmap_data,
+                                x=all_assets_sorted,
+                                y=plan_names,
+                                colorscale='Blues',
+                                text=[[f"{v:.1f}%" if v > 0 else "" for v in row] for row in heatmap_data],
+                                texttemplate="%{text}",
+                                textfont=dict(size=9),
+                                hovertemplate="Portefeuille: %{y}<br>Actif: %{x}<br>Allocation: %{z:.1f}%<extra></extra>",
+                                colorbar=dict(title="Alloc %", len=0.6),
+                            ))
+                            fig_heatmap.update_layout(
+                                title=dict(text="Matrice d'Allocation (% par actif)", font=dict(size=14)),
+                                height=max(350, len(plan_names) * 35 + 100),
+                                template="plotly_white",
+                                margin=dict(l=10, r=10, t=40, b=80),
+                                xaxis=dict(tickangle=45, tickfont=dict(size=9)),
+                                yaxis=dict(tickfont=dict(size=10)),
+                            )
+                            st.plotly_chart(fig_heatmap, use_container_width=True)
+
+                    with alloc_col2:
+                        # Category distribution pie
+                        if category_counts:
+                            cat_labels = list(category_counts.keys())
+                            cat_values = list(category_counts.values())
+                            cat_colors = {
+                                'crypto': '#f7931a', 'tech_stocks': '#0078d4',
+                                'semiconductors': '#7b2d8e', 'finance': '#2ca02c',
+                                'commodities': '#d4a017', 'indices': '#6c757d',
+                                'healthcare': '#e74c3c', 'energy': '#ff6b35',
+                            }
+                            colors_pie = [cat_colors.get(c, '#adb5bd') for c in cat_labels]
+                            cat_labels_display = [c.replace('_', ' ').title() for c in cat_labels]
+
+                            fig_cat = go.Figure(data=[go.Pie(
+                                labels=cat_labels_display,
+                                values=cat_values,
+                                marker=dict(colors=colors_pie),
+                                textinfo='label+percent',
+                                textfont=dict(size=11),
+                                hole=0.35,
+                                hovertemplate="%{label}: %{value} selections<extra></extra>",
+                            )])
+                            fig_cat.update_layout(
+                                title=dict(text="Categories d'Actifs", font=dict(size=14)),
+                                height=350,
+                                margin=dict(l=10, r=10, t=40, b=10),
+                                showlegend=False,
+                            )
+                            st.plotly_chart(fig_cat, use_container_width=True)
+
+                        # Asset popularity (top 10)
+                        asset_popularity = {}
+                        for pname, plan in all_plans.items():
+                            for a in plan.get('assignments', []):
+                                asset = a.get('asset', '')
+                                asset_name = a.get('asset_name', asset)
+                                key = f"{asset_name} ({asset})"
+                                asset_popularity[key] = asset_popularity.get(key, 0) + 1
+
+                        if asset_popularity:
+                            top_assets = sorted(asset_popularity.items(), key=lambda x: x[1], reverse=True)[:10]
+                            st.markdown("**Actifs les plus selectionnes**")
+                            for asset_label, count in top_assets:
+                                bar_pct = count / n_portfolios * 100
+                                st.markdown(
+                                    f"<div style='display:flex;align-items:center;margin-bottom:4px;'>"
+                                    f"<span style='width:180px;font-size:0.85rem;'>{asset_label}</span>"
+                                    f"<div style='flex:1;background:#e9ecef;border-radius:4px;height:18px;'>"
+                                    f"<div style='width:{bar_pct:.0f}%;background:#1f77b4;border-radius:4px;"
+                                    f"height:18px;text-align:right;padding-right:4px;'>"
+                                    f"<span style='color:white;font-size:0.75rem;line-height:18px;'>"
+                                    f"{count}/{n_portfolios}</span></div></div></div>",
+                                    unsafe_allow_html=True)
+
+                st.markdown("")
+
+                # ============================================================
+                # SECTION 5 : Radar de comparaison
+                # ============================================================
+                if all_plans and len(all_plans) >= 2:
+                    st.subheader("Profils de Risque/Rendement")
+                    st.markdown('<p class="mpt-section-help">'
+                                'Comparaison des profils backtest des portefeuilles. '
+                                'Chaque axe represente une metrique normalisee de 0 a 100.</p>',
+                                unsafe_allow_html=True)
+
+                    radar_data = {}
+                    for pname in plan_names:
+                        plan = all_plans.get(pname)
+                        if not plan:
+                            continue
+                        stats = plan.get('summary_stats', {})
+                        config = plan.get('config', {})
+                        assignments = plan.get('assignments', [])
+                        if not assignments:
+                            continue
+                        avg_sharpe = stats.get('avg_sharpe', 0)
+                        avg_return = stats.get('avg_return', 0)
+                        n_assets = stats.get('n_assets', 0)
+                        avg_wr = np.mean([a.get('win_rate', 0) for a in assignments]) if assignments else 0
+                        avg_dd = np.mean([a.get('max_drawdown_pct', 0) for a in assignments]) if assignments else 0
+                        n_categories = len(stats.get('categories', []))
+                        radar_data[pname] = {
+                            'Sharpe': avg_sharpe,
+                            'Rendement': avg_return,
+                            'Win Rate': avg_wr,
+                            'Diversification': n_assets,
+                            'Categories': n_categories,
+                            'Stabilite': max(0, 100 - avg_dd * 3),
+                        }
+
+                    if radar_data:
+                        # Normalize 0-100
+                        metrics_keys = ['Sharpe', 'Rendement', 'Win Rate', 'Diversification', 'Categories', 'Stabilite']
+                        maxvals = {}
+                        for mk in metrics_keys:
+                            vals = [rd[mk] for rd in radar_data.values()]
+                            maxvals[mk] = max(vals) if max(vals) > 0 else 1
+
+                        fig_radar = go.Figure()
+                        radar_colors = px.colors.qualitative.Set2
+                        for i, (pname, rd) in enumerate(radar_data.items()):
+                            normalized = [rd[mk] / maxvals[mk] * 100 for mk in metrics_keys]
+                            normalized.append(normalized[0])  # close the loop
+                            fig_radar.add_trace(go.Scatterpolar(
+                                r=normalized,
+                                theta=metrics_keys + [metrics_keys[0]],
+                                fill='toself',
+                                name=pname,
+                                opacity=0.3,
+                                line=dict(color=radar_colors[i % len(radar_colors)], width=2),
+                            ))
+                        fig_radar.update_layout(
+                            polar=dict(
+                                radialaxis=dict(visible=True, range=[0, 100], showticklabels=False),
+                            ),
+                            height=450,
+                            template="plotly_white",
+                            margin=dict(l=60, r=60, t=30, b=30),
+                            legend=dict(orientation='h', yanchor='bottom', y=-0.2, xanchor='center', x=0.5,
+                                        font=dict(size=10)),
+                        )
+                        st.plotly_chart(fig_radar, use_container_width=True)
+
+                st.markdown("")
+
+                # ============================================================
+                # SECTION 6 : Detail par portefeuille
+                # ============================================================
+                st.subheader("Detail par Portefeuille")
+                st.markdown('<p class="mpt-section-help">'
+                            'Cliquez sur un portefeuille pour voir ses positions, '
+                            'trades clos, et son plan d\'allocation complet avec '
+                            'les metriques de backtest.</p>',
+                            unsafe_allow_html=True)
+
+                for rank, (name, p_info) in enumerate(sorted_by_pnl, 1):
                     pnl_val = p_info.get('pnl', 0)
-                    icon = "+" if pnl_val >= 0 else ""
+                    pnl_pct_val = p_info.get('pnl_pct', 0)
                     n_pos = p_info.get('positions', 0)
-                    pos_str = f" | {n_pos} position{'s' if n_pos != 1 else ''}" if n_pos > 0 else ""
-                    label = f"{name} | P&L: {icon}{pnl_val:.2f} EUR ({icon}{p_info.get('pnl_pct', 0):.2f}%){pos_str}"
+                    medal = {1: ' #1', 2: ' #2', 3: ' #3'}.get(rank, '')
+                    pnl_indicator = "+" if pnl_val >= 0 else ""
+
+                    label = (f"#{rank}{medal} {name} | "
+                             f"{pnl_indicator}{pnl_pct_val:.2f}% "
+                             f"({pnl_indicator}{pnl_val:,.0f} EUR) | "
+                             f"{n_pos} pos. | "
+                             f"{p_info.get('description', '')}")
 
                     with st.expander(label):
-                        st.caption(p_info.get('description', ''))
-                        st.caption(f"Config: {p_info.get('config_summary', '')}")
+                        # Row of key metrics
+                        dc1, dc2, dc3, dc4, dc5 = st.columns(5)
+                        dc1.metric("Valeur", f"{p_info.get('value', 0):,.0f} EUR")
+                        dc2.metric("P&L Total", f"{pnl_indicator}{pnl_val:,.0f} EUR",
+                                   f"{pnl_indicator}{pnl_pct_val:.2f}%")
+                        dc3.metric("Realise", f"{'+'if p_info.get('realized_pnl',0)>=0 else ''}"
+                                   f"{p_info.get('realized_pnl', 0):,.0f} EUR")
+                        dc4.metric("Win Rate", f"{p_info.get('win_rate', 0):.1f}%",
+                                   f"{p_info.get('trades_closed', 0)} trades")
+                        dc5.metric("Cycles", f"{p_info.get('cycle_count', 0)}")
 
-                        dc1, dc2, dc3, dc4 = st.columns(4)
-                        dc1.metric("Valeur", f"{p_info.get('value', 0):,.2f} EUR")
-                        dc2.metric("Realise", f"{p_info.get('realized_pnl', 0):+,.2f} EUR")
-                        dc3.metric("Win Rate", f"{p_info.get('win_rate', 0):.1f}%")
-                        dc4.metric("Cycles", f"{p_info.get('cycle_count', 0)}")
+                        # Config summary
+                        config_str = p_info.get('config_summary', '')
+                        if config_str:
+                            parts = [s.strip() for s in config_str.split('|')]
+                            config_html = ' '.join(
+                                f'<span style="display:inline-block;background:#e9ecef;'
+                                f'border-radius:12px;padding:2px 10px;margin:2px;font-size:0.8rem;">'
+                                f'{p}</span>' for p in parts
+                            )
+                            st.markdown(f"**Configuration :** {config_html}", unsafe_allow_html=True)
 
-                        # Charger trades du sous-dossier si disponibles
-                        # Trouver le bon dossier
+                        # Find portfolio directory
                         portfolio_dir = None
                         for dirname in os.listdir(state_dir):
                             if dirname.startswith('portfolio_') and name.lower() in dirname.lower():
@@ -2208,179 +2643,282 @@ def main():
                                 break
 
                         if portfolio_dir:
-                            # Positions ouvertes
-                            sub_state_file = os.path.join(portfolio_dir, 'auto_state.json')
-                            if os.path.exists(sub_state_file):
-                                try:
-                                    with open(sub_state_file, 'r') as f:
-                                        sub_state = json.load(f)
-                                    sub_positions = sub_state.get('positions', {})
-                                    if sub_positions:
-                                        st.write(f"**Positions ouvertes ({len(sub_positions)})**")
-                                        pos_rows = []
-                                        for sym, pos in sub_positions.items():
-                                            entry_price = pos.get('entry_price', 0)
-                                            qty = pos.get('quantity', 0)
-                                            side = pos.get('side', '')
+                            detail_tab1, detail_tab2, detail_tab3 = st.tabs([
+                                "Positions ouvertes", "Trades clos", "Plan d'allocation"
+                            ])
 
-                                            # Date d'entree
-                                            entry_time_str = pos.get('entry_time', '')
-                                            if entry_time_str:
-                                                try:
-                                                    et = datetime.fromisoformat(entry_time_str)
-                                                    date_display = et.strftime('%d/%m/%Y %H:%M')
-                                                except Exception:
-                                                    date_display = entry_time_str[:16]
-                                            else:
-                                                date_display = 'N/A'
-
-                                            # Prix actuel via yfinance
-                                            current_price = None
-                                            try:
-                                                yahoo_sym = convert_to_yahoo_symbol(sym)
-                                                data = yf.Ticker(yahoo_sym).history(period='1d', interval='1d')
-                                                data.columns = [c.lower() for c in data.columns]
-                                                if len(data) > 0:
-                                                    current_price = float(data['close'].iloc[-1])
-                                            except Exception:
-                                                pass
-
-                                            # Calcul P&L non realise
-                                            if current_price is not None and qty > 0:
-                                                if side == 'LONG':
-                                                    unrealized_pnl = (current_price - entry_price) * qty
-                                                    unrealized_pct = (current_price / entry_price - 1) * 100
+                            # --- Positions ouvertes ---
+                            with detail_tab1:
+                                sub_state_file = os.path.join(portfolio_dir, 'auto_state.json')
+                                if os.path.exists(sub_state_file):
+                                    try:
+                                        with open(sub_state_file, 'r') as f:
+                                            sub_state = json.load(f)
+                                        sub_positions = sub_state.get('positions', {})
+                                        if sub_positions:
+                                            pos_rows = []
+                                            for sym, pos in sub_positions.items():
+                                                entry_price = pos.get('entry_price', 0)
+                                                qty = pos.get('quantity', 0)
+                                                side = pos.get('side', '')
+                                                entry_time_str = pos.get('entry_time', '')
+                                                if entry_time_str:
+                                                    try:
+                                                        et = datetime.fromisoformat(entry_time_str)
+                                                        date_display = et.strftime('%d/%m %H:%M')
+                                                    except Exception:
+                                                        date_display = entry_time_str[:16]
                                                 else:
-                                                    unrealized_pnl = (entry_price - current_price) * qty
-                                                    unrealized_pct = (1 - current_price / entry_price) * 100
-                                            else:
-                                                unrealized_pnl = None
-                                                unrealized_pct = None
+                                                    date_display = 'N/A'
 
-                                            row = {
-                                                'Symbole': sym,
-                                                'Side': side,
-                                                'Strategie': pos.get('strategy', ''),
-                                                'Date entree': date_display,
-                                                'Prix entree': round(entry_price, 4),
-                                                'Prix actuel': round(current_price, 4) if current_price else 'N/A',
-                                                'P&L': f"{unrealized_pnl:+.2f} EUR" if unrealized_pnl is not None else 'N/A',
-                                                'P&L %': f"{unrealized_pct:+.2f}%" if unrealized_pct is not None else 'N/A',
-                                                'SL': round(pos.get('stop_loss', 0), 4),
-                                                'TP': round(pos.get('take_profit', 0), 4),
-                                            }
-                                            pos_rows.append(row)
-                                        st.dataframe(pd.DataFrame(pos_rows),
-                                                     use_container_width=True, hide_index=True)
-                                except Exception:
-                                    pass
+                                                current_price = None
+                                                try:
+                                                    yahoo_sym = convert_to_yahoo_symbol(sym)
+                                                    data = yf.Ticker(yahoo_sym).history(period='1d', interval='1d')
+                                                    data.columns = [c.lower() for c in data.columns]
+                                                    if len(data) > 0:
+                                                        current_price = float(data['close'].iloc[-1])
+                                                except Exception:
+                                                    pass
 
-                            # Trades clos
-                            sub_trades_file = os.path.join(portfolio_dir, 'auto_trades.csv')
-                            if os.path.exists(sub_trades_file):
-                                try:
-                                    sub_trades = pd.read_csv(sub_trades_file)
-                                    if len(sub_trades) > 0:
-                                        # Trier par date de sortie (plus recent d'abord)
-                                        if 'exit_time' in sub_trades.columns:
-                                            sub_trades = sub_trades.sort_values('exit_time', ascending=False)
+                                                if current_price is not None and qty > 0:
+                                                    if side == 'LONG':
+                                                        unrealized_pnl = (current_price - entry_price) * qty
+                                                        unrealized_pct = (current_price / entry_price - 1) * 100
+                                                    else:
+                                                        unrealized_pnl = (entry_price - current_price) * qty
+                                                        unrealized_pct = (1 - current_price / entry_price) * 100
+                                                else:
+                                                    unrealized_pnl = None
+                                                    unrealized_pct = None
 
-                                        # Resume global
-                                        total_pnl_trades = sub_trades['pnl'].sum() if 'pnl' in sub_trades.columns else 0
-                                        wins = len(sub_trades[sub_trades['pnl'] > 0]) if 'pnl' in sub_trades.columns else 0
-                                        losses = len(sub_trades) - wins
-                                        pnl_icon = "+" if total_pnl_trades >= 0 else ""
-                                        st.write(
-                                            f"**Trades clos ({len(sub_trades)})** - "
-                                            f"P&L total: {pnl_icon}{total_pnl_trades:.2f} EUR | "
-                                            f"{wins}W / {losses}L"
-                                        )
+                                                sl = pos.get('stop_loss', 0)
+                                                tp = pos.get('take_profit', 0)
+                                                # Distance to SL/TP in %
+                                                if current_price and current_price > 0 and sl > 0:
+                                                    if side == 'LONG':
+                                                        dist_sl = (current_price - sl) / current_price * 100
+                                                        dist_tp = (tp - current_price) / current_price * 100 if tp > 0 else None
+                                                    else:
+                                                        dist_sl = (sl - current_price) / current_price * 100
+                                                        dist_tp = (current_price - tp) / current_price * 100 if tp > 0 else None
+                                                else:
+                                                    dist_sl = None
+                                                    dist_tp = None
 
-                                        for _, trade in sub_trades.iterrows():
-                                            t_pnl = trade.get('pnl', 0)
-                                            t_pnl_pct = trade.get('pnl_pct', 0)
-                                            t_icon = "+" if t_pnl >= 0 else ""
-                                            t_emoji = "🟢" if t_pnl >= 0 else "🔴"
-                                            t_symbol = trade.get('symbol', '?')
-                                            t_side = trade.get('side', '?')
-                                            t_reason = trade.get('exit_reason', '?')
+                                                row = {
+                                                    'Symbole': sym,
+                                                    'Side': side,
+                                                    'Strategie': pos.get('strategy', ''),
+                                                    'Entree': date_display,
+                                                    'Prix entree': _fmt_price(entry_price),
+                                                    'Prix actuel': _fmt_price(current_price) if current_price else 'N/A',
+                                                    'P&L': f"{unrealized_pnl:+.2f}" if unrealized_pnl is not None else 'N/A',
+                                                    'P&L %': f"{unrealized_pct:+.2f}%" if unrealized_pct is not None else 'N/A',
+                                                    'Dist. SL': f"{dist_sl:.1f}%" if dist_sl is not None else 'N/A',
+                                                    'Dist. TP': f"{dist_tp:.1f}%" if dist_tp is not None else 'N/A',
+                                                }
+                                                pos_rows.append(row)
+                                            st.dataframe(pd.DataFrame(pos_rows),
+                                                         use_container_width=True, hide_index=True)
+                                        else:
+                                            st.info("Aucune position ouverte")
+                                    except Exception:
+                                        st.info("Aucune position ouverte")
+                                else:
+                                    st.info("Aucune position ouverte")
 
-                                            header = (
-                                                f"{t_emoji} {t_symbol} {t_side} | "
-                                                f"{t_icon}{t_pnl:.2f} EUR ({t_icon}{t_pnl_pct:.2f}%) | "
-                                                f"{t_reason}"
-                                            )
+                            # --- Trades clos ---
+                            with detail_tab2:
+                                sub_trades_file = os.path.join(portfolio_dir, 'auto_trades.csv')
+                                if os.path.exists(sub_trades_file):
+                                    try:
+                                        sub_trades = pd.read_csv(sub_trades_file)
+                                        if len(sub_trades) > 0:
+                                            if 'exit_time' in sub_trades.columns:
+                                                sub_trades = sub_trades.sort_values('exit_time', ascending=False)
 
-                                            with st.expander(header):
-                                                # Dates
+                                            total_pnl_trades = sub_trades['pnl'].sum() if 'pnl' in sub_trades.columns else 0
+                                            wins = len(sub_trades[sub_trades['pnl'] > 0]) if 'pnl' in sub_trades.columns else 0
+                                            losses = len(sub_trades) - wins
+
+                                            # Summary bar
+                                            tc1, tc2, tc3, tc4 = st.columns(4)
+                                            tc1.metric("Total trades", len(sub_trades))
+                                            tc2.metric("P&L total", f"{'+'if total_pnl_trades>=0 else ''}{total_pnl_trades:.0f} EUR")
+                                            tc3.metric("Gagnants", f"{wins}", f"{wins/(wins+losses)*100:.0f}%" if (wins+losses)>0 else "")
+                                            tc4.metric("Perdants", f"{losses}")
+
+                                            # Trades table
+                                            display_cols = []
+                                            for _, trade in sub_trades.iterrows():
+                                                t_pnl = trade.get('pnl', 0)
+                                                t_pnl_pct = trade.get('pnl_pct', 0)
                                                 entry_time_raw = trade.get('entry_time', '')
                                                 exit_time_raw = trade.get('exit_time', '')
                                                 try:
                                                     et = datetime.fromisoformat(str(entry_time_raw))
-                                                    entry_fmt = et.strftime('%d/%m/%Y %H:%M')
+                                                    entry_fmt = et.strftime('%d/%m %H:%M')
                                                 except Exception:
-                                                    et = None
-                                                    entry_fmt = str(entry_time_raw)[:16]
+                                                    entry_fmt = str(entry_time_raw)[:10]
                                                 try:
                                                     xt = datetime.fromisoformat(str(exit_time_raw))
-                                                    exit_fmt = xt.strftime('%d/%m/%Y %H:%M')
+                                                    exit_fmt = xt.strftime('%d/%m %H:%M')
                                                 except Exception:
-                                                    xt = None
-                                                    exit_fmt = str(exit_time_raw)[:16]
+                                                    exit_fmt = str(exit_time_raw)[:10]
 
-                                                # Duree
-                                                if et and xt:
-                                                    duration = xt - et
-                                                    days = duration.days
-                                                    hours, remainder = divmod(duration.seconds, 3600)
-                                                    minutes = remainder // 60
-                                                    if days > 0:
-                                                        duration_str = f"{days}j {hours}h {minutes}m"
-                                                    else:
-                                                        duration_str = f"{hours}h {minutes}m"
-                                                else:
-                                                    duration_str = "N/A"
+                                                display_cols.append({
+                                                    'Resultat': 'W' if t_pnl >= 0 else 'L',
+                                                    'Symbole': trade.get('symbol', '?'),
+                                                    'Side': trade.get('side', '?'),
+                                                    'Strategie': trade.get('strategy', ''),
+                                                    'Entree': entry_fmt,
+                                                    'Sortie': exit_fmt,
+                                                    'Raison': trade.get('exit_reason', '?'),
+                                                    'P&L': round(t_pnl, 2),
+                                                    'P&L %': round(t_pnl_pct, 2),
+                                                })
+                                            trades_df = pd.DataFrame(display_cols)
+                                            st.dataframe(trades_df, use_container_width=True, hide_index=True,
+                                                         column_config={
+                                                             'P&L': st.column_config.NumberColumn('P&L (EUR)', format="%+.2f"),
+                                                             'P&L %': st.column_config.NumberColumn('P&L %', format="%+.2f%%"),
+                                                         })
+                                        else:
+                                            st.info("Aucun trade clos pour le moment")
+                                    except Exception:
+                                        st.info("Aucun trade clos pour le moment")
+                                else:
+                                    st.info("Aucun trade clos pour le moment")
 
-                                                tc1, tc2, tc3 = st.columns(3)
-                                                tc1.metric("Strategie", trade.get('strategy', 'N/A'))
-                                                tc2.metric("Side", t_side)
-                                                tc3.metric("Raison sortie", t_reason)
+                            # --- Plan d'allocation ---
+                            with detail_tab3:
+                                sub_plan_file = os.path.join(portfolio_dir, 'auto_plan.json')
+                                if os.path.exists(sub_plan_file):
+                                    try:
+                                        with open(sub_plan_file, 'r') as f:
+                                            sub_plan = json.load(f)
+                                        assignments = sub_plan.get('assignments', [])
+                                        summary_stats = sub_plan.get('summary_stats', {})
+                                        plan_config = sub_plan.get('config', {})
+                                        risk_params = sub_plan.get('risk_params', {})
 
-                                                tc4, tc5, tc6 = st.columns(3)
-                                                tc4.metric("Date entree", entry_fmt)
-                                                tc5.metric("Date sortie", exit_fmt)
-                                                tc6.metric("Duree", duration_str)
+                                        if assignments:
+                                            # Summary stats
+                                            ps1, ps2, ps3, ps4, ps5 = st.columns(5)
+                                            ps1.metric("Actifs", summary_stats.get('n_assets', len(assignments)))
+                                            ps2.metric("Sharpe moyen", f"{summary_stats.get('avg_sharpe', 0):.2f}")
+                                            ps3.metric("Rendement moyen", f"{summary_stats.get('avg_return', 0):.1f}%")
+                                            ps4.metric("Meilleur", f"{summary_stats.get('best_return', 0):.1f}%")
+                                            ps5.metric("Pire", f"{summary_stats.get('worst_return', 0):.1f}%")
 
-                                                tc7, tc8, tc9, tc10 = st.columns(4)
-                                                tc7.metric("Prix entree", _fmt_price(trade.get('entry_price', 0)))
-                                                tc8.metric("Prix sortie", _fmt_price(trade.get('exit_price', 0)))
-                                                tc9.metric("P&L", f"{t_icon}{t_pnl:.2f} EUR")
-                                                tc10.metric("P&L %", f"{t_icon}{t_pnl_pct:.2f}%")
+                                            plan_chart_col, plan_table_col = st.columns([2, 3])
 
-                                except Exception:
-                                    pass
+                                            with plan_chart_col:
+                                                # Allocation pie
+                                                alloc_labels = [a.get('asset_name', a.get('asset', '')) for a in assignments]
+                                                alloc_values = [a.get('allocation_pct', 0) for a in assignments]
+                                                cash_reserve = plan_config.get('cash_reserve_pct', 0)
+                                                total_alloc = sum(alloc_values)
+                                                if total_alloc < 100:
+                                                    alloc_labels.append('Cash reserve')
+                                                    alloc_values.append(100 - total_alloc)
 
-                            # Plan
-                            sub_plan_file = os.path.join(portfolio_dir, 'auto_plan.json')
-                            if os.path.exists(sub_plan_file):
-                                try:
-                                    with open(sub_plan_file, 'r') as f:
-                                        sub_plan = json.load(f)
-                                    assignments = sub_plan.get('assignments', [])
-                                    if assignments:
-                                        st.write(f"**Plan d'allocation ({len(assignments)} actifs)**")
-                                        plan_rows = []
-                                        for a in assignments:
-                                            plan_rows.append({
-                                                'Actif': a.get('asset', ''),
-                                                'Strategie': a.get('strategy_name', ''),
-                                                'Alloc (%)': round(a.get('allocation_pct', 0), 1),
-                                                'Score': round(a.get('score', 0), 3),
-                                            })
-                                        st.dataframe(pd.DataFrame(plan_rows),
-                                                     use_container_width=True, hide_index=True)
-                                except Exception:
-                                    pass
+                                                fig_alloc = go.Figure(data=[go.Pie(
+                                                    labels=alloc_labels,
+                                                    values=alloc_values,
+                                                    textinfo='label+percent',
+                                                    textfont=dict(size=10),
+                                                    hole=0.4,
+                                                    hovertemplate="%{label}: %{value:.1f}%<extra></extra>",
+                                                )])
+                                                fig_alloc.update_layout(
+                                                    title=dict(text="Repartition", font=dict(size=13)),
+                                                    height=300,
+                                                    margin=dict(l=5, r=5, t=35, b=5),
+                                                    showlegend=False,
+                                                )
+                                                st.plotly_chart(fig_alloc, use_container_width=True)
+
+                                            with plan_table_col:
+                                                # Full plan table with backtest metrics
+                                                plan_rows = []
+                                                for a in assignments:
+                                                    asset_key = a.get('asset', '')
+                                                    rp = risk_params.get(asset_key, {})
+                                                    plan_rows.append({
+                                                        'Actif': f"{a.get('asset_name', '')} ({asset_key})",
+                                                        'Type': a.get('asset_type', '').replace('_', ' ').title(),
+                                                        'Strategie': a.get('strategy_name', ''),
+                                                        'Alloc %': round(a.get('allocation_pct', 0), 1),
+                                                        'Score': round(a.get('score', 0), 3),
+                                                        'Sharpe': round(a.get('sharpe_ratio', 0), 2),
+                                                        'Rend. %': round(a.get('total_return_pct', 0), 1),
+                                                        'DD %': round(a.get('max_drawdown_pct', 0), 1),
+                                                        'WR %': round(a.get('win_rate', 0), 1),
+                                                        'Trades': a.get('num_trades', 0),
+                                                        'SL %': round(rp.get('stop_loss_pct', 0), 1),
+                                                        'TP %': round(rp.get('take_profit_pct', 0), 1),
+                                                    })
+                                                plan_df = pd.DataFrame(plan_rows)
+                                                st.dataframe(plan_df, use_container_width=True, hide_index=True,
+                                                             column_config={
+                                                                 'Alloc %': st.column_config.ProgressColumn(
+                                                                     'Alloc %', format="%.1f%%",
+                                                                     min_value=0, max_value=max(a.get('allocation_pct', 0) for a in assignments) * 1.2),
+                                                                 'Score': st.column_config.NumberColumn('Score', format="%.3f",
+                                                                     help="Score composite base sur Sharpe, rendement, drawdown et win rate"),
+                                                                 'Sharpe': st.column_config.NumberColumn('Sharpe', format="%.2f",
+                                                                     help="Ratio de Sharpe : rendement ajuste du risque. > 1 = bon, > 2 = excellent"),
+                                                                 'Rend. %': st.column_config.NumberColumn('Rend. %', format="%.1f%%",
+                                                                     help="Rendement total du backtest"),
+                                                                 'DD %': st.column_config.NumberColumn('DD %', format="%.1f%%",
+                                                                     help="Drawdown max : pire perte pic-a-creux en backtest"),
+                                                                 'WR %': st.column_config.NumberColumn('WR %', format="%.1f%%",
+                                                                     help="Win Rate : pourcentage de trades gagnants"),
+                                                             })
+                                    except Exception:
+                                        st.info("Plan d'allocation non disponible")
+                                else:
+                                    st.info("Plan d'allocation non disponible")
+
+                st.markdown("")
+
+                # ============================================================
+                # SECTION 7 : Glossaire pedagogique
+                # ============================================================
+                with st.expander("Glossaire - Comprendre les metriques"):
+                    st.markdown("""<div class="mpt-glossary">
+<dl>
+<dt>P&L (Profit & Loss)</dt>
+<dd>Gain ou perte total. <b>Realise</b> = trades fermes. <b>Latent</b> = positions encore ouvertes (non encaisse).</dd>
+
+<dt>Win Rate</dt>
+<dd>Pourcentage de trades gagnants. Un win rate de 60% signifie que 6 trades sur 10 sont profitables.
+Un win rate eleve ne garantit pas la rentabilite si les pertes sont plus grandes que les gains.</dd>
+
+<dt>Ratio de Sharpe</dt>
+<dd>Mesure le rendement ajuste du risque. Plus il est eleve, meilleur est le rapport gain/volatilite.
+< 0.5 = mediocre, 0.5-1.0 = correct, > 1.0 = bon, > 2.0 = excellent.</dd>
+
+<dt>Drawdown (DD)</dt>
+<dd>La pire perte observee entre un pic et un creux. Un DD de 15% signifie que le portefeuille a perdu
+jusqu'a 15% depuis son plus haut. Plus le DD est bas, moins la strategie est volatile.</dd>
+
+<dt>Score composite</dt>
+<dd>Note de 0 a 1 combinant Sharpe (40%), rendement (25%), drawdown (20%) et win rate (15%).
+Utilise pour classer et selectionner les meilleures paires actif/strategie.</dd>
+
+<dt>Methodes d'allocation</dt>
+<dd><b>risk_parity</b> : alloue plus aux actifs moins volatils (inverse de la volatilite).<br>
+<b>score_weighted</b> : alloue proportionnellement au score composite.<br>
+<b>equal</b> : repartition egale entre tous les actifs selectionnes.</dd>
+
+<dt>Stop Loss (SL) / Take Profit (TP)</dt>
+<dd>Niveaux automatiques de sortie. Le SL limite les pertes, le TP securise les gains.
+Definit en pourcentage du prix d'entree.</dd>
+</dl>
+</div>""", unsafe_allow_html=True)
 
             except Exception as e:
                 st.error(f"Erreur lecture etat multi-portfolio: {e}")
