@@ -354,7 +354,7 @@ class MultiPaperTrader:
 
         if closed_count > 0:
             self.log.info(f"  >> {closed_count} position(s) fermee(s) par SL/TP")
-            self._save_consolidated()
+        self._save_consolidated()
 
     def _print_comparison(self):
         """Affiche un tableau comparatif des 10 portefeuilles."""
