@@ -2200,53 +2200,53 @@ def main():
                 pnl_cls = "positive" if total_pnl_all >= 0 else "negative"
                 pnl_sign = "+" if total_pnl_all >= 0 else ""
 
-                # Row 1: Value, P&L total, Realized, Unrealized
-                st.markdown(f"""<div class="mpt-kpi-row">
-                    <div class="mpt-kpi-card neutral">
-                        <div class="kpi-label">Capital Investi</div>
-                        <div class="kpi-value">{total_capital_multi:,.0f} EUR</div>
-                        <div class="kpi-sub">{n_portfolios} portefeuilles</div>
-                    </div>
-                    <div class="mpt-kpi-card {pnl_cls}">
-                        <div class="kpi-label">Valeur Totale</div>
-                        <div class="kpi-value">{total_value_all:,.0f} EUR</div>
-                        <div class="kpi-sub">{pnl_sign}{total_pnl_pct:.2f}%</div>
-                    </div>
-                    <div class="mpt-kpi-card {'positive' if total_realized >= 0 else 'negative'}">
-                        <div class="kpi-label">P&L Realise</div>
-                        <div class="kpi-value">{"+" if total_realized >= 0 else ""}{total_realized:,.0f} EUR</div>
-                        <div class="kpi-sub">Gains/pertes encaisses</div>
-                    </div>
-                    <div class="mpt-kpi-card {'positive' if total_unrealized >= 0 else 'negative'}">
-                        <div class="kpi-label">P&L Latent</div>
-                        <div class="kpi-value">{"+" if total_unrealized >= 0 else ""}{total_unrealized:,.0f} EUR</div>
-                        <div class="kpi-sub">Positions encore ouvertes</div>
-                    </div>
-                </div>""", unsafe_allow_html=True)
-
-                # Row 2: Positions, Trades, Best, Worst
+                # Row 1: Capital, Value, P&L Total
                 best_pnl = best_data.get('pnl_pct', 0)
                 worst_pnl = worst_data.get('pnl_pct', 0)
                 st.markdown(f"""<div class="mpt-kpi-row">
                     <div class="mpt-kpi-card neutral">
-                        <div class="kpi-label">Positions Ouvertes</div>
-                        <div class="kpi-value">{total_positions}</div>
-                        <div class="kpi-sub">{total_trades} trades clos</div>
+                        <div class="kpi-label">Capital Investi</div>
+                        <div class="kpi-value">{total_capital_multi:,.0f} EUR</div>
+                        <div class="kpi-sub">{n_portfolios} portefeuilles x {capital_per:,.0f} EUR</div>
+                    </div>
+                    <div class="mpt-kpi-card {pnl_cls}">
+                        <div class="kpi-label">Valeur Actuelle</div>
+                        <div class="kpi-value">{total_value_all:,.0f} EUR</div>
+                        <div class="kpi-sub">{pnl_sign}{total_pnl_all:,.0f} EUR ({pnl_sign}{total_pnl_pct:.2f}%)</div>
+                    </div>
+                    <div class="mpt-kpi-card {'positive' if best_pnl >= 0 else 'negative'}">
+                        <div class="kpi-label">Meilleur</div>
+                        <div class="kpi-value">{best_name}</div>
+                        <div class="kpi-sub">{"+" if best_pnl >= 0 else ""}{best_pnl:.2f}%</div>
+                    </div>
+                    <div class="mpt-kpi-card {'negative' if worst_pnl < 0 else 'neutral'}">
+                        <div class="kpi-label">Plus Faible</div>
+                        <div class="kpi-value">{worst_name}</div>
+                        <div class="kpi-sub">{"+" if worst_pnl >= 0 else ""}{worst_pnl:.2f}%</div>
+                    </div>
+                </div>""", unsafe_allow_html=True)
+
+                # Row 2: Realized, Unrealized (with explicit formula), Positions, Win Rate
+                st.markdown(f"""<div class="mpt-kpi-row">
+                    <div class="mpt-kpi-card {'positive' if total_realized >= 0 else 'negative'}">
+                        <div class="kpi-label">P&L Realise (trades fermes)</div>
+                        <div class="kpi-value">{"+" if total_realized >= 0 else ""}{total_realized:,.0f} EUR</div>
+                        <div class="kpi-sub">{total_trades} trades clotures</div>
+                    </div>
+                    <div class="mpt-kpi-card {'positive' if total_unrealized >= 0 else 'negative'}">
+                        <div class="kpi-label">P&L Latent (positions ouvertes)</div>
+                        <div class="kpi-value">{"+" if total_unrealized >= 0 else ""}{total_unrealized:,.0f} EUR</div>
+                        <div class="kpi-sub">{total_positions} positions en cours</div>
                     </div>
                     <div class="mpt-kpi-card neutral">
                         <div class="kpi-label">Win Rate Moyen</div>
                         <div class="kpi-value">{avg_win_rate:.1f}%</div>
                         <div class="kpi-sub">{portfolios_with_trades}/{n_portfolios} ont trade</div>
                     </div>
-                    <div class="mpt-kpi-card positive">
-                        <div class="kpi-label">Meilleur Portefeuille</div>
-                        <div class="kpi-value">{best_name}</div>
-                        <div class="kpi-sub">{"+" if best_pnl >= 0 else ""}{best_pnl:.2f}%</div>
-                    </div>
-                    <div class="mpt-kpi-card negative">
-                        <div class="kpi-label">Plus Faible</div>
-                        <div class="kpi-value">{worst_name}</div>
-                        <div class="kpi-sub">{"+" if worst_pnl >= 0 else ""}{worst_pnl:.2f}%</div>
+                    <div class="mpt-kpi-card neutral">
+                        <div class="kpi-label">Cycles Executes</div>
+                        <div class="kpi-value">{max(p.get('cycle_count', 0) for p in portfolios.values()) if portfolios else 0}</div>
+                        <div class="kpi-sub">signaux generes</div>
                     </div>
                 </div>""", unsafe_allow_html=True)
 
