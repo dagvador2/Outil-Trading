@@ -117,6 +117,36 @@ class PaperPosition:
 
 
 @dataclass
+class PendingOrder:
+    """Ordre en attente: le signal est genere mais on attend un meilleur prix d'entree."""
+    symbol: str
+    side: str                    # 'LONG' ou 'SHORT'
+    signal_price: float          # Prix au moment du signal
+    target_entry_price: float    # Prix cible d'entree (support/resistance)
+    strategy: str
+    allocation_pct: float
+    stop_loss_pct: float
+    take_profit_pct: float
+    created_time: str            # ISO timestamp
+    confidence: float
+
+    def should_fill(self, current_price: float) -> bool:
+        """Verifie si le prix actuel atteint le prix cible."""
+        if self.side == 'LONG':
+            return current_price <= self.target_entry_price
+        else:  # SHORT
+            return current_price >= self.target_entry_price
+
+    def is_expired(self, max_days: int = 7) -> bool:
+        """Verifie si l'ordre a expire (> max_days jours)."""
+        try:
+            created = datetime.fromisoformat(self.created_time)
+            return (datetime.now() - created).days >= max_days
+        except Exception:
+            return False
+
+
+@dataclass
 class ClosedTrade:
     symbol: str
     side: str
@@ -249,6 +279,7 @@ class AutoPaperTrader:
         # State
         self.cash = total_capital
         self.positions: Dict[str, PaperPosition] = {}
+        self.pending_orders: Dict[str, PendingOrder] = {}
         self.closed_trades: List[ClosedTrade] = []
         self.plan: Optional[TradingPlan] = None
         self.strategy_instances: Dict[str, Any] = {}
@@ -332,6 +363,7 @@ class AutoPaperTrader:
 
         self.log.info(f"  Capital: {self.cash:,.2f} EUR | "
                       f"Positions: {len(self.positions)} | "
+                      f"Pending: {len(self.pending_orders)} | "
                       f"Trades clos: {len(self.closed_trades)}")
         return True
 
@@ -378,7 +410,10 @@ class AutoPaperTrader:
         # 1. Verifier SL/TP des positions ouvertes
         self._check_positions()
 
-        # 2. Generer signaux et trader
+        # 2. Verifier les pending orders (fills + expirations)
+        self._check_pending_orders()
+
+        # 3. Generer signaux et trader
         for assignment in self.plan.assignments:
             symbol = assignment.asset
             strategy = self.strategy_instances.get(symbol)
@@ -392,7 +427,7 @@ class AutoPaperTrader:
             except Exception as e:
                 self.log.warning(f"  {symbol}: erreur signal - {e}")
 
-        # 3. Sauvegarder
+        # 4. Sauvegarder
         self._save_state()
 
     # ------------------------------------------------------------------ #
@@ -512,6 +547,174 @@ class AutoPaperTrader:
             return 0.5
 
     # ------------------------------------------------------------------ #
+    # Pending Orders                                                       #
+    # ------------------------------------------------------------------ #
+
+    def _calculate_entry_target(self, symbol: str, side: str, current_price: float) -> float:
+        """Calcule un prix cible d'entree base sur support/resistance.
+
+        Pour un LONG: on vise un prix plus bas (support, Bollinger inferieure, recent low).
+        Pour un SHORT: on vise un prix plus haut (resistance, Bollinger superieure, recent high).
+        """
+        yahoo_sym = convert_to_yahoo_symbol(symbol)
+        try:
+            data = yf.Ticker(yahoo_sym).history(period='6mo', interval='1d')
+            if len(data) < 20:
+                # Pas assez de donnees: fallback a un pullback de 1%
+                if side == 'LONG':
+                    return _smart_round(current_price * 0.99)
+                return _smart_round(current_price * 1.01)
+
+            data.columns = [c.lower() for c in data.columns]
+
+            # 1. Bollinger Bands (20, 2)
+            bb = TechnicalIndicators.bollinger_bands(data['close'], 20, 2)
+            bb_lower = float(bb['lower'].iloc[-1])
+            bb_upper = float(bb['upper'].iloc[-1])
+
+            # 2. Recent swing low/high (20 derniers jours)
+            recent_low = float(data['low'].tail(20).min())
+            recent_high = float(data['high'].tail(20).max())
+
+            # 3. ATR pour un pullback adaptatif
+            atr_val = float(TechnicalIndicators.atr(
+                data['high'], data['low'], data['close'], 14
+            ).iloc[-1])
+
+            if side == 'LONG':
+                # Pour un achat: on veut entrer plus bas
+                # Cibles candidates: BB lower, recent low, prix - 0.5*ATR
+                atr_target = current_price - 0.5 * atr_val
+                candidates = [bb_lower, recent_low, atr_target]
+                # Prendre le plus haut des candidats (le plus conservateur / atteignable)
+                target = max(candidates)
+                # Ne jamais viser plus haut que le prix actuel
+                target = min(target, current_price * 0.995)
+            else:
+                # Pour un short: on veut entrer plus haut
+                atr_target = current_price + 0.5 * atr_val
+                candidates = [bb_upper, recent_high, atr_target]
+                # Prendre le plus bas des candidats (le plus atteignable)
+                target = min(candidates)
+                # Ne jamais viser plus bas que le prix actuel
+                target = max(target, current_price * 1.005)
+
+            return _smart_round(target)
+
+        except Exception as e:
+            self.log.warning(f"  {symbol}: erreur calcul target, fallback 1% ({e})")
+            if side == 'LONG':
+                return _smart_round(current_price * 0.99)
+            return _smart_round(current_price * 1.01)
+
+    def _create_pending_order(self, symbol: str, sig: Dict, assignment) -> PendingOrder:
+        """Cree un ordre en attente a partir d'un signal."""
+        signal_type = sig['signal']
+        price = sig['current_price']
+        side = 'LONG' if signal_type == 'BUY' else 'SHORT'
+
+        target = self._calculate_entry_target(symbol, side, price)
+
+        rp = self.plan.risk_params.get(symbol)
+        sl_pct = rp.stop_loss_pct if rp else 5.0
+        tp_pct = rp.take_profit_pct if rp else 10.0
+
+        return PendingOrder(
+            symbol=symbol,
+            side=side,
+            signal_price=price,
+            target_entry_price=target,
+            strategy=assignment.strategy_name,
+            allocation_pct=assignment.allocation_pct,
+            stop_loss_pct=sl_pct,
+            take_profit_pct=tp_pct,
+            created_time=datetime.now().isoformat(),
+            confidence=sig['confidence'],
+        )
+
+    def _check_pending_orders(self):
+        """Verifie si les ordres en attente doivent etre executes ou expires."""
+        if not self.pending_orders:
+            return
+
+        orders_to_fill = []
+        orders_to_cancel = []
+
+        for symbol, order in self.pending_orders.items():
+            # 1. Verifier expiration (7 jours)
+            if order.is_expired(max_days=7):
+                orders_to_cancel.append((symbol, 'EXPIRED_7D'))
+                continue
+
+            # 2. Verifier si le prix cible est atteint
+            yahoo_sym = convert_to_yahoo_symbol(symbol)
+            try:
+                data = yf.Ticker(yahoo_sym).history(period='1d', interval='1d')
+                if len(data) == 0:
+                    continue
+                data.columns = [c.lower() for c in data.columns]
+                current_price = float(data['close'].iloc[-1])
+
+                if order.should_fill(current_price):
+                    orders_to_fill.append((symbol, current_price))
+            except Exception:
+                continue
+
+        # Executer les fills
+        for symbol, fill_price in orders_to_fill:
+            self._fill_pending_order(symbol, fill_price)
+
+        # Annuler les expires
+        for symbol, reason in orders_to_cancel:
+            order = self.pending_orders.pop(symbol)
+            self.log.info(
+                f"  >> CANCEL {order.side} {symbol} pending @ {_fmt_price(order.target_entry_price)} "
+                f"({reason}, signal price was {_fmt_price(order.signal_price)})"
+            )
+
+    def _fill_pending_order(self, symbol: str, fill_price: float):
+        """Execute un pending order: le convertit en position ouverte."""
+        order = self.pending_orders.pop(symbol, None)
+        if not order:
+            return
+
+        # Calculer la taille de position au prix de fill reel
+        alloc_pct = order.allocation_pct
+        position_value = self.total_capital * (alloc_pct / 100.0)
+        position_value = min(position_value, self.cash * 0.95)
+        if position_value < 1:
+            self.log.info(f"  {symbol}: SKIP fill - cash insuffisant")
+            return
+
+        quantity = position_value / fill_price
+
+        # SL/TP calcules sur le prix de fill reel (pas le prix du signal)
+        if order.side == 'LONG':
+            stop_loss = fill_price * (1 - order.stop_loss_pct / 100)
+            take_profit = fill_price * (1 + order.take_profit_pct / 100)
+        else:
+            stop_loss = fill_price * (1 + order.stop_loss_pct / 100)
+            take_profit = fill_price * (1 - order.take_profit_pct / 100)
+
+        pos = PaperPosition(
+            symbol=symbol, side=order.side, entry_price=fill_price, quantity=quantity,
+            entry_time=datetime.now().isoformat(),
+            stop_loss=_smart_round(stop_loss), take_profit=_smart_round(take_profit),
+            strategy=order.strategy, allocation_pct=alloc_pct,
+        )
+
+        self.positions[symbol] = pos
+        self.cash -= position_value
+
+        improvement = abs(fill_price - order.signal_price) / order.signal_price * 100
+        self.log.info(
+            f"  >> FILL {order.side} {symbol} @ {_fmt_price(fill_price)} "
+            f"(target: {_fmt_price(order.target_entry_price)}, signal: {_fmt_price(order.signal_price)}, "
+            f"amelioration: {improvement:.2f}%, val: {position_value:,.2f} EUR, "
+            f"SL: {_fmt_price(stop_loss)}, TP: {_fmt_price(take_profit)})"
+        )
+
+    # ------------------------------------------------------------------ #
     # Trading                                                              #
     # ------------------------------------------------------------------ #
 
@@ -522,28 +725,58 @@ class AutoPaperTrader:
 
         self.log.info(f"  {symbol}: signal={signal_type}, confidence={confidence:.2f}, price={_fmt_price(price)}")
 
+        # Si position deja ouverte: gerer le signal oppose
         if symbol in self.positions:
             pos = self.positions[symbol]
             if (pos.side == 'LONG' and signal_type == 'SELL') or \
                (pos.side == 'SHORT' and signal_type == 'BUY'):
                 self._close_position(symbol, price, 'SIGNAL_EXIT')
+                # Annuler aussi le pending order eventuel
+                self.pending_orders.pop(symbol, None)
             else:
                 self.log.info(f"  {symbol}: SKIP - position {pos.side} deja ouverte (signal={signal_type})")
             return
 
+        # Si pending order existe deja pour ce symbol
+        if symbol in self.pending_orders:
+            existing = self.pending_orders[symbol]
+            new_side = 'LONG' if signal_type == 'BUY' else 'SHORT'
+            if signal_type == 'HOLD' or new_side != existing.side:
+                # Signal change ou HOLD: annuler le pending
+                self.pending_orders.pop(symbol)
+                self.log.info(f"  {symbol}: CANCEL pending {existing.side} (signal devenu {signal_type})")
+                if signal_type == 'HOLD':
+                    return
+                # Continuer pour potentiellement creer un nouveau pending
+            else:
+                self.log.info(f"  {symbol}: SKIP - pending {existing.side} deja actif "
+                              f"(target={_fmt_price(existing.target_entry_price)})")
+                return
+
         if signal_type == 'HOLD':
-            self.log.info(f"  {symbol}: SKIP - signal HOLD")
             return
 
         if confidence < self.min_confidence:
             self.log.info(f"  {symbol}: SKIP - confiance trop basse ({confidence:.2f} < {self.min_confidence})")
             return
 
-        if len(self.positions) >= self.max_positions:
-            self.log.info(f"  {symbol}: SKIP - max positions atteint ({len(self.positions)}/{self.max_positions})")
+        # Compter positions + pending pour le max
+        total_engaged = len(self.positions) + len(self.pending_orders)
+        if total_engaged >= self.max_positions:
+            self.log.info(f"  {symbol}: SKIP - max positions atteint "
+                          f"({len(self.positions)} ouvertes + {len(self.pending_orders)} pending "
+                          f"= {total_engaged}/{self.max_positions})")
             return
 
-        self._open_position(symbol, signal_type, price, assignment)
+        # Creer un pending order (au lieu d'entrer immediatement)
+        pending = self._create_pending_order(symbol, sig, assignment)
+        self.pending_orders[symbol] = pending
+        self.log.info(
+            f"  >> PENDING {pending.side} {symbol}: "
+            f"target={_fmt_price(pending.target_entry_price)} "
+            f"(prix actuel: {_fmt_price(price)}, "
+            f"amelioration visee: {abs(price - pending.target_entry_price) / price * 100:.1f}%)"
+        )
 
     def _open_position(self, symbol: str, signal_type: str, price: float, assignment):
         alloc_pct = assignment.allocation_pct
@@ -611,12 +844,18 @@ class AutoPaperTrader:
         )
 
     def check_sl_tp(self):
-        """Verifie uniquement les SL/TP des positions ouvertes et sauvegarde.
+        """Verifie SL/TP des positions ouvertes + pending orders et sauvegarde.
         Methode publique pour les checks rapides entre les cycles de signaux."""
-        if not self.positions:
+        if not self.positions and not self.pending_orders:
             return
-        self.log.info(f"  [{self.portfolio_name}] Check SL/TP ({len(self.positions)} positions)")
+        parts = []
+        if self.positions:
+            parts.append(f"{len(self.positions)} positions")
+        if self.pending_orders:
+            parts.append(f"{len(self.pending_orders)} pending")
+        self.log.info(f"  [{self.portfolio_name}] Check SL/TP ({', '.join(parts)})")
         self._check_positions()
+        self._check_pending_orders()
         self._save_state()
 
     def _check_positions(self):
@@ -673,6 +912,7 @@ class AutoPaperTrader:
             'pnl_pct': round(total_pnl / self.total_capital * 100, 2) if self.total_capital > 0 else 0,
             'realized_pnl': round(realized_pnl, 2),
             'positions': len(self.positions),
+            'pending_orders': len(self.pending_orders),
             'max_positions': self.max_positions,
             'trades_closed': n_trades,
             'win_rate': round(win_rate, 1),
@@ -694,6 +934,7 @@ class AutoPaperTrader:
             'cycle_count': self.cycle_count,
             'last_update': datetime.now().isoformat(),
             'positions': {sym: asdict(pos) for sym, pos in self.positions.items()},
+            'pending_orders': {sym: asdict(o) for sym, o in self.pending_orders.items()},
             'closed_trades_count': len(self.closed_trades),
         }
 
@@ -717,6 +958,9 @@ class AutoPaperTrader:
 
             for sym, pos_dict in state.get('positions', {}).items():
                 self.positions[sym] = PaperPosition(**pos_dict)
+
+            for sym, ord_dict in state.get('pending_orders', {}).items():
+                self.pending_orders[sym] = PendingOrder(**ord_dict)
 
             if os.path.exists(self.trades_file):
                 df = pd.read_csv(self.trades_file)

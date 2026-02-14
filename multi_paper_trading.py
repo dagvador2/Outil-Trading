@@ -267,24 +267,20 @@ class MultiPaperTrader:
     def run(self):
         """Boucle infinie avec deux frequences:
         - Signaux (run_cycle): 1x par jour a signal_hour_utc (defaut: 22h UTC)
-          + 1 cycle immediat au demarrage
-        - SL/TP (run_sltp_cycle): toutes les sltp_interval minutes (defaut: 2 min)
+        - SL/TP + pending orders: toutes les sltp_interval minutes (defaut: 2 min)
         """
         self.log.info(f"\nDemarrage boucle:")
-        self.log.info(f"  Signaux: 1x/jour a {self.signal_hour_utc}:00 UTC + au demarrage")
-        self.log.info(f"  SL/TP:   toutes les {self.sltp_interval} min")
+        self.log.info(f"  Signaux: 1x/jour a {self.signal_hour_utc}:00 UTC")
+        self.log.info(f"  SL/TP + pending: toutes les {self.sltp_interval} min")
         self.log.info("Ctrl+C pour arreter proprement.\n")
 
-        # Premier cycle complet immediat
-        self.run_cycle()
+        # Au demarrage: pas de cycle signal immediat (evite les entrees non planifiees)
+        # On commence directement en mode SL/TP + pending orders
         now_utc = datetime.utcnow()
-        if now_utc.hour < self.signal_hour_utc:
-            # Demarrage avant l'heure de signal: ne pas compter comme cycle du jour
-            # pour que le cycle de 22h se declenche quand meme
-            last_signal_date = (now_utc - timedelta(days=1)).strftime('%Y-%m-%d')
-        else:
-            # Demarrage apres l'heure de signal: compte comme cycle du jour
+        if now_utc.hour >= self.signal_hour_utc:
             last_signal_date = now_utc.strftime('%Y-%m-%d')
+        else:
+            last_signal_date = (now_utc - timedelta(days=1)).strftime('%Y-%m-%d')
 
         while self._running:
             try:
@@ -363,9 +359,9 @@ class MultiPaperTrader:
         self.log.info(f"{'='*70}")
 
         header = (f"{'#':>2} {'Nom':<18} {'Valeur':>10} {'P&L':>10} {'P&L%':>7} "
-                  f"{'Pos':>4} {'Trades':>6} {'WR%':>5}")
+                  f"{'Pos':>4} {'Pend':>4} {'Trades':>6} {'WR%':>5}")
         self.log.info(header)
-        self.log.info("-" * 70)
+        self.log.info("-" * 75)
 
         statuses = []
         for i, trader in enumerate(self.traders, 1):
@@ -373,12 +369,14 @@ class MultiPaperTrader:
                 s = trader.get_status()
                 statuses.append(s)
                 pnl_sign = '+' if s['pnl'] >= 0 else ''
+                pending = s.get('pending_orders', 0)
                 line = (
                     f"{i:>2} {s['portfolio_name']:<18} "
                     f"{s['total_value']:>10,.2f} "
                     f"{pnl_sign}{s['pnl']:>9,.2f} "
                     f"{pnl_sign}{s['pnl_pct']:>6.2f}% "
                     f"{s['positions']:>3}/{s['max_positions']:<1} "
+                    f"{pending:>4} "
                     f"{s['trades_closed']:>5} "
                     f"{s['win_rate']:>5.1f}"
                 )
@@ -421,6 +419,7 @@ class MultiPaperTrader:
                     'pnl_pct': s['pnl_pct'],
                     'realized_pnl': s['realized_pnl'],
                     'positions': s['positions'],
+                    'pending_orders': s.get('pending_orders', 0),
                     'max_positions': s['max_positions'],
                     'trades_closed': s['trades_closed'],
                     'win_rate': s['win_rate'],
