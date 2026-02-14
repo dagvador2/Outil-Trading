@@ -3183,52 +3183,82 @@ Definit en pourcentage du prix d'entree.</dd>
 
         try:
             from macro_events import MacroEventsDatabase
+            from news_fetcher import MacroNewsAggregator, RSSFeedFetcher
             macro_db = MacroEventsDatabase()
             events_df = macro_db.get_events_df()
+            aggregator = MacroNewsAggregator()
 
             # ==============================================================
-            # Section 1 : Contexte macro actuel
+            # Fetch & Score RSS signals (needed for Section 1 metrics)
             # ==============================================================
-            st.subheader("🌍 Contexte Macro Actuel")
+            rss_headlines = []
+            scored_signals = []
 
-            # Sentiment sur les 90 derniers jours
+            try:
+                rss = RSSFeedFetcher()
+                for feed_name in ['fed_news', 'coindesk', 'cnbc_markets']:
+                    try:
+                        entries = rss.fetch_feed(feed_name, max_entries=5)
+                        rss_headlines.extend(entries)
+                    except Exception:
+                        pass
+
+                # Parse dates (tz-naive)
+                for h in rss_headlines:
+                    try:
+                        parsed = pd.to_datetime(h.get('published', ''))
+                        if parsed.tzinfo is not None:
+                            parsed = parsed.tz_localize(None)
+                        h['_parsed_date'] = parsed
+                    except Exception:
+                        h['_parsed_date'] = pd.Timestamp.now()
+                rss_headlines.sort(key=lambda x: x['_parsed_date'], reverse=True)
+
+                # Score each headline via MacroNewsAggregator
+                for entry in rss_headlines:
+                    signal = aggregator._rss_to_signal(entry, affected_assets=['all'])
+                    if signal:
+                        scored_signals.append(signal)
+            except Exception as e:
+                st.warning(f"Erreur fetch RSS : {e}")
+
+            # ==============================================================
+            # Section 1 : Contexte macro actuel (LIVE)
+            # ==============================================================
+            st.subheader("🌍 Contexte Macro Actuel (Live)")
+
             now = datetime.now()
-            d90_ago = (now - timedelta(days=90)).strftime('%Y-%m-%d')
-            d30_ago = (now - timedelta(days=30)).strftime('%Y-%m-%d')
-            now_str = now.strftime('%Y-%m-%d')
 
-            sentiment_90d = macro_db.get_sentiment_score(d90_ago, now_str, asset='all')
-            sentiment_30d = macro_db.get_sentiment_score(d30_ago, now_str, asset='all')
+            if scored_signals:
+                # Calculate metrics from scored signals
+                scores_list = [s.impact_score for s in scored_signals]
+                avg_impact = np.mean(scores_list)
+                positive_count = sum(1 for s in scores_list if s > 2)
+                negative_count = sum(1 for s in scores_list if s < -2)
+                neutral_count = len(scores_list) - positive_count - negative_count
 
-            # Déterminer couleur et label du sentiment
-            def _sentiment_display(sentiment_info):
-                s = sentiment_info['sentiment']
-                avg = sentiment_info['avg_impact']
-                labels = {
-                    'very_bullish': ('Tres Haussier', '#00C853'),
-                    'bullish': ('Haussier', '#66BB6A'),
-                    'neutral': ('Neutre', '#9E9E9E'),
-                    'bearish': ('Baissier', '#FF7043'),
-                    'very_bearish': ('Tres Baissier', '#D32F2F'),
-                }
-                label, color = labels.get(s, ('Neutre', '#9E9E9E'))
-                return label, color, avg
+                # Determine sentiment label
+                if avg_impact > 5:
+                    sentiment_label, sentiment_color = 'Tres Haussier', '#00C853'
+                elif avg_impact > 2:
+                    sentiment_label, sentiment_color = 'Haussier', '#66BB6A'
+                elif avg_impact > -2:
+                    sentiment_label, sentiment_color = 'Neutre', '#9E9E9E'
+                elif avg_impact > -5:
+                    sentiment_label, sentiment_color = 'Baissier', '#FF7043'
+                else:
+                    sentiment_label, sentiment_color = 'Tres Baissier', '#D32F2F'
 
-            label_30, color_30, avg_30 = _sentiment_display(sentiment_30d)
-            label_90, color_90, avg_90 = _sentiment_display(sentiment_90d)
+                col1, col2, col3, col4 = st.columns(4)
+                col1.metric("Sentiment Live", sentiment_label, f"{avg_impact:+.1f}")
+                col2.metric("Signaux RSS", len(scored_signals))
+                col3.metric("Haussiers / Baissiers", f"{positive_count} / {negative_count}")
+                col4.metric("Neutres", neutral_count)
 
-            col1, col2, col3, col4 = st.columns(4)
-            col1.metric("Sentiment 30j", label_30, f"{avg_30:+.1f}")
-            col2.metric("Evenements 30j", sentiment_30d['num_events'])
-            col3.metric("Sentiment 90j", label_90, f"{avg_90:+.1f}")
-            col4.metric("Evenements 90j", sentiment_90d['num_events'])
-
-            # Derniers evenements
-            recent_events = events_df[events_df['date'] >= d30_ago].sort_values('date', ascending=False)
-            if len(recent_events) > 0:
-                st.markdown("**Derniers evenements :**")
-                for _, ev in recent_events.head(5).iterrows():
-                    score = ev['impact_score']
+                # Recent signals preview (top 5)
+                st.markdown("**Derniers signaux :**")
+                for sig in scored_signals[:5]:
+                    score = sig.impact_score
                     if score >= 5:
                         icon = "🟢"
                     elif score >= 1:
@@ -3239,16 +3269,57 @@ Definit en pourcentage du prix d'entree.</dd>
                         icon = "🟠"
                     else:
                         icon = "🔴"
-                    date_str = ev['date'].strftime('%d/%m/%Y') if hasattr(ev['date'], 'strftime') else str(ev['date'])[:10]
-                    st.markdown(f"{icon} **{date_str}** - {ev['title']} ({ev['category']}) &nbsp; Impact: **{score:+.0f}**/10")
+                    date_str = sig.timestamp.strftime('%d/%m %H:%M') if hasattr(sig.timestamp, 'strftime') else 'N/A'
+                    sentiment_fr = {'bullish': 'Haussier', 'bearish': 'Baissier', 'neutral': 'Neutre'}.get(sig.sentiment, 'Neutre')
+                    st.markdown(f"{icon} **{date_str}** - {sig.title[:80]} ({sig.category}) &nbsp; Impact: **{score:+.1f}**/10 &nbsp; *{sentiment_fr}*")
             else:
-                st.info("Aucun evenement macro dans les 30 derniers jours.")
+                st.info("Aucun signal live disponible (connexion internet requise).")
 
             # ==============================================================
-            # Section 2 : Signaux Live (RSS + Fear&Greed + FRED)
+            # Section 2 : Signaux Live (Score Composite + Fear&Greed + FRED)
             # ==============================================================
             st.markdown("---")
             st.subheader("📡 Signaux Live")
+
+            # --- Score Macro Composite ---
+            if scored_signals:
+                weighted_sum = 0.0
+                total_weight = 0.0
+                now_naive = datetime.now()
+                for signal in scored_signals:
+                    ts = signal.timestamp
+                    if hasattr(ts, 'tzinfo') and ts.tzinfo is not None:
+                        ts = ts.tz_localize(None) if hasattr(ts, 'tz_localize') else ts.replace(tzinfo=None)
+                    hours_old = max(0, (now_naive - ts).total_seconds() / 3600)
+                    time_decay = max(0.3, 1.0 - (hours_old / 48))
+                    weight = signal.confidence * time_decay
+                    weighted_sum += signal.impact_score * weight
+                    total_weight += weight
+
+                composite_score = (weighted_sum / total_weight) * 10 if total_weight > 0 else 0
+                composite_score = np.clip(composite_score, -100, 100)
+
+                if composite_score > 30:
+                    rec_label, rec_color = "Haussier", "#00C853"
+                elif composite_score > 10:
+                    rec_label, rec_color = "Leg. Haussier", "#66BB6A"
+                elif composite_score > -10:
+                    rec_label, rec_color = "Neutre", "#9E9E9E"
+                elif composite_score > -30:
+                    rec_label, rec_color = "Leg. Baissier", "#FF7043"
+                else:
+                    rec_label, rec_color = "Baissier", "#D32F2F"
+
+                sc1, sc2, sc3 = st.columns(3)
+                sc1.metric("Score Composite", f"{composite_score:+.1f} / 100")
+                sc2.markdown(f"**Recommandation :**")
+                sc2.markdown(f"<h3 style='color: {rec_color}; margin-top: -10px;'>{rec_label}</h3>", unsafe_allow_html=True)
+                sc3.markdown(f"**{len(scored_signals)}** signaux analyses &nbsp; | &nbsp; "
+                             f"🟢 {sum(1 for s in scored_signals if s.impact_score > 2)} &nbsp; "
+                             f"🔴 {sum(1 for s in scored_signals if s.impact_score < -2)} &nbsp; "
+                             f"⚪ {sum(1 for s in scored_signals if -2 <= s.impact_score <= 2)}")
+
+                st.markdown("---")
 
             live_col1, live_col2 = st.columns(2)
 
@@ -3346,48 +3417,45 @@ Definit en pourcentage du prix d'entree.</dd>
                 except Exception as e:
                     st.warning(f"FRED non disponible : {e}")
 
-            # --- RSS News Headlines ---
-            st.markdown("**Dernieres News (RSS - Bloomberg, Reuters, Fed, CoinDesk)**")
-            try:
-                from news_fetcher import RSSFeedFetcher
-                rss = RSSFeedFetcher()
+            # --- RSS News Headlines avec scoring ---
+            st.markdown("---")
+            st.markdown("**📰 News RSS Scorees (Fed, CoinDesk, CNBC)**")
 
-                # Recuperer les news de 2-3 feeds principaux (pas tous pour eviter la lenteur)
-                rss_headlines = []
-                for feed_name in ['fed_news', 'coindesk', 'cnbc_markets']:
-                    try:
-                        entries = rss.fetch_feed(feed_name, max_entries=5)
-                        rss_headlines.extend(entries)
-                    except Exception:
-                        pass
+            if scored_signals:
+                with st.expander(f"📡 {len(scored_signals)} signaux RSS scores", expanded=True):
+                    for signal in scored_signals[:15]:
+                        # Badge sentiment
+                        if signal.sentiment == 'bullish':
+                            badge = "🟢 HAUSSIER"
+                            badge_color = "#00C853"
+                        elif signal.sentiment == 'bearish':
+                            badge = "🔴 BAISSIER"
+                            badge_color = "#D32F2F"
+                        else:
+                            badge = "⚪ NEUTRE"
+                            badge_color = "#9E9E9E"
 
-                if rss_headlines:
-                    # Trier par date (forcer tz-naive pour eviter erreur de comparaison)
-                    for h in rss_headlines:
-                        try:
-                            parsed = pd.to_datetime(h.get('published', ''))
-                            if parsed.tzinfo is not None:
-                                parsed = parsed.tz_localize(None)
-                            h['_parsed_date'] = parsed
-                        except Exception:
-                            h['_parsed_date'] = pd.Timestamp.now()
-                    rss_headlines.sort(key=lambda x: x['_parsed_date'], reverse=True)
+                        source_tag = signal.source.replace('_', ' ').title()
+                        date_display = signal.timestamp.strftime('%d/%m %H:%M') if hasattr(signal.timestamp, 'strftime') else ''
 
-                    with st.expander(f"📰 {len(rss_headlines)} headlines recentes", expanded=False):
-                        for h in rss_headlines[:15]:
-                            source_tag = h.get('source', 'rss').replace('_', ' ').title()
-                            date_display = h['_parsed_date'].strftime('%d/%m %H:%M') if hasattr(h['_parsed_date'], 'strftime') else ''
-                            st.markdown(f"- **[{source_tag}]** {h.get('title', 'N/A')} _{date_display}_")
-                else:
-                    st.info("Aucune headline RSS recuperee (connexion internet requise)")
-            except Exception as e:
-                st.warning(f"RSS non disponible : {e}")
+                        st.markdown(
+                            f"**[{source_tag}]** {signal.title}  \n"
+                            f"<span style='background-color: {badge_color}; color: white; padding: 2px 8px; "
+                            f"border-radius: 4px; font-size: 0.8em;'>{badge}</span> "
+                            f"<span style='color: {badge_color}; font-weight: bold;'>Impact: {signal.impact_score:+.1f}/10</span> "
+                            f"<span style='color: #888; font-size: 0.9em;'>| {signal.category.upper()} | {date_display}</span>",
+                            unsafe_allow_html=True
+                        )
+                        st.markdown("")
+            else:
+                st.info("Aucun signal RSS recupere (connexion internet requise)")
 
             # ==============================================================
-            # Section 3 : Timeline des evenements macro (historiques)
+            # Section 3 : Timeline des evenements macro (archive 2024-2025)
             # ==============================================================
             st.markdown("---")
-            st.subheader("📅 Timeline des Evenements Macro (Historique)")
+            st.subheader("📅 Evenements Macro Historiques (Archive 2024-2025)")
+            st.caption("Cette section affiche les evenements macro historiques manuellement enregistres (2024-2025). Les signaux live sont dans les sections ci-dessus.")
 
             # Filtres
             col_f1, col_f2, col_f3 = st.columns([1, 1, 2])
