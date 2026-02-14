@@ -296,12 +296,22 @@ class RSSFeedFetcher:
     """
 
     FEEDS = {
+        # --- Macro / General ---
         'bloomberg_markets': 'https://feeds.bloomberg.com/markets/news.rss',
         'reuters_business': 'http://feeds.reuters.com/reuters/businessNews',
         'cnbc_markets': 'https://www.cnbc.com/id/100003114/device/rss/rss.html',
         'marketwatch': 'http://feeds.marketwatch.com/marketwatch/topstories/',
-        'coindesk': 'https://www.coindesk.com/arc/outboundfeeds/rss/',
+        'yahoo_finance': 'https://finance.yahoo.com/news/rssindex',
+        'investing_com': 'https://www.investing.com/rss/news.rss',
+        'seeking_alpha': 'https://seekingalpha.com/market_currents.xml',
+        'google_news_business': 'https://news.google.com/rss/topics/CAAqJggKIiBDQkFTRWdvSUwyMHZNRGx6TVdZU0FtWnlHZ0pHVWlnQVAB?hl=fr&gl=FR&ceid=FR:fr',
+        # --- Central Banks ---
         'fed_news': 'https://www.federalreserve.gov/feeds/press_all.xml',
+        'ecb_news': 'https://www.ecb.europa.eu/rss/press.html',
+        # --- Crypto ---
+        'coindesk': 'https://www.coindesk.com/arc/outboundfeeds/rss/',
+        'cointelegraph': 'https://cointelegraph.com/rss',
+        'the_block': 'https://www.theblock.co/rss.xml',
     }
 
     def fetch_feed(self, feed_name: str, max_entries: int = 50) -> List[Dict]:

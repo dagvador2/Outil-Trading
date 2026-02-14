@@ -3196,9 +3196,9 @@ Definit en pourcentage du prix d'entree.</dd>
 
             try:
                 rss = RSSFeedFetcher()
-                for feed_name in ['fed_news', 'coindesk', 'cnbc_markets']:
+                for feed_name in rss.FEEDS.keys():
                     try:
-                        entries = rss.fetch_feed(feed_name, max_entries=5)
+                        entries = rss.fetch_feed(feed_name, max_entries=3)
                         rss_headlines.extend(entries)
                     except Exception:
                         pass
@@ -3419,7 +3419,7 @@ Definit en pourcentage du prix d'entree.</dd>
 
             # --- RSS News Headlines avec scoring ---
             st.markdown("---")
-            st.markdown("**📰 News RSS Scorees (Fed, CoinDesk, CNBC)**")
+            st.markdown("**📰 News RSS Scorees (13 sources : Bloomberg, Reuters, CNBC, Yahoo, Investing, CoinDesk, Fed, ECB...)**")
 
             if scored_signals:
                 with st.expander(f"📡 {len(scored_signals)} signaux RSS scores", expanded=True):
