@@ -63,7 +63,7 @@ optimization_results_*.csv
 *.html
 
 # SQLite database
-data/
+/data/
 
 # Logs
 *.log
