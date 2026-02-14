@@ -50,6 +50,8 @@ paper_trading_portfolio.json
 paper_trading_state/
 signals_history.csv
 trading_plan_*.json
+signals_cache/
+auto_trades*.csv
 
 # Generated CSV (sauf RESULTS_2024_2025_COMPLETE.csv)
 trades_*.csv
@@ -59,6 +61,9 @@ optimization_results_*.csv
 
 # Generated HTML dashboards
 *.html
+
+# SQLite database
+data/
 
 # Logs
 *.log

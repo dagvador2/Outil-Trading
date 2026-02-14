@@ -5,9 +5,9 @@ Ajustent les signaux en fonction des événements macroéconomiques
 
 import pandas as pd
 import numpy as np
-from strategies import BaseStrategy
-from indicators import TechnicalIndicators
-from macro_events import MacroEventsDatabase
+from src.strategies.base import BaseStrategy
+from src.indicators.technical import TechnicalIndicators
+from src.signals.macro_events import MacroEventsDatabase
 
 
 class EventAwareStrategy(BaseStrategy):
@@ -111,7 +111,7 @@ class EventFilteredMAStrategy(EventAwareStrategy):
 
     def __init__(self, fast_period: int = 20, slow_period: int = 50,
                  event_sensitivity: float = 1.0, asset_type: str = 'all'):
-        from strategies import MovingAverageCrossover
+        from src.strategies.base import MovingAverageCrossover
         base = MovingAverageCrossover(fast_period, slow_period)
         name = f"Event-Aware MA ({fast_period}/{slow_period})"
         super().__init__(name, base, event_sensitivity, asset_type)
@@ -124,7 +124,7 @@ class EventFilteredRSIStrategy(EventAwareStrategy):
 
     def __init__(self, period: int = 14, oversold: int = 30, overbought: int = 70,
                  event_sensitivity: float = 1.0, asset_type: str = 'all'):
-        from strategies import RSIStrategy
+        from src.strategies.base import RSIStrategy
         base = RSIStrategy(period, oversold, overbought)
         name = f"Event-Aware RSI ({period}, {oversold}/{overbought})"
         super().__init__(name, base, event_sensitivity, asset_type)
@@ -136,7 +136,7 @@ class EventFilteredCombinedStrategy(EventAwareStrategy):
     """
 
     def __init__(self, event_sensitivity: float = 1.0, asset_type: str = 'all'):
-        from strategies import CombinedStrategy
+        from src.strategies.base import CombinedStrategy
         base = CombinedStrategy()
         name = f"Event-Aware Combined"
         super().__init__(name, base, event_sensitivity, asset_type)

@@ -5,8 +5,8 @@ Total : 7 existantes + 3 nouvelles = 10 stratégies
 
 import pandas as pd
 import numpy as np
-from strategies import BaseStrategy
-from indicators import TechnicalIndicators
+from src.strategies.base import BaseStrategy
+from src.indicators.technical import TechnicalIndicators
 
 
 class ADXTrendStrategy(BaseStrategy):

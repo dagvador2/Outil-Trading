@@ -6,11 +6,11 @@ Basé sur les stratégies backtestées + événements macro
 import pandas as pd
 from datetime import datetime
 from typing import Dict, List, Optional
-from live_data_feed import LiveDataFeed
-from strategies import *
-from strategies_event_aware import *
-from indicators import TechnicalIndicators
-from macro_events import MacroEventsDatabase
+from src.data.feed import LiveDataFeed
+from src.strategies.base import *
+from src.strategies.event_aware import *
+from src.indicators.technical import TechnicalIndicators
+from src.signals.macro_events import MacroEventsDatabase
 
 
 class LiveSignalGenerator:
@@ -434,7 +434,7 @@ class LiveSignalGenerator:
 # ============================================================================
 
 if __name__ == '__main__':
-    from macro_data_fetcher import MacroDataFetcher
+    from src.data.macro_fetcher import MacroDataFetcher
 
     # Charger API keys
     fetcher = MacroDataFetcher()

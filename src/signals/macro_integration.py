@@ -3,7 +3,7 @@ Intégration des signaux macro au paper trading
 Mode : Filtre conservateur qui annule les trades contre-tendance macro forte
 
 Usage:
-    from macro_integration import MacroFilter
+    from src.signals.macro_integration import MacroFilter
 
     filter = MacroFilter(enable=True)
     filtered_signals, macro_info = filter.filter_signals(signals, 'BTC/USDT')
@@ -23,7 +23,7 @@ try:
 except ImportError:
     pass
 
-from macro_signal_scorer import MacroSignalScorer, MacroNewsAggregator
+from src.signals.macro_scorer import MacroSignalScorer, MacroNewsAggregator
 
 logger = logging.getLogger(__name__)
 
@@ -280,7 +280,7 @@ class MacroSignalCollector:
             signals = self.aggregator.fetch_general_signals(days_back=days_back)
 
             # Sauvegarder dans cache
-            from news_fetcher import SignalCache
+            from src.signals.news import SignalCache
             cache = SignalCache()
             cache.add_signals(signals)
 

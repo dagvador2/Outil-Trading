@@ -19,8 +19,9 @@ import logging
 from datetime import datetime, timedelta
 from typing import Dict, List, Any, Optional
 
-from auto_paper_trading import AutoPaperTrader, DEFAULT_STATE_DIR
-from backtest_library import BacktestLibrary
+from src.trading.auto import AutoPaperTrader, DEFAULT_STATE_DIR
+from src.backtest.library import BacktestLibrary
+from src.db.database import TradingDatabase
 
 
 # ============================================================================
@@ -195,6 +196,7 @@ class MultiPaperTrader:
         self.traders: List[AutoPaperTrader] = []
         self._running = True
         self.consolidated_file = os.path.join(base_state_dir, 'consolidated_state.json')
+        self.db = TradingDatabase()
 
         self.log = logging.getLogger('multi_trader')
         self.log.setLevel(logging.INFO)
@@ -249,6 +251,7 @@ class MultiPaperTrader:
                 category_filter=cfg.get('category_filter'),
                 register_signals=False,
                 console_log=False,
+                db=self.db,
             )
 
             if trader.setup(library=library):

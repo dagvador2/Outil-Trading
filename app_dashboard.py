@@ -14,15 +14,16 @@ import os
 import json
 from typing import Dict, List
 
-from live_data_feed import LiveDataFeed
-from signal_generator import LiveSignalGenerator
-from assets_config import MONITORED_ASSETS, get_all_symbols, get_asset_type, get_asset_info
-from macro_data_fetcher import MacroDataFetcher
-from backtesting_engine import BacktestEngine
-from strategies import *
-from yahoo_data_feed import convert_to_yahoo_symbol
-from backtest_library import instantiate_strategy, BacktestLibrary
-from strategy_allocator import StrategyAllocator, TradingPlan
+from src.data.feed import LiveDataFeed
+from src.signals.generator import LiveSignalGenerator
+from src.config.assets import MONITORED_ASSETS, get_all_symbols, get_asset_type, get_asset_info
+from src.data.macro_fetcher import MacroDataFetcher
+from src.backtest.engine import BacktestEngine
+from src.strategies.base import *
+from src.data.yahoo import convert_to_yahoo_symbol
+from src.backtest.library import instantiate_strategy, BacktestLibrary
+from src.backtest.allocator import StrategyAllocator, TradingPlan
+from src.db.database import TradingDatabase
 import yfinance as yf
 import pytz
 import math
@@ -195,61 +196,36 @@ SIGNAL_CACHE_TTL = {
     '5min': 3 * 60,     # 3min
 }
 
-SIGNAL_CACHE_DIR = 'signals_cache'
-
-
-def _get_cache_path(asset_filter: str, timeframe: str) -> str:
-    """Retourne le chemin du fichier cache pour ces parametres"""
-    os.makedirs(SIGNAL_CACHE_DIR, exist_ok=True)
-    safe_name = asset_filter.replace(' ', '_').lower()
-    return os.path.join(SIGNAL_CACHE_DIR, f'signals_{safe_name}_{timeframe}.json')
+_dashboard_db = TradingDatabase()
 
 
 def _load_signals_cache(asset_filter: str, timeframe: str) -> List[Dict]:
-    """Charge les signaux depuis le cache disque si frais"""
-    cache_path = _get_cache_path(asset_filter, timeframe)
-    if not os.path.exists(cache_path):
+    """Load signals from SQLite cache if fresh."""
+    ttl = SIGNAL_CACHE_TTL.get(timeframe, 1800)
+    cached = _dashboard_db.get_signal_cache(asset_filter, timeframe, ttl_seconds=ttl)
+    if not cached:
         return []
-
-    try:
-        mtime = os.path.getmtime(cache_path)
-        age = time.time() - mtime
-        ttl = SIGNAL_CACHE_TTL.get(timeframe, 1800)
-
-        if age > ttl:
-            return []  # Cache expire
-
-        with open(cache_path, 'r') as f:
-            cached = json.load(f)
-
-        # Reconvertir les timestamps
-        for sig in cached:
-            if 'timestamp' in sig and isinstance(sig['timestamp'], str):
-                try:
-                    sig['timestamp'] = datetime.fromisoformat(sig['timestamp'])
-                except Exception:
-                    sig['timestamp'] = datetime.now()
-
-        return cached
-    except Exception:
-        return []
+    for sig in cached:
+        if 'timestamp' in sig and isinstance(sig['timestamp'], str):
+            try:
+                sig['timestamp'] = datetime.fromisoformat(sig['timestamp'])
+            except Exception:
+                sig['timestamp'] = datetime.now()
+    return cached
 
 
 def _save_signals_cache(signals: List[Dict], asset_filter: str, timeframe: str):
-    """Sauvegarde les signaux en cache disque"""
-    cache_path = _get_cache_path(asset_filter, timeframe)
+    """Persist signals into SQLite cache."""
     try:
         serializable = []
         for sig in signals:
-            s = dict(sig)
-            if 'timestamp' in s and isinstance(s['timestamp'], datetime):
-                s['timestamp'] = s['timestamp'].isoformat()
-            serializable.append(s)
-
-        with open(cache_path, 'w') as f:
-            json.dump(serializable, f, default=str)
+            signal_copy = dict(sig)
+            if 'timestamp' in signal_copy and isinstance(signal_copy['timestamp'], datetime):
+                signal_copy['timestamp'] = signal_copy['timestamp'].isoformat()
+            serializable.append(signal_copy)
+        _dashboard_db.set_signal_cache(asset_filter, timeframe, serializable)
     except Exception:
-        pass  # Cache write failure is not critical
+        pass
 
 
 def get_all_current_signals(generator: LiveSignalGenerator,
@@ -268,14 +244,12 @@ def get_all_current_signals(generator: LiveSignalGenerator,
     Returns:
         Liste de signaux
     """
-    # Tenter le cache disque si pas de force refresh
+    # Tenter le cache DB si pas de force refresh
     if not force_refresh:
         cached = _load_signals_cache(asset_filter, timeframe)
         if cached:
             ttl = SIGNAL_CACHE_TTL.get(timeframe, 1800)
-            cache_path = _get_cache_path(asset_filter, timeframe)
-            age_min = (time.time() - os.path.getmtime(cache_path)) / 60
-            st.sidebar.info(f"Signaux depuis cache ({age_min:.0f}min, TTL {ttl//60}min)")
+            st.sidebar.info(f"Signaux depuis cache (TTL {ttl//60}min)")
             return cached
 
     signals = []
@@ -1405,7 +1379,7 @@ def main():
         st.header("📚 Bibliothèque des Backtests 2024-2025")
 
         try:
-            from backtest_library import BacktestLibrary
+            from src.backtest.library import BacktestLibrary
 
             # Utiliser la bibliothèque en cache (charger une seule fois)
             if st.session_state.backtest_library is None:
@@ -2105,10 +2079,83 @@ def main():
     with tab8:
         st.header("Multi Paper Trading - Tableau de Bord")
 
+        # Try loading from DB first, fall back to consolidated_state.json
+        def _load_consolidated_from_db():
+            """Build consolidated dict from DB portfolio_state + closed_trades."""
+            try:
+                conn = _dashboard_db._get_conn()
+                rows = conn.execute("SELECT * FROM portfolio_state").fetchall()
+                if not rows:
+                    return None
+                portfolios = {}
+                total_capital = 0
+                for row in rows:
+                    pname = row['portfolio_name']
+                    cash = row['cash']
+                    capital = row['total_capital']
+                    total_capital += capital
+                    # Positions value (use current prices from candles DB)
+                    pos_rows = conn.execute(
+                        "SELECT symbol, side, entry_price, quantity FROM positions WHERE portfolio_name = ?",
+                        (pname,)
+                    ).fetchall()
+                    pos_value = 0.0
+                    for pr in pos_rows:
+                        latest = conn.execute(
+                            "SELECT close FROM candles WHERE symbol = ? AND timeframe = '1d' ORDER BY timestamp DESC LIMIT 1",
+                            (pr['symbol'],)
+                        ).fetchone()
+                        current_price = latest['close'] if latest else pr['entry_price']
+                        pos_value += current_price * pr['quantity']
+                    total_value = cash + pos_value
+                    pnl = total_value - capital
+                    # Trades
+                    trade_rows = conn.execute(
+                        "SELECT pnl FROM closed_trades WHERE portfolio_name = ?",
+                        (pname,)
+                    ).fetchall()
+                    realized_pnl = sum(tr['pnl'] for tr in trade_rows) if trade_rows else 0
+                    n_trades = len(trade_rows)
+                    wins = sum(1 for tr in trade_rows if tr['pnl'] > 0)
+                    win_rate = (wins / n_trades * 100) if n_trades > 0 else 0
+                    # Pending
+                    pending_count = conn.execute(
+                        "SELECT COUNT(*) FROM pending_orders WHERE portfolio_name = ?",
+                        (pname,)
+                    ).fetchone()[0]
+                    portfolios[pname] = {
+                        'value': round(total_value, 2),
+                        'cash': round(cash, 2),
+                        'pnl': round(pnl, 2),
+                        'pnl_pct': round(pnl / capital * 100, 2) if capital > 0 else 0,
+                        'realized_pnl': round(realized_pnl, 2),
+                        'positions': len(pos_rows),
+                        'pending_orders': pending_count,
+                        'max_positions': 8,
+                        'trades_closed': n_trades,
+                        'win_rate': round(win_rate, 1),
+                        'cycle_count': row['cycle_count'],
+                        'n_assets_in_plan': 0,
+                        'config_summary': '',
+                        'description': '',
+                    }
+                n_portfolios = len(portfolios)
+                return {
+                    'last_update': rows[0]['last_update'] if rows else 'N/A',
+                    'total_capital': total_capital,
+                    'capital_per_portfolio': total_capital / n_portfolios if n_portfolios else 0,
+                    'n_portfolios': n_portfolios,
+                    'portfolios': portfolios,
+                }
+            except Exception:
+                return None
+
+        consolidated = _load_consolidated_from_db()
+
         state_dir = 'paper_trading_state'
         consolidated_file = os.path.join(state_dir, 'consolidated_state.json')
 
-        if not os.path.exists(consolidated_file):
+        if consolidated is None and not os.path.exists(consolidated_file):
             single_state = os.path.join(state_dir, 'auto_state.json')
             if os.path.exists(single_state):
                 st.warning("Mode multi-portfolio non detecte. Affichage du portfolio standalone.")
@@ -2131,12 +2178,13 @@ def main():
                     st.error(f"Erreur: {e}")
             else:
                 st.warning("Aucun etat detecte.\n\n"
-                           "Lancez : `python multi_paper_trading.py --single --capital 10000`\n\n"
-                           "Ou en standalone : `python auto_paper_trading.py --single --capital 10000`")
+                           "Lancez : `python -m src.trading.multi --single --capital 10000`\n\n"
+                           "Ou en standalone : `python -m src.trading.auto --single --capital 10000`")
         else:
             try:
-                with open(consolidated_file, 'r') as f:
-                    consolidated = json.load(f)
+                if consolidated is None:
+                    with open(consolidated_file, 'r') as f:
+                        consolidated = json.load(f)
 
                 last_update = consolidated.get('last_update', 'N/A')
                 total_capital_multi = consolidated.get('total_capital', 10000)
@@ -2390,30 +2438,38 @@ def main():
                             'Chaque trade est accompagne d\'une analyse.</p>',
                             unsafe_allow_html=True)
 
-                # Collect all trades from all portfolio directories
+                # Collect all trades: try DB first, fall back to CSV files
                 all_closed_trades = []
-                for dirname in sorted(os.listdir(state_dir)):
-                    if not dirname.startswith('portfolio_'):
-                        continue
-                    trades_file = os.path.join(state_dir, dirname, 'auto_trades.csv')
-                    if not os.path.exists(trades_file):
-                        continue
-                    try:
-                        df_trades = pd.read_csv(trades_file)
-                        if len(df_trades) == 0:
+                try:
+                    db_conn = _dashboard_db._get_conn()
+                    for pf_name in portfolios.keys():
+                        trade_rows = _dashboard_db.get_closed_trades(pf_name)
+                        if trade_rows:
+                            df_trades = pd.DataFrame(trade_rows)
+                            df_trades['portfolio'] = pf_name
+                            all_closed_trades.append(df_trades)
+                except Exception:
+                    # Fallback to CSV files
+                    for dirname in sorted(os.listdir(state_dir)):
+                        if not dirname.startswith('portfolio_'):
                             continue
-                        # Extract portfolio name from dirname
-                        parts = dirname.split('_', 2)
-                        pf_name = parts[2].replace('_', ' ').title() if len(parts) > 2 else dirname
-                        # Match to actual portfolio key
-                        for pk in portfolios.keys():
-                            if pk.lower().replace('_', '') == pf_name.lower().replace(' ', '').replace('_', ''):
-                                pf_name = pk
-                                break
-                        df_trades['portfolio'] = pf_name
-                        all_closed_trades.append(df_trades)
-                    except Exception:
-                        continue
+                        trades_file = os.path.join(state_dir, dirname, 'auto_trades.csv')
+                        if not os.path.exists(trades_file):
+                            continue
+                        try:
+                            df_trades = pd.read_csv(trades_file)
+                            if len(df_trades) == 0:
+                                continue
+                            parts = dirname.split('_', 2)
+                            pf_name = parts[2].replace('_', ' ').title() if len(parts) > 2 else dirname
+                            for pk in portfolios.keys():
+                                if pk.lower().replace('_', '') == pf_name.lower().replace(' ', '').replace('_', ''):
+                                    pf_name = pk
+                                    break
+                            df_trades['portfolio'] = pf_name
+                            all_closed_trades.append(df_trades)
+                        except Exception:
+                            continue
 
                 if all_closed_trades:
                     all_trades_df = pd.concat(all_closed_trades, ignore_index=True)
@@ -2898,80 +2954,90 @@ def main():
 
                             # --- Positions ouvertes ---
                             with detail_tab1:
-                                sub_state_file = os.path.join(portfolio_dir, 'auto_state.json')
-                                if os.path.exists(sub_state_file):
+                                # Try DB first, fall back to JSON
+                                sub_positions = {}
+                                try:
+                                    db_pos = _dashboard_db.load_positions(pf_key)
+                                    if db_pos:
+                                        sub_positions = db_pos
+                                except Exception:
+                                    pass
+                                if not sub_positions:
+                                    sub_state_file = os.path.join(portfolio_dir, 'auto_state.json')
+                                    if os.path.exists(sub_state_file):
+                                        try:
+                                            with open(sub_state_file, 'r') as fh:
+                                                sub_state = json.load(fh)
+                                            sub_positions = sub_state.get('positions', {})
+                                        except Exception:
+                                            pass
+                                if sub_positions:
                                     try:
-                                        with open(sub_state_file, 'r') as f:
-                                            sub_state = json.load(f)
-                                        sub_positions = sub_state.get('positions', {})
-                                        if sub_positions:
-                                            pos_rows = []
-                                            for sym, pos in sub_positions.items():
-                                                entry_price = pos.get('entry_price', 0)
-                                                qty = pos.get('quantity', 0)
-                                                side = pos.get('side', '')
-                                                entry_time_str = pos.get('entry_time', '')
-                                                if entry_time_str:
-                                                    try:
-                                                        et = datetime.fromisoformat(entry_time_str)
-                                                        date_display = et.strftime('%d/%m %H:%M')
-                                                    except Exception:
-                                                        date_display = entry_time_str[:16]
-                                                else:
-                                                    date_display = 'N/A'
-
-                                                current_price = None
+                                        pos_rows = []
+                                        for sym, pos in sub_positions.items():
+                                            entry_price = pos.get('entry_price', 0)
+                                            qty = pos.get('quantity', 0)
+                                            side = pos.get('side', '')
+                                            entry_time_str = pos.get('entry_time', '')
+                                            if entry_time_str:
                                                 try:
-                                                    yahoo_sym = convert_to_yahoo_symbol(sym)
-                                                    data = yf.Ticker(yahoo_sym).history(period='1d', interval='1d')
-                                                    data.columns = [c.lower() for c in data.columns]
-                                                    if len(data) > 0:
-                                                        current_price = float(data['close'].iloc[-1])
+                                                    et = datetime.fromisoformat(entry_time_str)
+                                                    date_display = et.strftime('%d/%m %H:%M')
                                                 except Exception:
-                                                    pass
+                                                    date_display = entry_time_str[:16]
+                                            else:
+                                                date_display = 'N/A'
 
-                                                if current_price is not None and qty > 0:
-                                                    if side == 'LONG':
-                                                        unrealized_pnl = (current_price - entry_price) * qty
-                                                        unrealized_pct = (current_price / entry_price - 1) * 100
-                                                    else:
-                                                        unrealized_pnl = (entry_price - current_price) * qty
-                                                        unrealized_pct = (1 - current_price / entry_price) * 100
+                                            current_price = None
+                                            try:
+                                                yahoo_sym = convert_to_yahoo_symbol(sym)
+                                                data = yf.Ticker(yahoo_sym).history(period='1d', interval='1d')
+                                                data.columns = [c.lower() for c in data.columns]
+                                                if len(data) > 0:
+                                                    current_price = float(data['close'].iloc[-1])
+                                            except Exception:
+                                                pass
+
+                                            if current_price is not None and qty > 0:
+                                                if side == 'LONG':
+                                                    unrealized_pnl = (current_price - entry_price) * qty
+                                                    unrealized_pct = (current_price / entry_price - 1) * 100
                                                 else:
-                                                    unrealized_pnl = None
-                                                    unrealized_pct = None
+                                                    unrealized_pnl = (entry_price - current_price) * qty
+                                                    unrealized_pct = (1 - current_price / entry_price) * 100
+                                            else:
+                                                unrealized_pnl = None
+                                                unrealized_pct = None
 
-                                                sl = pos.get('stop_loss', 0)
-                                                tp = pos.get('take_profit', 0)
-                                                # Distance to SL/TP in %
-                                                if current_price and current_price > 0 and sl > 0:
-                                                    if side == 'LONG':
-                                                        dist_sl = (current_price - sl) / current_price * 100
-                                                        dist_tp = (tp - current_price) / current_price * 100 if tp > 0 else None
-                                                    else:
-                                                        dist_sl = (sl - current_price) / current_price * 100
-                                                        dist_tp = (current_price - tp) / current_price * 100 if tp > 0 else None
+                                            sl = pos.get('stop_loss', 0)
+                                            tp = pos.get('take_profit', 0)
+                                            # Distance to SL/TP in %
+                                            if current_price and current_price > 0 and sl > 0:
+                                                if side == 'LONG':
+                                                    dist_sl = (current_price - sl) / current_price * 100
+                                                    dist_tp = (tp - current_price) / current_price * 100 if tp > 0 else None
                                                 else:
-                                                    dist_sl = None
-                                                    dist_tp = None
+                                                    dist_sl = (sl - current_price) / current_price * 100
+                                                    dist_tp = (current_price - tp) / current_price * 100 if tp > 0 else None
+                                            else:
+                                                dist_sl = None
+                                                dist_tp = None
 
-                                                row = {
-                                                    'Symbole': sym,
-                                                    'Side': side,
-                                                    'Strategie': pos.get('strategy', ''),
-                                                    'Entree': date_display,
-                                                    'Prix entree': _fmt_price(entry_price),
-                                                    'Prix actuel': _fmt_price(current_price) if current_price else 'N/A',
-                                                    'P&L': f"{unrealized_pnl:+.2f}" if unrealized_pnl is not None else 'N/A',
-                                                    'P&L %': f"{unrealized_pct:+.2f}%" if unrealized_pct is not None else 'N/A',
-                                                    'Dist. SL': f"{dist_sl:.1f}%" if dist_sl is not None else 'N/A',
-                                                    'Dist. TP': f"{dist_tp:.1f}%" if dist_tp is not None else 'N/A',
-                                                }
-                                                pos_rows.append(row)
-                                            st.dataframe(pd.DataFrame(pos_rows),
-                                                         use_container_width=True, hide_index=True)
-                                        else:
-                                            st.info("Aucune position ouverte")
+                                            row = {
+                                                'Symbole': sym,
+                                                'Side': side,
+                                                'Strategie': pos.get('strategy', ''),
+                                                'Entree': date_display,
+                                                'Prix entree': _fmt_price(entry_price),
+                                                'Prix actuel': _fmt_price(current_price) if current_price else 'N/A',
+                                                'P&L': f"{unrealized_pnl:+.2f}" if unrealized_pnl is not None else 'N/A',
+                                                'P&L %': f"{unrealized_pct:+.2f}%" if unrealized_pct is not None else 'N/A',
+                                                'Dist. SL': f"{dist_sl:.1f}%" if dist_sl is not None else 'N/A',
+                                                'Dist. TP': f"{dist_tp:.1f}%" if dist_tp is not None else 'N/A',
+                                            }
+                                            pos_rows.append(row)
+                                        st.dataframe(pd.DataFrame(pos_rows),
+                                                     use_container_width=True, hide_index=True)
                                     except Exception:
                                         st.info("Aucune position ouverte")
                                 else:
@@ -2979,62 +3045,72 @@ def main():
 
                             # --- Trades clos ---
                             with detail_tab2:
-                                sub_trades_file = os.path.join(portfolio_dir, 'auto_trades.csv')
-                                if os.path.exists(sub_trades_file):
+                                # Try DB first, fall back to CSV
+                                sub_trades = None
+                                try:
+                                    db_trades = _dashboard_db.get_closed_trades(pf_key)
+                                    if db_trades:
+                                        sub_trades = pd.DataFrame(db_trades)
+                                except Exception:
+                                    pass
+                                if sub_trades is None:
+                                    sub_trades_file = os.path.join(portfolio_dir, 'auto_trades.csv')
+                                    if os.path.exists(sub_trades_file):
+                                        try:
+                                            sub_trades = pd.read_csv(sub_trades_file)
+                                        except Exception:
+                                            sub_trades = None
+                                if sub_trades is not None and len(sub_trades) > 0:
                                     try:
-                                        sub_trades = pd.read_csv(sub_trades_file)
-                                        if len(sub_trades) > 0:
-                                            if 'exit_time' in sub_trades.columns:
-                                                sub_trades = sub_trades.sort_values('exit_time', ascending=False)
+                                        if 'exit_time' in sub_trades.columns:
+                                            sub_trades = sub_trades.sort_values('exit_time', ascending=False)
 
-                                            total_pnl_trades = sub_trades['pnl'].sum() if 'pnl' in sub_trades.columns else 0
-                                            wins = len(sub_trades[sub_trades['pnl'] > 0]) if 'pnl' in sub_trades.columns else 0
-                                            losses = len(sub_trades) - wins
+                                        total_pnl_trades = sub_trades['pnl'].sum() if 'pnl' in sub_trades.columns else 0
+                                        wins = len(sub_trades[sub_trades['pnl'] > 0]) if 'pnl' in sub_trades.columns else 0
+                                        losses = len(sub_trades) - wins
 
-                                            # Summary bar
-                                            tc1, tc2, tc3, tc4 = st.columns(4)
-                                            tc1.metric("Total trades", len(sub_trades))
-                                            tc2.metric("P&L total", f"{'+'if total_pnl_trades>=0 else ''}{total_pnl_trades:.0f} EUR")
-                                            tc3.metric("Gagnants", f"{wins}", f"{wins/(wins+losses)*100:.0f}%" if (wins+losses)>0 else "")
-                                            tc4.metric("Perdants", f"{losses}")
+                                        # Summary bar
+                                        tc1, tc2, tc3, tc4 = st.columns(4)
+                                        tc1.metric("Total trades", len(sub_trades))
+                                        tc2.metric("P&L total", f"{'+'if total_pnl_trades>=0 else ''}{total_pnl_trades:.0f} EUR")
+                                        tc3.metric("Gagnants", f"{wins}", f"{wins/(wins+losses)*100:.0f}%" if (wins+losses)>0 else "")
+                                        tc4.metric("Perdants", f"{losses}")
 
-                                            # Trades table
-                                            display_cols = []
-                                            for _, trade in sub_trades.iterrows():
-                                                t_pnl = trade.get('pnl', 0)
-                                                t_pnl_pct = trade.get('pnl_pct', 0)
-                                                entry_time_raw = trade.get('entry_time', '')
-                                                exit_time_raw = trade.get('exit_time', '')
-                                                try:
-                                                    et = datetime.fromisoformat(str(entry_time_raw))
-                                                    entry_fmt = et.strftime('%d/%m %H:%M')
-                                                except Exception:
-                                                    entry_fmt = str(entry_time_raw)[:10]
-                                                try:
-                                                    xt = datetime.fromisoformat(str(exit_time_raw))
-                                                    exit_fmt = xt.strftime('%d/%m %H:%M')
-                                                except Exception:
-                                                    exit_fmt = str(exit_time_raw)[:10]
+                                        # Trades table
+                                        display_cols = []
+                                        for _, trade in sub_trades.iterrows():
+                                            t_pnl = trade.get('pnl', 0)
+                                            t_pnl_pct = trade.get('pnl_pct', 0)
+                                            entry_time_raw = trade.get('entry_time', '')
+                                            exit_time_raw = trade.get('exit_time', '')
+                                            try:
+                                                et = datetime.fromisoformat(str(entry_time_raw))
+                                                entry_fmt = et.strftime('%d/%m %H:%M')
+                                            except Exception:
+                                                entry_fmt = str(entry_time_raw)[:10]
+                                            try:
+                                                xt = datetime.fromisoformat(str(exit_time_raw))
+                                                exit_fmt = xt.strftime('%d/%m %H:%M')
+                                            except Exception:
+                                                exit_fmt = str(exit_time_raw)[:10]
 
-                                                display_cols.append({
-                                                    'Resultat': 'W' if t_pnl >= 0 else 'L',
-                                                    'Symbole': trade.get('symbol', '?'),
-                                                    'Side': trade.get('side', '?'),
-                                                    'Strategie': trade.get('strategy', ''),
-                                                    'Entree': entry_fmt,
-                                                    'Sortie': exit_fmt,
-                                                    'Raison': trade.get('exit_reason', '?'),
-                                                    'P&L': round(t_pnl, 2),
-                                                    'P&L %': round(t_pnl_pct, 2),
-                                                })
-                                            trades_df = pd.DataFrame(display_cols)
-                                            st.dataframe(trades_df, use_container_width=True, hide_index=True,
-                                                         column_config={
-                                                             'P&L': st.column_config.NumberColumn('P&L (EUR)', format="%+.2f"),
-                                                             'P&L %': st.column_config.NumberColumn('P&L %', format="%+.2f%%"),
-                                                         })
-                                        else:
-                                            st.info("Aucun trade clos pour le moment")
+                                            display_cols.append({
+                                                'Resultat': 'W' if t_pnl >= 0 else 'L',
+                                                'Symbole': trade.get('symbol', '?'),
+                                                'Side': trade.get('side', '?'),
+                                                'Strategie': trade.get('strategy', ''),
+                                                'Entree': entry_fmt,
+                                                'Sortie': exit_fmt,
+                                                'Raison': trade.get('exit_reason', '?'),
+                                                'P&L': round(t_pnl, 2),
+                                                'P&L %': round(t_pnl_pct, 2),
+                                            })
+                                        trades_df = pd.DataFrame(display_cols)
+                                        st.dataframe(trades_df, use_container_width=True, hide_index=True,
+                                                     column_config={
+                                                         'P&L': st.column_config.NumberColumn('P&L (EUR)', format="%+.2f"),
+                                                         'P&L %': st.column_config.NumberColumn('P&L %', format="%+.2f%%"),
+                                                     })
                                     except Exception:
                                         st.info("Aucun trade clos pour le moment")
                                 else:
@@ -3182,8 +3258,8 @@ Definit en pourcentage du prix d'entree.</dd>
         st.header("📡 Signaux Macroéconomiques")
 
         try:
-            from macro_events import MacroEventsDatabase
-            from news_fetcher import MacroNewsAggregator, RSSFeedFetcher
+            from src.signals.macro_events import MacroEventsDatabase
+            from src.signals.news import MacroNewsAggregator, RSSFeedFetcher
             macro_db = MacroEventsDatabase()
             events_df = macro_db.get_events_df()
             aggregator = MacroNewsAggregator()
@@ -3327,7 +3403,7 @@ Definit en pourcentage du prix d'entree.</dd>
             with live_col1:
                 st.markdown("**Fear & Greed Index (Crypto)**")
                 try:
-                    from news_fetcher import FearGreedIndexFetcher
+                    from src.signals.news import FearGreedIndexFetcher
                     fg_fetcher = FearGreedIndexFetcher()
                     fg_data = fg_fetcher.fetch_crypto_fear_greed(limit=30)
 
@@ -3388,7 +3464,7 @@ Definit en pourcentage du prix d'entree.</dd>
             with live_col2:
                 st.markdown("**Indicateurs Economiques (FRED)**")
                 try:
-                    from news_fetcher import FredAPIFetcher
+                    from src.signals.news import FredAPIFetcher
                     fred = FredAPIFetcher()
 
                     # Utiliser la cle de macro_data_fetcher si pas d'env var

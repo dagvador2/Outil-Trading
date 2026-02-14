@@ -1,0 +1,72 @@
+[
+  {
+    "timestamp": "2026-02-10T22:39:48",
+    "source": "bloomberg_markets",
+    "category": "general",
+    "title": "Stocks Rise After Blowout Jobs Data as Bonds Fall: Markets Wrap",
+    "description": "A much stronger-than-anticipated US jobs report lifted stocks in early trading while driving Treasuries lower. The dollar wavered.",
+    "impact_score": 0.0,
+    "confidence": 0.4,
+    "affected_assets": [
+      "all"
+    ],
+    "url": "https://www.bloomberg.com/news/articles/2026-02-10/-stock-market-today-dow-s-p-live-updates",
+    "sentiment": "neutral"
+  },
+  {
+    "timestamp": "2026-02-11T13:36:09",
+    "source": "bloomberg_markets",
+    "category": "fed",
+    "title": "Treasuries Fall as Better-Than-Expected Job Data Resets Fed Bets",
+    "description": "Treasuries declined after stronger-than-expected US employment data prompted traders to pare their expectations for Federal Reserve interest-rate cuts this year.",
+    "impact_score": 0.0,
+    "confidence": 0.4,
+    "affected_assets": [
+      "all"
+    ],
+    "url": "https://www.bloomberg.com/news/articles/2026-02-11/treasuries-fall-as-better-than-expected-job-data-resets-fed-bets",
+    "sentiment": "neutral"
+  },
+  {
+    "timestamp": "2026-02-11T00:06:57",
+    "source": "bloomberg_markets",
+    "category": "geopolitical",
+    "title": "Wall Street\u2019s New Trade Is Dumping Stocks in AI\u2019s Crosshairs",
+    "description": "On Wall Street, rising fears about artificial intelligence keep pummeling shares of companies at risk of being caught on the wrong side of it all, from small software makers to big wealth-management firms.",
+    "impact_score": -4.0,
+    "confidence": 0.4,
+    "affected_assets": [
+      "all"
+    ],
+    "url": "https://www.bloomberg.com/news/articles/2026-02-11/the-new-ai-stock-trade-is-dumping-any-company-in-its-crosshairs",
+    "sentiment": "bearish"
+  },
+  {
+    "timestamp": "2026-02-10T21:19:42",
+    "source": "bloomberg_markets",
+    "category": "technology",
+    "title": "Brazilian Fintech Agibank Raises $240 Million in US IPO",
+    "description": "Brazilian fintech AGI Inc. raised $240 million in a US initial public offering after reducing the size and price range of the deal on Tuesday.",
+    "impact_score": 0.0,
+    "confidence": 0.4,
+    "affected_assets": [
+      "all"
+    ],
+    "url": "https://www.bloomberg.com/news/articles/2026-02-10/brazilian-fintech-agi-is-said-to-raise-240-million-in-us-ipo",
+    "sentiment": "neutral"
+  },
+  {
+    "timestamp": "2026-02-11T13:19:39",
+    "source": "bloomberg_markets",
+    "category": "fed",
+    "title": "FAA Closes\u00a0El Paso\u00a0Airspace for \u2018Special Security Reasons\u2019",
+    "description": "The US\u00a0Federal Aviation Administration\u00a0closed the airspace around the border city of\u00a0El Paso, Texas, for 10 days, in an unusual move that authorities put down to unspecified \u201cspecial security reasons.\u201d\nAll flights into and out of the city are suspended, the FAA said without elaborating on the reasons. The FAA has also prohibited all flight operations in the Santa Teresa area of New Mexico, citing special security reasons.\u00a0\nFlights from\u00a0El Paso\u00a0International Airport were halted starting Feb. 10 a",
+    "impact_score": 0.0,
+    "confidence": 0.4,
+    "affected_assets": [
+      "all"
+    ],
+    "url": "https://www.bloomberg.com/news/videos/2026-02-11/faa-closes-el-paso-airspace-for-10-days-video",
+    "sentiment": "neutral"
+  }
+]

@@ -9,10 +9,11 @@ import time
 from datetime import datetime
 import os
 from typing import Dict, List
-from live_data_feed import LiveDataFeed
-from signal_generator import LiveSignalGenerator
-from assets_config import get_all_symbols, get_asset_type, MONITORED_ASSETS
-from macro_data_fetcher import MacroDataFetcher
+from src.data.feed import LiveDataFeed
+from src.signals.generator import LiveSignalGenerator
+from src.config.assets import get_all_symbols, get_asset_type, MONITORED_ASSETS
+from src.data.macro_fetcher import MacroDataFetcher
+from src.db.database import TradingDatabase
 
 
 class ContinuousMonitor:
@@ -43,17 +44,11 @@ class ContinuousMonitor:
         self.feed = LiveDataFeed(av_key, fred_key)
         self.generator = LiveSignalGenerator(self.feed)
 
-        # Historique des signaux
-        self.signals_history = []
-        self.signals_log_file = "signals_history.csv"
+        # Database for signal logging
+        self.db = TradingDatabase()
 
-        # Charger historique existant
-        if os.path.exists(self.signals_log_file):
-            try:
-                self.signals_history = pd.read_csv(self.signals_log_file).to_dict('records')
-                print(f"✅ Historique chargé : {len(self.signals_history)} signaux")
-            except:
-                print("⚠️  Impossible de charger l'historique")
+        # Historique des signaux (in-memory for current session, persisted to DB)
+        self.signals_history = []
 
         print("\n" + "="*80)
         print("🔄 MONITORING CONTINU INITIALISÉ")
@@ -129,7 +124,7 @@ class ContinuousMonitor:
 
     def log_signals(self, signals: List[Dict]):
         """
-        Enregistre les signaux dans l'historique
+        Enregistre les signaux dans l'historique (DB + in-memory)
 
         Args:
             signals: Liste de signaux à enregistrer
@@ -140,9 +135,12 @@ class ContinuousMonitor:
         # Ajouter à l'historique en mémoire
         self.signals_history.extend(signals)
 
-        # Sauvegarder dans CSV
-        df = pd.DataFrame(self.signals_history)
-        df.to_csv(self.signals_log_file, index=False)
+        # Persist to DB
+        for signal_dict in signals:
+            try:
+                self.db.insert_signal(signal_dict)
+            except Exception:
+                pass
 
     def display_signals(self, signals: List[Dict], title: str = "SIGNAUX"):
         """
@@ -219,7 +217,7 @@ class ContinuousMonitor:
 
                 # Envoyer alertes Discord (sera implémenté ensuite)
                 try:
-                    from discord_alerts import DiscordAlerter
+                    from src.monitoring.discord import DiscordAlerter
                     alerter = DiscordAlerter()
                     alerter.send_batch_alerts(alert_signals)
                 except ImportError:

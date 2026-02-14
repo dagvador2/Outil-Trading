@@ -55,15 +55,16 @@ def _fmt_price(value: float) -> str:
     decimals = max(4, sig_decimals)
     return f"{value:.{decimals}f}"
 
-from backtest_library import BacktestLibrary, STRATEGY_MAP, instantiate_strategy
-from strategy_allocator import StrategyAllocator, TradingPlan, RiskParams
-from assets_config import get_category_from_symbol, get_asset_info
-from yahoo_data_feed import convert_to_yahoo_symbol
-from indicators import TechnicalIndicators
+from src.backtest.library import BacktestLibrary, STRATEGY_MAP, instantiate_strategy
+from src.backtest.allocator import StrategyAllocator, TradingPlan, RiskParams
+from src.config.assets import get_category_from_symbol, get_asset_info
+from src.data.yahoo import convert_to_yahoo_symbol
+from src.indicators.technical import TechnicalIndicators
+from src.db.database import TradingDatabase
 
 # Import macro integration (with error handling)
 try:
-    from macro_integration import MacroFilter
+    from src.signals.macro_integration import MacroFilter
     MACRO_AVAILABLE = True
 except ImportError:
     MACRO_AVAILABLE = False
@@ -229,6 +230,8 @@ class AutoPaperTrader:
         category_filter: Optional[List[str]] = None,
         register_signals: bool = True,
         console_log: bool = True,
+        # Database
+        db: Optional[TradingDatabase] = None,
     ):
         self.total_capital = total_capital
         self.max_positions = max_positions
@@ -238,7 +241,10 @@ class AutoPaperTrader:
         self.category_filter = category_filter
         self.portfolio_name = portfolio_name or 'default'
 
-        # Paths
+        # Database (optional — if None, falls back to JSON persistence)
+        self.db = db
+
+        # Paths (kept for plan file + log; state/trades now go to DB when db is set)
         self.state_dir = state_dir or DEFAULT_STATE_DIR
         self.state_file = os.path.join(self.state_dir, 'auto_state.json')
         self.trades_file = os.path.join(self.state_dir, 'auto_trades.csv')
@@ -463,6 +469,13 @@ class AutoPaperTrader:
             self.log.warning(f"  {symbol}: colonnes manquantes (seulement {available})")
             return None
         data = data[available]
+
+        # Write-through: store candles in DB
+        if self.db:
+            try:
+                self.db.upsert_candles(symbol, self.timeframe, data, source='yahoo')
+            except Exception:
+                pass  # non-critical
 
         current_price = float(data['close'].iloc[-1])
 
@@ -837,6 +850,19 @@ class AutoPaperTrader:
         )
         self.closed_trades.append(trade)
 
+        # Persist trade + equity snapshot to DB
+        if self.db:
+            self.db.insert_closed_trade(self.portfolio_name, trade)
+            positions_value = sum(
+                p.entry_price * p.quantity for p in self.positions.values()
+            )
+            self.db.record_equity(
+                self.portfolio_name,
+                self.cash + positions_value,
+                self.cash,
+                positions_value,
+            )
+
         icon = '+' if pnl >= 0 else ''
         self.log.info(
             f"  << CLOSE {pos.side} {symbol} @ {_fmt_price(exit_price)} | "
@@ -925,6 +951,18 @@ class AutoPaperTrader:
     # ------------------------------------------------------------------ #
 
     def _save_state(self):
+        if self.db:
+            self.db.save_portfolio_state(self.portfolio_name, {
+                'cash': self.cash,
+                'total_capital': self.total_capital,
+                'cycle_count': self.cycle_count,
+                'last_update': datetime.now().isoformat(),
+            })
+            self.db.save_positions(self.portfolio_name, self.positions)
+            self.db.save_pending_orders(self.portfolio_name, self.pending_orders)
+            return
+
+        # Fallback: JSON persistence
         os.makedirs(self.state_dir, exist_ok=True)
 
         state = {
@@ -946,6 +984,77 @@ class AutoPaperTrader:
             pd.DataFrame(rows).to_csv(self.trades_file, index=False)
 
     def _load_state(self):
+        if self.db:
+            self._load_state_from_db()
+            return
+
+        self._load_state_from_json()
+
+    def _load_state_from_db(self):
+        """Load portfolio state from SQLite."""
+        try:
+            state = self.db.load_portfolio_state(self.portfolio_name)
+            if not state:
+                return
+
+            self.cash = state.get('cash', self.total_capital)
+            self.cycle_count = state.get('cycle_count', 0)
+
+            # Positions
+            pos_rows = self.db.load_positions(self.portfolio_name)
+            for sym, pos_dict in pos_rows.items():
+                self.positions[sym] = PaperPosition(
+                    symbol=pos_dict['symbol'],
+                    side=pos_dict['side'],
+                    entry_price=pos_dict['entry_price'],
+                    quantity=pos_dict['quantity'],
+                    entry_time=pos_dict.get('entry_time', ''),
+                    stop_loss=pos_dict.get('stop_loss', 0),
+                    take_profit=pos_dict.get('take_profit', 0),
+                    strategy=pos_dict.get('strategy', ''),
+                    allocation_pct=pos_dict.get('allocation_pct', 0),
+                )
+
+            # Pending orders
+            ord_rows = self.db.load_pending_orders(self.portfolio_name)
+            for sym, ord_dict in ord_rows.items():
+                self.pending_orders[sym] = PendingOrder(
+                    symbol=ord_dict['symbol'],
+                    side=ord_dict['side'],
+                    signal_price=ord_dict.get('signal_price', 0),
+                    target_entry_price=ord_dict.get('target_entry_price', 0),
+                    strategy=ord_dict.get('strategy', ''),
+                    allocation_pct=ord_dict.get('allocation_pct', 0),
+                    stop_loss_pct=ord_dict.get('stop_loss_pct', 5),
+                    take_profit_pct=ord_dict.get('take_profit_pct', 10),
+                    created_time=ord_dict.get('created_time', ''),
+                    confidence=ord_dict.get('confidence', 0),
+                )
+
+            # Closed trades
+            trade_rows = self.db.get_closed_trades(self.portfolio_name)
+            self.closed_trades = [
+                ClosedTrade(
+                    symbol=row['symbol'], side=row['side'],
+                    entry_price=row['entry_price'], exit_price=row['exit_price'],
+                    quantity=row['quantity'], entry_time=row.get('entry_time', ''),
+                    exit_time=row.get('exit_time', ''), pnl=row.get('pnl', 0),
+                    pnl_pct=row.get('pnl_pct', 0), exit_reason=row.get('exit_reason', ''),
+                    strategy=row.get('strategy', ''),
+                )
+                for row in trade_rows
+            ]
+
+            self._verify_accounting()
+
+            self.log.info(f"  Etat charge (DB): {self.cycle_count} cycles, "
+                          f"{len(self.positions)} positions, "
+                          f"{len(self.closed_trades)} trades clos")
+        except Exception as exc:
+            self.log.warning(f"Impossible de charger l'etat DB: {exc}")
+
+    def _load_state_from_json(self):
+        """Fallback: load from JSON files."""
         if not os.path.exists(self.state_file):
             return
 
@@ -968,29 +1077,31 @@ class AutoPaperTrader:
                     ClosedTrade(**row) for _, row in df.iterrows()
                 ]
 
-            # Verification de coherence comptable:
-            # cash + cout_positions_ouvertes = total_capital + realized_pnl
-            realized_pnl = sum(t.pnl for t in self.closed_trades) if self.closed_trades else 0
-            positions_cost = sum(p.entry_price * p.quantity for p in self.positions.values())
-            actual_total = self.cash + positions_cost
-            expected_total = self.total_capital + realized_pnl
-
-            if actual_total > 0 and abs(actual_total - expected_total) > 1.0:
-                ratio = expected_total / actual_total
-                self.log.warning(
-                    f"  Incoherence: cash+positions ({actual_total:,.2f}) != "
-                    f"capital+realized ({expected_total:,.2f}). Ajustement (ratio={ratio:.4f})"
-                )
-                self.cash *= ratio
-                for pos in self.positions.values():
-                    pos.quantity *= ratio
-                self._save_state()
+            self._verify_accounting()
 
             self.log.info(f"  Etat charge: {self.cycle_count} cycles, "
                           f"{len(self.positions)} positions, "
                           f"{len(self.closed_trades)} trades clos")
-        except Exception as e:
-            self.log.warning(f"Impossible de charger l'etat: {e}")
+        except Exception as exc:
+            self.log.warning(f"Impossible de charger l'etat: {exc}")
+
+    def _verify_accounting(self):
+        """Check cash + positions_cost == total_capital + realized_pnl."""
+        realized_pnl = sum(trade.pnl for trade in self.closed_trades) if self.closed_trades else 0
+        positions_cost = sum(pos.entry_price * pos.quantity for pos in self.positions.values())
+        actual_total = self.cash + positions_cost
+        expected_total = self.total_capital + realized_pnl
+
+        if actual_total > 0 and abs(actual_total - expected_total) > 1.0:
+            ratio = expected_total / actual_total
+            self.log.warning(
+                f"  Incoherence: cash+positions ({actual_total:,.2f}) != "
+                f"capital+realized ({expected_total:,.2f}). Ajustement (ratio={ratio:.4f})"
+            )
+            self.cash *= ratio
+            for pos in self.positions.values():
+                pos.quantity *= ratio
+            self._save_state()
 
     def _handle_shutdown(self, signum, frame):
         self.log.info("\nSignal d'arret recu. Fermeture en cours...")

@@ -22,10 +22,10 @@ from typing import Dict, List, Optional, Any
 import json
 import argparse
 
-from backtesting_engine import BacktestEngine
-from backtest_library import BacktestLibrary, STRATEGY_MAP, instantiate_strategy
-from assets_config import MONITORED_ASSETS, get_category_from_symbol
-from yahoo_data_feed import convert_to_yahoo_symbol
+from src.backtest.engine import BacktestEngine
+from src.backtest.library import BacktestLibrary, STRATEGY_MAP, instantiate_strategy
+from src.config.assets import MONITORED_ASSETS, get_category_from_symbol
+from src.data.yahoo import convert_to_yahoo_symbol
 
 
 # ============================================================================

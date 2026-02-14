@@ -5,8 +5,8 @@ Ne prennent PAS de positions SHORT
 
 import pandas as pd
 import numpy as np
-from indicators import TechnicalIndicators
-from strategies import BaseStrategy
+from src.indicators.technical import TechnicalIndicators
+from src.strategies.base import BaseStrategy
 
 
 class MovingAverageCrossoverLongOnly(BaseStrategy):

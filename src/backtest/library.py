@@ -10,16 +10,16 @@ import os
 from typing import Dict, List, Optional
 import yfinance as yf
 
-from backtesting_engine import BacktestEngine
-from strategies import (
+from src.backtest.engine import BacktestEngine
+from src.strategies.base import (
     MovingAverageCrossover, RSIStrategy, MACDStrategy,
     BollingerBandsStrategy, CombinedStrategy
 )
-from strategies_extended import (
+from src.strategies.extended import (
     ADXTrendStrategy, VWAPStrategy, IchimokuStrategy
 )
-from assets_config import MONITORED_ASSETS
-from yahoo_data_feed import convert_to_yahoo_symbol
+from src.config.assets import MONITORED_ASSETS
+from src.data.yahoo import convert_to_yahoo_symbol
 
 
 # ============================================================================

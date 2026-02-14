@@ -23,7 +23,7 @@ from dataclasses import dataclass, asdict
 import json
 import logging
 
-from news_fetcher import (
+from src.signals.news import (
     MacroNewsAggregator, MacroSignal, MarketSentiment,
     SignalCache
 )

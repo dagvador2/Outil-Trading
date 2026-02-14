@@ -4,7 +4,7 @@ Exemples de stratégies de trading
 
 import pandas as pd
 import numpy as np
-from indicators import TechnicalIndicators
+from src.indicators.technical import TechnicalIndicators
 
 
 class BaseStrategy:

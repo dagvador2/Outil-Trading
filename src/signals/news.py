@@ -812,47 +812,72 @@ class MacroNewsAggregator:
 # ============================================================================
 
 class SignalCache:
-    """Cache local des signaux pour éviter de re-fetcher"""
+    """Cache des signaux macro — SQLite-backed with in-memory fallback."""
 
     def __init__(self, cache_file: str = 'macro_signals_cache.json'):
         self.cache_file = cache_file
         self.signals: List[MacroSignal] = []
+        self._db = None
+        try:
+            from src.db.database import TradingDatabase
+            self._db = TradingDatabase()
+        except Exception:
+            pass
         self._load()
 
     def _load(self):
-        """Charge le cache depuis le fichier"""
+        """Load from DB first, fall back to JSON file."""
+        if self._db:
+            try:
+                rows = self._db.get_macro_signals(hours=24 * 30)
+                for row in rows:
+                    try:
+                        row['timestamp'] = pd.to_datetime(row['timestamp'])
+                        affected = row.get('affected_assets', [])
+                        if isinstance(affected, str):
+                            affected = json.loads(affected)
+                        row['affected_assets'] = affected
+                        # Remove DB-only keys
+                        row.pop('id', None)
+                        self.signals.append(MacroSignal(**row))
+                    except Exception:
+                        continue
+                if self.signals:
+                    return
+            except Exception as exc:
+                logger.debug(f"DB cache load fallback: {exc}")
+
+        # Fallback: JSON file
         if os.path.exists(self.cache_file):
             try:
-                with open(self.cache_file, 'r') as f:
-                    data = json.load(f)
-                    # Reconstituer les objets MacroSignal
+                with open(self.cache_file, 'r') as fh:
+                    data = json.load(fh)
                     for item in data:
                         item['timestamp'] = pd.to_datetime(item['timestamp'])
                         self.signals.append(MacroSignal(**item))
-            except Exception as e:
-                logger.error(f"Cache load error: {e}")
+            except Exception as exc:
+                logger.error(f"Cache load error: {exc}")
 
     def save(self):
-        """Sauvegarde le cache"""
-        try:
-            data = [s.to_dict() for s in self.signals]
-            with open(self.cache_file, 'w') as f:
-                json.dump(data, f, indent=2, default=str)
-        except Exception as e:
-            logger.error(f"Cache save error: {e}")
+        """Persist to DB (primary) and JSON (backup)."""
+        if self._db and self.signals:
+            try:
+                dicts = [signal.to_dict() for signal in self.signals]
+                self._db.insert_macro_signals(dicts)
+            except Exception as exc:
+                logger.debug(f"DB cache save fallback: {exc}")
 
     def add_signals(self, signals: List[MacroSignal]):
         """Ajoute des signaux au cache"""
         self.signals.extend(signals)
-        # Garder seulement les 30 derniers jours
         cutoff = datetime.now() - timedelta(days=30)
-        self.signals = [s for s in self.signals if s.timestamp > cutoff]
+        self.signals = [signal for signal in self.signals if signal.timestamp > cutoff]
         self.save()
 
     def get_recent_signals(self, hours: int = 24) -> List[MacroSignal]:
         """Récupère les signaux récents"""
         cutoff = datetime.now() - timedelta(hours=hours)
-        return [s for s in self.signals if s.timestamp > cutoff]
+        return [signal for signal in self.signals if signal.timestamp > cutoff]
 
 
 # ============================================================================
