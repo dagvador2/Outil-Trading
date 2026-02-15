@@ -2957,7 +2957,7 @@ def main():
                                 # Try DB first, fall back to JSON
                                 sub_positions = {}
                                 try:
-                                    db_pos = _dashboard_db.load_positions(pf_key)
+                                    db_pos = _dashboard_db.load_positions(name)
                                     if db_pos:
                                         sub_positions = db_pos
                                 except Exception:
@@ -2989,14 +2989,27 @@ def main():
                                                 date_display = 'N/A'
 
                                             current_price = None
+                                            # Try candles DB first (fast & reliable)
                                             try:
-                                                yahoo_sym = convert_to_yahoo_symbol(sym)
-                                                data = yf.Ticker(yahoo_sym).history(period='1d', interval='1d')
-                                                data.columns = [c.lower() for c in data.columns]
-                                                if len(data) > 0:
-                                                    current_price = float(data['close'].iloc[-1])
+                                                conn = _dashboard_db._get_conn()
+                                                latest = conn.execute(
+                                                    "SELECT close FROM candles WHERE symbol = ? AND timeframe = '1d' ORDER BY timestamp DESC LIMIT 1",
+                                                    (sym,)
+                                                ).fetchone()
+                                                if latest:
+                                                    current_price = float(latest['close'])
                                             except Exception:
                                                 pass
+                                            # Fallback to Yahoo Finance
+                                            if current_price is None:
+                                                try:
+                                                    yahoo_sym = convert_to_yahoo_symbol(sym)
+                                                    data = yf.Ticker(yahoo_sym).history(period='1d', interval='1d')
+                                                    data.columns = [c.lower() for c in data.columns]
+                                                    if len(data) > 0:
+                                                        current_price = float(data['close'].iloc[-1])
+                                                except Exception:
+                                                    pass
 
                                             if current_price is not None and qty > 0:
                                                 if side == 'LONG':
@@ -3048,7 +3061,7 @@ def main():
                                 # Try DB first, fall back to CSV
                                 sub_trades = None
                                 try:
-                                    db_trades = _dashboard_db.get_closed_trades(pf_key)
+                                    db_trades = _dashboard_db.get_closed_trades(name)
                                     if db_trades:
                                         sub_trades = pd.DataFrame(db_trades)
                                 except Exception:
