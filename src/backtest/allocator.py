@@ -73,18 +73,29 @@ class TradingPlan:
 # ============================================================================
 
 RISK_RANGES = {
-    'crypto':         {'sl': (5, 12), 'tp': (10, 25)},
-    'tech_stocks':    {'sl': (2, 6),  'tp': (4, 12)},
-    'semiconductors': {'sl': (2, 6),  'tp': (4, 12)},
-    'finance':        {'sl': (2, 5),  'tp': (3, 10)},
-    'healthcare':     {'sl': (2, 5),  'tp': (3, 8)},
-    'energy':         {'sl': (3, 7),  'tp': (5, 12)},
-    'consumer':       {'sl': (2, 5),  'tp': (3, 8)},
-    'commodities':    {'sl': (3, 8),  'tp': (6, 15)},
-    'indices':        {'sl': (2, 5),  'tp': (3, 8)},
-    'forex':          {'sl': (1, 3),  'tp': (2, 6)},
-    'etf':            {'sl': (2, 5),  'tp': (3, 8)},
-    'defensive':      {'sl': (2, 4),  'tp': (3, 7)},
+    'crypto':              {'sl': (5, 12), 'tp': (10, 25)},
+    'crypto_extra':        {'sl': (5, 12), 'tp': (10, 25)},
+    'tech_stocks':         {'sl': (2, 6),  'tp': (4, 12)},
+    'tech_growth_extra':   {'sl': (2, 6),  'tp': (4, 12)},
+    'semiconductors':      {'sl': (2, 6),  'tp': (4, 12)},
+    'finance':             {'sl': (2, 5),  'tp': (3, 10)},
+    'healthcare':          {'sl': (2, 5),  'tp': (3, 8)},
+    'energy':              {'sl': (3, 7),  'tp': (5, 12)},
+    'consumer':            {'sl': (2, 5),  'tp': (3, 8)},
+    'commodities':         {'sl': (3, 8),  'tp': (6, 15)},
+    'commodities_extra':   {'sl': (3, 8),  'tp': (6, 15)},
+    'indices':             {'sl': (2, 5),  'tp': (3, 8)},
+    'indices_extra':       {'sl': (2, 5),  'tp': (3, 8)},
+    'forex':               {'sl': (1, 3),  'tp': (2, 6)},
+    'forex_extra':         {'sl': (1, 3),  'tp': (2, 6)},
+    'etf':                 {'sl': (2, 5),  'tp': (3, 8)},
+    'etf_europe':          {'sl': (2, 5),  'tp': (3, 8)},
+    'defensive':           {'sl': (2, 4),  'tp': (3, 7)},
+    'france_cac40':        {'sl': (2, 6),  'tp': (4, 10)},
+    'germany_dax':         {'sl': (2, 6),  'tp': (4, 10)},
+    'uk_ftse':             {'sl': (2, 6),  'tp': (4, 10)},
+    'europe_north_benelux': {'sl': (2, 6), 'tp': (4, 10)},
+    'asia_stocks':         {'sl': (2, 6),  'tp': (4, 12)},
 }
 
 
@@ -107,11 +118,14 @@ class StrategyAllocator:
         min_sharpe: float = 0.0,
         max_drawdown: float = 50.0,
         min_win_rate: float = 0.0,
-        # Poids du score composite
-        weight_sharpe: float = 0.40,
-        weight_return: float = 0.25,
-        weight_drawdown: float = 0.20,
-        weight_winrate: float = 0.15,
+        # Poids du score composite (7 dimensions)
+        weight_sharpe: float = 0.25,
+        weight_return: float = 0.15,
+        weight_drawdown: float = 0.15,
+        weight_winrate: float = 0.10,
+        weight_stability: float = 0.15,
+        weight_robustness: float = 0.10,
+        weight_regime_fit: float = 0.10,
         # Allocation
         allocation_method: str = 'score_weighted',
         max_alloc_per_asset: float = 25.0,
@@ -135,6 +149,9 @@ class StrategyAllocator:
             'return': weight_return,
             'drawdown': weight_drawdown,
             'winrate': weight_winrate,
+            'stability': weight_stability,
+            'robustness': weight_robustness,
+            'regime_fit': weight_regime_fit,
         }
 
         # Allocation
@@ -351,18 +368,90 @@ class StrategyAllocator:
         return filtered
 
     def _score(self, df: pd.DataFrame) -> pd.DataFrame:
-        """Calcule le score composite normalise pour chaque paire."""
+        """
+        Calcule le score composite normalise pour chaque paire.
+
+        Score a 7 dimensions (si les donnees sont disponibles) :
+        - sharpe, return, drawdown (inverse), winrate : metriques de base
+        - stability : coherence des resultats across risk modes (SL/TP vs trailing vs none)
+        - robustness : performance dans les regimes de marche difficiles (ranging)
+        - regime_fit : ratio de trades dans le regime favorable de la strategie
+        """
         df = df.copy()
 
-        # Normalisation min-max pour chaque metrique
-        metrics = {
+        # Normalisation min-max pour chaque metrique de base
+        base_metrics = {
             'sharpe_ratio': 'sharpe',
             'total_return_pct': 'return',
             'max_drawdown_pct': 'drawdown',
             'win_rate': 'winrate',
         }
 
-        for col, key in metrics.items():
+        for col, key in base_metrics.items():
+            if col in df.columns:
+                min_val = df[col].min()
+                max_val = df[col].max()
+                if max_val > min_val:
+                    df[f'_norm_{key}'] = (df[col] - min_val) / (max_val - min_val)
+                else:
+                    df[f'_norm_{key}'] = 0.5
+            else:
+                df[f'_norm_{key}'] = 0.5
+
+        # Stability : coherence des Sharpe across risk modes pour le meme asset/strategy
+        # Un Sharpe stable quel que soit le risk mode = strategie robuste
+        if 'risk_mode' in df.columns:
+            stability_map = {}
+            for (asset, strat), group in df.groupby(['asset', 'strategy']):
+                sharpes = group['sharpe_ratio'].dropna()
+                if len(sharpes) >= 2 and abs(sharpes.mean()) > 0.01:
+                    stability_map[(asset, strat)] = max(0, 1 - sharpes.std() / abs(sharpes.mean()))
+                else:
+                    stability_map[(asset, strat)] = 0.5
+            df['_raw_stability'] = df.apply(
+                lambda r: stability_map.get((r['asset'], r['strategy']), 0.5), axis=1
+            )
+        elif 'stability_score' in df.columns:
+            df['_raw_stability'] = df['stability_score'].fillna(0.5)
+        else:
+            df['_raw_stability'] = 0.5
+
+        # Robustness : performance en regime ranging (proxy de marches difficiles)
+        # Strategie robuste = Sharpe positif meme en ranging
+        if 'pnl_ranging' in df.columns and 'trades_ranging' in df.columns:
+            df['_raw_robustness'] = df.apply(
+                lambda r: np.clip(r['pnl_ranging'] / 2 + 0.5, 0, 1)
+                if r.get('trades_ranging', 0) >= 3 else 0.5, axis=1
+            )
+        elif 'robustness_score' in df.columns:
+            df['_raw_robustness'] = df['robustness_score'].fillna(0.5)
+        else:
+            df['_raw_robustness'] = 0.5
+
+        # Regime fit : ratio de trades dans le regime favorable
+        # Trend strategies (MA, EMA, ADX, MACD, Ichimoku) devrait trader en trending
+        # Range strategies (RSI, Bollinger, Stochastic) devrait trader en ranging
+        trend_strats = {'MA_Cross', 'EMA_Cross', 'ADX_Trend', 'MACD', 'Ichimoku',
+                        'TrendFollow', 'MA_Cross_MTF', 'EMA_Cross_MTF', 'ATR_Breakout',
+                        'MACD_Histogram', 'Regime_MA', 'Regime_EMA'}
+        if all(c in df.columns for c in ['trades_trending', 'trades_ranging', 'trades_transition']):
+            def calc_regime_fit(row):
+                total = row.get('trades_trending', 0) + row.get('trades_ranging', 0) + row.get('trades_transition', 0)
+                if total < 5:
+                    return 0.5
+                strat = str(row.get('strategy', ''))
+                is_trend = any(t in strat for t in trend_strats)
+                if is_trend:
+                    return row.get('trades_trending', 0) / total
+                else:
+                    return row.get('trades_ranging', 0) / total
+            df['_raw_regime_fit'] = df.apply(calc_regime_fit, axis=1)
+        else:
+            df['_raw_regime_fit'] = 0.5
+
+        # Normalisation min-max des 3 nouvelles dimensions
+        for key in ['stability', 'robustness', 'regime_fit']:
+            col = f'_raw_{key}'
             min_val = df[col].min()
             max_val = df[col].max()
             if max_val > min_val:
@@ -372,10 +461,13 @@ class StrategyAllocator:
 
         # Score composite (drawdown inverse : plus bas = mieux)
         df['score'] = (
-            self.weights['sharpe']   * df['_norm_sharpe'] +
-            self.weights['return']   * df['_norm_return'] +
-            self.weights['drawdown'] * (1 - df['_norm_drawdown']) +
-            self.weights['winrate']  * df['_norm_winrate']
+            self.weights['sharpe']      * df['_norm_sharpe'] +
+            self.weights['return']      * df['_norm_return'] +
+            self.weights['drawdown']    * (1 - df['_norm_drawdown']) +
+            self.weights['winrate']     * df['_norm_winrate'] +
+            self.weights['stability']   * df['_norm_stability'] +
+            self.weights['robustness']  * df['_norm_robustness'] +
+            self.weights['regime_fit']  * df['_norm_regime_fit']
         )
 
         return df

@@ -18,6 +18,17 @@ from src.strategies.base import (
 from src.strategies.extended import (
     ADXTrendStrategy, VWAPStrategy, IchimokuStrategy
 )
+from src.strategies.long_only import (
+    MovingAverageCrossoverLongOnly, RSIStrategyLongOnly,
+    TrendFollowingLongOnly, BollingerLongOnly,
+    HybridTrendMomentumLongOnly
+)
+from src.strategies.ema_strategies import EMACrossover
+from src.strategies.stochastic_strategy import StochasticStrategy
+from src.strategies.atr_strategy import ATRBreakoutStrategy
+from src.strategies.momentum_strategies import (
+    MACDHistogramStrategy, RSIStochasticConvergence
+)
 from src.config.assets import MONITORED_ASSETS
 from src.data.yahoo import convert_to_yahoo_symbol
 
@@ -27,6 +38,7 @@ from src.data.yahoo import convert_to_yahoo_symbol
 # ============================================================================
 
 STRATEGY_MAP = {
+    # --- Strategies originales (10) ---
     'MA_Crossover_20_50': lambda: MovingAverageCrossover(20, 50),
     'MA_Crossover_10_30': lambda: MovingAverageCrossover(10, 30),
     'RSI_14_30_70': lambda: RSIStrategy(14, 30, 70),
@@ -37,6 +49,19 @@ STRATEGY_MAP = {
     'ADX_Trend_14_25': lambda: ADXTrendStrategy(14, 25),
     'VWAP_20': lambda: VWAPStrategy(20),
     'Ichimoku_9_26_52': lambda: IchimokuStrategy(9, 26, 52),
+    # --- Long-only (5) ---
+    'MA_Crossover_LO_20_50': lambda: MovingAverageCrossoverLongOnly(20, 50),
+    'RSI_LO_14_35_80': lambda: RSIStrategyLongOnly(14, 35, 80),
+    'TrendFollow_LO_20_50_200': lambda: TrendFollowingLongOnly(20, 50, 200),
+    'Bollinger_LO_20_2': lambda: BollingerLongOnly(20, 2),
+    'HybridTrendMom_LO': lambda: HybridTrendMomentumLongOnly(),
+    # --- Nouvelles strategies (5) ---
+    'EMA_Crossover_12_26': lambda: EMACrossover(12, 26),
+    'EMA_Crossover_9_21': lambda: EMACrossover(9, 21),
+    'Stochastic_14_20_80': lambda: StochasticStrategy(14, 3, 20, 80),
+    'ATR_Breakout_20_2x': lambda: ATRBreakoutStrategy(20, 14, 2.0),
+    'MACD_Histogram': lambda: MACDHistogramStrategy(12, 26, 9),
+    'RSI_Stochastic_Conv': lambda: RSIStochasticConvergence(),
 }
 
 
@@ -62,6 +87,28 @@ def instantiate_strategy(strategy_name: str):
             return factory()
 
     # Fallback par mots-clés
+    if 'ema' in name_lower and '9' in name_lower and '21' in name_lower:
+        return EMACrossover(9, 21)
+    if 'ema' in name_lower and 'crossover' in name_lower:
+        return EMACrossover(12, 26)
+    if 'stochastic' in name_lower and 'conv' in name_lower:
+        return RSIStochasticConvergence()
+    if 'stochastic' in name_lower:
+        return StochasticStrategy(14, 3, 20, 80)
+    if 'atr' in name_lower and 'breakout' in name_lower:
+        return ATRBreakoutStrategy(20, 14, 2.0)
+    if 'histogram' in name_lower:
+        return MACDHistogramStrategy(12, 26, 9)
+    if 'hybrid' in name_lower and 'lo' in name_lower:
+        return HybridTrendMomentumLongOnly()
+    if 'trendfollow' in name_lower and 'lo' in name_lower:
+        return TrendFollowingLongOnly(20, 50, 200)
+    if 'ma' in name_lower and 'lo' in name_lower:
+        return MovingAverageCrossoverLongOnly(20, 50)
+    if 'rsi' in name_lower and 'lo' in name_lower:
+        return RSIStrategyLongOnly(14, 35, 80)
+    if 'bollinger' in name_lower and 'lo' in name_lower:
+        return BollingerLongOnly(20, 2)
     if 'ma' in name_lower and ('crossover' in name_lower or '20' in name_lower and '50' in name_lower):
         return MovingAverageCrossover(20, 50)
     if 'ma' in name_lower and '10' in name_lower and '30' in name_lower:
