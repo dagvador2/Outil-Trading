@@ -1,6 +1,7 @@
 """
-Configuration des 100 actifs a monitorer
+Configuration des 200 actifs a monitorer
 Organises par categorie avec metadonnees
+100 actifs originaux + 100 nouveaux (fort accent europeen)
 """
 
 MONITORED_ASSETS = {
@@ -31,6 +32,22 @@ MONITORED_ASSETS = {
     ],
 
     # ============================================================================
+    # CRYPTO SUPPLEMENTAIRES (10 actifs) [NOUVEAU]
+    # ============================================================================
+    'crypto_extra': [
+        {'symbol': 'MATIC/USDT', 'name': 'Polygon', 'market_cap_rank': 14},
+        {'symbol': 'FTM/USDT', 'name': 'Fantom', 'market_cap_rank': 55},
+        {'symbol': 'AAVE/USDT', 'name': 'Aave', 'market_cap_rank': 35},
+        {'symbol': 'MKR/USDT', 'name': 'Maker', 'market_cap_rank': 40},
+        {'symbol': 'CRV/USDT', 'name': 'Curve DAO', 'market_cap_rank': 80},
+        {'symbol': 'APE/USDT', 'name': 'ApeCoin', 'market_cap_rank': 90},
+        {'symbol': 'FIL/USDT', 'name': 'Filecoin', 'market_cap_rank': 30},
+        {'symbol': 'SAND/USDT', 'name': 'The Sandbox', 'market_cap_rank': 60},
+        {'symbol': 'MANA/USDT', 'name': 'Decentraland', 'market_cap_rank': 65},
+        {'symbol': 'AXS/USDT', 'name': 'Axie Infinity', 'market_cap_rank': 70},
+    ],
+
+    # ============================================================================
     # TECH STOCKS (10 actifs)
     # ============================================================================
     'tech_stocks': [
@@ -44,6 +61,27 @@ MONITORED_ASSETS = {
         {'symbol': 'AMD', 'name': 'AMD', 'sector': 'Semiconductors'},
         {'symbol': 'NFLX', 'name': 'Netflix', 'sector': 'Streaming'},
         {'symbol': 'COIN', 'name': 'Coinbase', 'sector': 'Crypto Exchange'},
+    ],
+
+    # ============================================================================
+    # TECH & GROWTH US SUPPLEMENTAIRES (15 actifs) [NOUVEAU]
+    # ============================================================================
+    'tech_growth_extra': [
+        {'symbol': 'CRM', 'name': 'Salesforce', 'sector': 'Cloud/CRM'},
+        {'symbol': 'ORCL', 'name': 'Oracle', 'sector': 'Enterprise Software'},
+        {'symbol': 'IBM', 'name': 'IBM', 'sector': 'IT Services'},
+        {'symbol': 'DIS', 'name': 'Walt Disney', 'sector': 'Entertainment'},
+        {'symbol': 'UBER', 'name': 'Uber Technologies', 'sector': 'Mobility'},
+        {'symbol': 'SQ', 'name': 'Block (Square)', 'sector': 'Fintech'},
+        {'symbol': 'PYPL', 'name': 'PayPal', 'sector': 'Fintech'},
+        {'symbol': 'PLTR', 'name': 'Palantir Technologies', 'sector': 'Data Analytics'},
+        {'symbol': 'RIVN', 'name': 'Rivian Automotive', 'sector': 'Electric Vehicles'},
+        {'symbol': 'BABA', 'name': 'Alibaba Group', 'sector': 'E-commerce China'},
+        {'symbol': 'SHOP', 'name': 'Shopify', 'sector': 'E-commerce SaaS'},
+        {'symbol': 'SNAP', 'name': 'Snap Inc', 'sector': 'Social Media'},
+        {'symbol': 'ROKU', 'name': 'Roku', 'sector': 'Streaming Tech'},
+        {'symbol': 'ZM', 'name': 'Zoom Video', 'sector': 'Video Communications'},
+        {'symbol': 'ABNB', 'name': 'Airbnb', 'sector': 'Travel Tech'},
     ],
 
     # ============================================================================
@@ -118,6 +156,17 @@ MONITORED_ASSETS = {
     ],
 
     # ============================================================================
+    # COMMODITIES SUPPLEMENTAIRES (5 actifs) [NOUVEAU]
+    # ============================================================================
+    'commodities_extra': [
+        {'symbol': 'SB=F', 'name': 'Sugar', 'unit': 'lb'},
+        {'symbol': 'CC=F', 'name': 'Cocoa', 'unit': 'ton'},
+        {'symbol': 'OJ=F', 'name': 'Orange Juice', 'unit': 'lb'},
+        {'symbol': 'LBS=F', 'name': 'Lumber', 'unit': 'board ft'},
+        {'symbol': 'LE=F', 'name': 'Live Cattle', 'unit': 'lb'},
+    ],
+
+    # ============================================================================
     # INDICES (10 actifs)
     # ============================================================================
     'indices': [
@@ -131,6 +180,17 @@ MONITORED_ASSETS = {
         {'symbol': '^RUT', 'name': 'Russell 2000', 'region': 'US'},
         {'symbol': '^HSI', 'name': 'Hang Seng', 'region': 'Hong Kong'},
         {'symbol': '^STOXX50E', 'name': 'Euro Stoxx 50', 'region': 'Europe'},
+    ],
+
+    # ============================================================================
+    # INDICES EUROPEENS & ASIATIQUES SUPPLEMENTAIRES (5 actifs) [NOUVEAU]
+    # ============================================================================
+    'indices_extra': [
+        {'symbol': '^IBEX', 'name': 'IBEX 35', 'region': 'Spain'},
+        {'symbol': '^AEX', 'name': 'AEX', 'region': 'Netherlands'},
+        {'symbol': '^SSMI', 'name': 'SMI', 'region': 'Switzerland'},
+        {'symbol': '^KS11', 'name': 'KOSPI', 'region': 'South Korea'},
+        {'symbol': '^BSESN', 'name': 'BSE Sensex', 'region': 'India'},
     ],
 
     # ============================================================================
@@ -150,6 +210,17 @@ MONITORED_ASSETS = {
     ],
 
     # ============================================================================
+    # FOREX SUPPLEMENTAIRES (5 actifs) [NOUVEAU]
+    # ============================================================================
+    'forex_extra': [
+        {'symbol': 'EURCHF=X', 'name': 'EUR/CHF', 'pair': 'EUR/CHF'},
+        {'symbol': 'EURAUD=X', 'name': 'EUR/AUD', 'pair': 'EUR/AUD'},
+        {'symbol': 'GBPCHF=X', 'name': 'GBP/CHF', 'pair': 'GBP/CHF'},
+        {'symbol': 'USDNOK=X', 'name': 'USD/NOK', 'pair': 'USD/NOK'},
+        {'symbol': 'USDSEK=X', 'name': 'USD/SEK', 'pair': 'USD/SEK'},
+    ],
+
+    # ============================================================================
     # ETF (10 actifs)
     # ============================================================================
     'etf': [
@@ -166,6 +237,22 @@ MONITORED_ASSETS = {
     ],
 
     # ============================================================================
+    # ETF EUROPEENS (10 actifs) [NOUVEAU]
+    # ============================================================================
+    'etf_europe': [
+        {'symbol': 'EWG', 'name': 'iShares MSCI Germany', 'tracks': 'Germany Large Cap'},
+        {'symbol': 'EWU', 'name': 'iShares MSCI United Kingdom', 'tracks': 'UK Large Cap'},
+        {'symbol': 'EWQ', 'name': 'iShares MSCI France', 'tracks': 'France Large Cap'},
+        {'symbol': 'EWP', 'name': 'iShares MSCI Spain', 'tracks': 'Spain Large Cap'},
+        {'symbol': 'EWI', 'name': 'iShares MSCI Italy', 'tracks': 'Italy Large Cap'},
+        {'symbol': 'EWL', 'name': 'iShares MSCI Switzerland', 'tracks': 'Switzerland Large Cap'},
+        {'symbol': 'EWN', 'name': 'iShares MSCI Netherlands', 'tracks': 'Netherlands Large Cap'},
+        {'symbol': 'IEUR', 'name': 'iShares Core MSCI Europe', 'tracks': 'Europe Large Cap'},
+        {'symbol': 'VGK', 'name': 'Vanguard FTSE Europe', 'tracks': 'Europe All Cap'},
+        {'symbol': 'EZU', 'name': 'iShares MSCI Eurozone', 'tracks': 'Eurozone Large Cap'},
+    ],
+
+    # ============================================================================
     # DEFENSIVE STOCKS (5 actifs)
     # ============================================================================
     'defensive': [
@@ -174,6 +261,86 @@ MONITORED_ASSETS = {
         {'symbol': 'KO', 'name': 'Coca-Cola', 'sector': 'Beverages'},
         {'symbol': 'PEP', 'name': 'PepsiCo', 'sector': 'Beverages'},
         {'symbol': 'WMT', 'name': 'Walmart', 'sector': 'Retail'},
+    ],
+
+    # ============================================================================
+    # ACTIONS FRANCAISES - CAC 40 (10 actifs) [NOUVEAU]
+    # ============================================================================
+    'france_cac40': [
+        {'symbol': 'MC.PA', 'name': 'LVMH', 'sector': 'Luxury', 'region': 'France'},
+        {'symbol': 'TTE.PA', 'name': 'TotalEnergies', 'sector': 'Energy', 'region': 'France'},
+        {'symbol': 'SAN.PA', 'name': 'Sanofi', 'sector': 'Pharma', 'region': 'France'},
+        {'symbol': 'AI.PA', 'name': 'Air Liquide', 'sector': 'Chemicals', 'region': 'France'},
+        {'symbol': 'SU.PA', 'name': 'Schneider Electric', 'sector': 'Electrical Equipment', 'region': 'France'},
+        {'symbol': 'OR.PA', 'name': "L'Oreal", 'sector': 'Cosmetics', 'region': 'France'},
+        {'symbol': 'RMS.PA', 'name': 'Hermes', 'sector': 'Luxury', 'region': 'France'},
+        {'symbol': 'DSY.PA', 'name': 'Dassault Systemes', 'sector': 'Software', 'region': 'France'},
+        {'symbol': 'BNP.PA', 'name': 'BNP Paribas', 'sector': 'Banking', 'region': 'France'},
+        {'symbol': 'CS.PA', 'name': 'AXA', 'sector': 'Insurance', 'region': 'France'},
+    ],
+
+    # ============================================================================
+    # ACTIONS ALLEMANDES - DAX (10 actifs) [NOUVEAU]
+    # ============================================================================
+    'germany_dax': [
+        {'symbol': 'SAP.DE', 'name': 'SAP', 'sector': 'Enterprise Software', 'region': 'Germany'},
+        {'symbol': 'SIE.DE', 'name': 'Siemens', 'sector': 'Industrial Conglomerate', 'region': 'Germany'},
+        {'symbol': 'ALV.DE', 'name': 'Allianz', 'sector': 'Insurance', 'region': 'Germany'},
+        {'symbol': 'BAS.DE', 'name': 'BASF', 'sector': 'Chemicals', 'region': 'Germany'},
+        {'symbol': 'DTE.DE', 'name': 'Deutsche Telekom', 'sector': 'Telecom', 'region': 'Germany'},
+        {'symbol': 'BMW.DE', 'name': 'BMW', 'sector': 'Automotive', 'region': 'Germany'},
+        {'symbol': 'ADS.DE', 'name': 'Adidas', 'sector': 'Sportswear', 'region': 'Germany'},
+        {'symbol': 'MBG.DE', 'name': 'Mercedes-Benz Group', 'sector': 'Automotive', 'region': 'Germany'},
+        {'symbol': 'IFX.DE', 'name': 'Infineon Technologies', 'sector': 'Semiconductors', 'region': 'Germany'},
+        {'symbol': 'BAYN.DE', 'name': 'Bayer', 'sector': 'Pharma/Chemicals', 'region': 'Germany'},
+    ],
+
+    # ============================================================================
+    # ACTIONS BRITANNIQUES - FTSE (10 actifs) [NOUVEAU]
+    # ============================================================================
+    'uk_ftse': [
+        {'symbol': 'SHEL.L', 'name': 'Shell', 'sector': 'Oil & Gas', 'region': 'UK'},
+        {'symbol': 'AZN.L', 'name': 'AstraZeneca', 'sector': 'Pharma', 'region': 'UK'},
+        {'symbol': 'HSBA.L', 'name': 'HSBC Holdings', 'sector': 'Banking', 'region': 'UK'},
+        {'symbol': 'ULVR.L', 'name': 'Unilever', 'sector': 'Consumer Goods', 'region': 'UK'},
+        {'symbol': 'RIO.L', 'name': 'Rio Tinto', 'sector': 'Mining', 'region': 'UK'},
+        {'symbol': 'BP.L', 'name': 'BP', 'sector': 'Oil & Gas', 'region': 'UK'},
+        {'symbol': 'GSK.L', 'name': 'GSK', 'sector': 'Pharma', 'region': 'UK'},
+        {'symbol': 'DGE.L', 'name': 'Diageo', 'sector': 'Beverages', 'region': 'UK'},
+        {'symbol': 'BARC.L', 'name': 'Barclays', 'sector': 'Banking', 'region': 'UK'},
+        {'symbol': 'RR.L', 'name': 'Rolls-Royce', 'sector': 'Aerospace & Defense', 'region': 'UK'},
+    ],
+
+    # ============================================================================
+    # ACTIONS EUROPE NORD & BENELUX (10 actifs) [NOUVEAU]
+    # ============================================================================
+    'europe_north_benelux': [
+        {'symbol': 'ASML.AS', 'name': 'ASML Holding', 'sector': 'Semiconductors', 'region': 'Netherlands'},
+        {'symbol': 'PHIA.AS', 'name': 'Koninklijke Philips', 'sector': 'Health Tech', 'region': 'Netherlands'},
+        {'symbol': 'INGA.AS', 'name': 'ING Group', 'sector': 'Banking', 'region': 'Netherlands'},
+        {'symbol': 'NESN.SW', 'name': 'Nestle', 'sector': 'Food & Beverage', 'region': 'Switzerland'},
+        {'symbol': 'NOVN.SW', 'name': 'Novartis', 'sector': 'Pharma', 'region': 'Switzerland'},
+        {'symbol': 'ROG.SW', 'name': 'Roche', 'sector': 'Pharma', 'region': 'Switzerland'},
+        {'symbol': 'UBSG.SW', 'name': 'UBS Group', 'sector': 'Banking', 'region': 'Switzerland'},
+        {'symbol': 'ITX.MC', 'name': 'Inditex (Zara)', 'sector': 'Retail/Fashion', 'region': 'Spain'},
+        {'symbol': 'SAN.MC', 'name': 'Banco Santander', 'sector': 'Banking', 'region': 'Spain'},
+        {'symbol': 'IBE.MC', 'name': 'Iberdrola', 'sector': 'Utilities/Renewables', 'region': 'Spain'},
+    ],
+
+    # ============================================================================
+    # ACTIONS ASIATIQUES (10 actifs) [NOUVEAU]
+    # ============================================================================
+    'asia_stocks': [
+        {'symbol': '7203.T', 'name': 'Toyota Motor', 'sector': 'Automotive', 'region': 'Japan'},
+        {'symbol': '6758.T', 'name': 'Sony Group', 'sector': 'Electronics/Entertainment', 'region': 'Japan'},
+        {'symbol': '9984.T', 'name': 'SoftBank Group', 'sector': 'Investment/Tech', 'region': 'Japan'},
+        {'symbol': '6861.T', 'name': 'Keyence', 'sector': 'Sensors/Automation', 'region': 'Japan'},
+        {'symbol': '8306.T', 'name': 'Mitsubishi UFJ Financial', 'sector': 'Banking', 'region': 'Japan'},
+        {'symbol': '005930.KS', 'name': 'Samsung Electronics', 'sector': 'Electronics', 'region': 'South Korea'},
+        {'symbol': '9988.HK', 'name': 'Alibaba Group (HK)', 'sector': 'E-commerce', 'region': 'Hong Kong'},
+        {'symbol': '0700.HK', 'name': 'Tencent Holdings', 'sector': 'Tech/Gaming', 'region': 'Hong Kong'},
+        {'symbol': '2330.TW', 'name': 'Taiwan Semiconductor (TSMC)', 'sector': 'Semiconductors', 'region': 'Taiwan'},
+        {'symbol': 'RELIANCE.NS', 'name': 'Reliance Industries', 'sector': 'Conglomerate', 'region': 'India'},
     ],
 }
 
@@ -247,7 +414,7 @@ def get_recommended_strategy(symbol, category=None):
     if category is None:
         category = get_category_from_symbol(symbol)
 
-    if category == 'crypto':
+    if category == 'crypto' or category == 'crypto_extra':
         if symbol == 'BTC/USDT':
             return ('Bollinger 20/2', {'period': 20, 'num_std': 2})
         elif symbol == 'ETH/USDT':
@@ -255,13 +422,13 @@ def get_recommended_strategy(symbol, category=None):
         else:
             return ('RSI 14/35/80', {'period': 14, 'oversold': 35, 'overbought': 80})
 
-    elif category == 'tech_stocks':
+    elif category in ('tech_stocks', 'tech_growth_extra'):
         if symbol == 'NVDA':
             return ('RSI 14/35/80', {'period': 14, 'oversold': 35, 'overbought': 80})
         else:
             return ('Combined', {})
 
-    elif category == 'commodities':
+    elif category in ('commodities', 'commodities_extra'):
         if symbol == 'SI=F':
             return ('Event-Aware Combined', {'event_sensitivity': 1.5})
         elif symbol == 'NG=F':
@@ -269,11 +436,20 @@ def get_recommended_strategy(symbol, category=None):
         else:
             return ('Combined', {})
 
-    elif category == 'indices':
+    elif category in ('indices', 'indices_extra'):
         return ('MA Crossover 20/50', {'fast': 20, 'slow': 50})
 
-    elif category == 'forex':
+    elif category in ('forex', 'forex_extra'):
         return ('Event-Aware MA 20/50', {'fast': 20, 'slow': 50, 'event_sensitivity': 1.0})
+
+    elif category in ('france_cac40', 'germany_dax', 'uk_ftse', 'europe_north_benelux'):
+        return ('Ichimoku 9/26/52', {'tenkan': 9, 'kijun': 26, 'senkou_b': 52})
+
+    elif category == 'asia_stocks':
+        return ('ADX Trend 14/25', {'adx_period': 14, 'adx_threshold': 25})
+
+    elif category in ('etf', 'etf_europe'):
+        return ('MA Crossover 20/50', {'fast': 20, 'slow': 50})
 
     else:
         return ('Combined', {})

@@ -300,6 +300,132 @@ SYMBOL_MAPPING = {
     'NEAR/USDT': 'NEAR-USD',
     'SUI/USDT': 'SUI20947-USD',
     'ALGO/USDT': 'ALGO-USD',
+
+    # ============================================================
+    # NOUVEAUX ACTIFS (100 supplementaires)
+    # ============================================================
+
+    # Crypto supplementaires
+    'MATIC/USDT': 'MATIC-USD',
+    'FTM/USDT': 'FTM-USD',
+    'AAVE/USDT': 'AAVE-USD',
+    'MKR/USDT': 'MKR-USD',
+    'CRV/USDT': 'CRV-USD',
+    'APE/USDT': 'APE18876-USD',
+    'FIL/USDT': 'FIL-USD',
+    'SAND/USDT': 'SAND-USD',
+    'MANA/USDT': 'MANA-USD',
+    'AXS/USDT': 'AXS-USD',
+
+    # Tech & Growth US extra
+    'CRM': 'CRM',
+    'ORCL': 'ORCL',
+    'IBM': 'IBM',
+    'DIS': 'DIS',
+    'UBER': 'UBER',
+    'SQ': 'SQ',
+    'PYPL': 'PYPL',
+    'PLTR': 'PLTR',
+    'RIVN': 'RIVN',
+    'BABA': 'BABA',
+    'SHOP': 'SHOP',
+    'SNAP': 'SNAP',
+    'ROKU': 'ROKU',
+    'ZM': 'ZM',
+    'ABNB': 'ABNB',
+
+    # Commodities extra
+    'SB=F': 'SB=F',
+    'CC=F': 'CC=F',
+    'OJ=F': 'OJ=F',
+    'LBS=F': 'LBS=F',
+    'LE=F': 'LE=F',
+
+    # Indices extra
+    '^IBEX': '^IBEX',
+    '^AEX': '^AEX',
+    '^SSMI': '^SSMI',
+    '^KS11': '^KS11',
+    '^BSESN': '^BSESN',
+
+    # Forex extra
+    'EURCHF=X': 'EURCHF=X',
+    'EURAUD=X': 'EURAUD=X',
+    'GBPCHF=X': 'GBPCHF=X',
+    'USDNOK=X': 'USDNOK=X',
+    'USDSEK=X': 'USDSEK=X',
+
+    # ETF Europe
+    'EWG': 'EWG',
+    'EWU': 'EWU',
+    'EWQ': 'EWQ',
+    'EWP': 'EWP',
+    'EWI': 'EWI',
+    'EWL': 'EWL',
+    'EWN': 'EWN',
+    'IEUR': 'IEUR',
+    'VGK': 'VGK',
+    'EZU': 'EZU',
+
+    # Actions Francaises (Euronext Paris)
+    'MC.PA': 'MC.PA',
+    'TTE.PA': 'TTE.PA',
+    'SAN.PA': 'SAN.PA',
+    'AI.PA': 'AI.PA',
+    'SU.PA': 'SU.PA',
+    'OR.PA': 'OR.PA',
+    'RMS.PA': 'RMS.PA',
+    'DSY.PA': 'DSY.PA',
+    'BNP.PA': 'BNP.PA',
+    'CS.PA': 'CS.PA',
+
+    # Actions Allemandes (Xetra)
+    'SAP.DE': 'SAP.DE',
+    'SIE.DE': 'SIE.DE',
+    'ALV.DE': 'ALV.DE',
+    'BAS.DE': 'BAS.DE',
+    'DTE.DE': 'DTE.DE',
+    'BMW.DE': 'BMW.DE',
+    'ADS.DE': 'ADS.DE',
+    'MBG.DE': 'MBG.DE',
+    'IFX.DE': 'IFX.DE',
+    'BAYN.DE': 'BAYN.DE',
+
+    # Actions UK (London Stock Exchange)
+    'SHEL.L': 'SHEL.L',
+    'AZN.L': 'AZN.L',
+    'HSBA.L': 'HSBA.L',
+    'ULVR.L': 'ULVR.L',
+    'RIO.L': 'RIO.L',
+    'BP.L': 'BP.L',
+    'GSK.L': 'GSK.L',
+    'DGE.L': 'DGE.L',
+    'BARC.L': 'BARC.L',
+    'RR.L': 'RR.L',
+
+    # Europe Nord & Benelux
+    'ASML.AS': 'ASML.AS',
+    'PHIA.AS': 'PHIA.AS',
+    'INGA.AS': 'INGA.AS',
+    'NESN.SW': 'NESN.SW',
+    'NOVN.SW': 'NOVN.SW',
+    'ROG.SW': 'ROG.SW',
+    'UBSG.SW': 'UBSG.SW',
+    'ITX.MC': 'ITX.MC',
+    'SAN.MC': 'SAN.MC',
+    'IBE.MC': 'IBE.MC',
+
+    # Actions Asiatiques
+    '7203.T': '7203.T',
+    '6758.T': '6758.T',
+    '9984.T': '9984.T',
+    '6861.T': '6861.T',
+    '8306.T': '8306.T',
+    '005930.KS': '005930.KS',
+    '9988.HK': '9988.HK',
+    '0700.HK': '0700.HK',
+    '2330.TW': '2330.TW',
+    'RELIANCE.NS': 'RELIANCE.NS',
 }
 
 
