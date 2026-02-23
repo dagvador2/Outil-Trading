@@ -333,15 +333,16 @@ class MultiPaperTrader:
     def run_sltp_cycle(self):
         """Check SL/TP uniquement (rapide, pas de generation de signaux)."""
         total_positions = sum(len(t.positions) for t in self.traders)
-        if total_positions == 0:
+        total_pending = sum(len(t.pending_orders) for t in self.traders)
+        if total_positions == 0 and total_pending == 0:
             return
 
         self.log.info(f"\n--- SL/TP CHECK - {datetime.now().strftime('%H:%M:%S')} "
-                      f"({total_positions} positions ouvertes) ---")
+                      f"({total_positions} positions, {total_pending} pending) ---")
 
         closed_count = 0
         for trader in self.traders:
-            if not trader.positions:
+            if not trader.positions and not trader.pending_orders:
                 continue
             try:
                 before = len(trader.positions)

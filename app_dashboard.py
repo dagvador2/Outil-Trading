@@ -2141,7 +2141,7 @@ def main():
                     }
                 n_portfolios = len(portfolios)
                 return {
-                    'last_update': rows[0]['last_update'] if rows else 'N/A',
+                    'last_update': max((r['last_update'] for r in rows), default='N/A'),
                     'total_capital': total_capital,
                     'capital_per_portfolio': total_capital / n_portfolios if n_portfolios else 0,
                     'n_portfolios': n_portfolios,
